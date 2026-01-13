@@ -5,6 +5,7 @@ Get Profile Pulse running in 5 minutes.
 ## Prerequisites
 
 Install Rust:
+
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source $HOME/.cargo/env
@@ -30,6 +31,7 @@ cargo run
 ## Common Commands
 
 ### Development
+
 ```bash
 # Build (debug mode)
 cargo build
@@ -49,6 +51,7 @@ cargo watch -x run
 ```
 
 ### Testing
+
 ```bash
 # Run all tests
 cargo test
@@ -64,6 +67,7 @@ cargo test db::tests
 ```
 
 ### Code Quality
+
 ```bash
 # Format code
 cargo fmt
@@ -79,6 +83,7 @@ cargo clippy --fix
 ```
 
 ### Database
+
 ```bash
 # Database is created automatically on first run
 # Default location:
@@ -96,6 +101,7 @@ cargo run
 ```
 
 ### Configuration
+
 ```bash
 # Copy example environment file
 cp .env.example .env
@@ -114,6 +120,7 @@ export DEBUG=1
 ### Build Errors
 
 **Problem**: `linker 'cc' not found`
+
 ```bash
 # Ubuntu/Debian
 sudo apt install build-essential
@@ -126,6 +133,7 @@ xcode-select --install
 ```
 
 **Problem**: `could not find native static library sqlite3`
+
 ```bash
 # Ubuntu/Debian
 sudo apt install libsqlite3-dev
@@ -138,6 +146,7 @@ brew install sqlite3
 ```
 
 **Problem**: Dependencies fail to compile
+
 ```bash
 # Clean and rebuild
 cargo clean
@@ -147,10 +156,12 @@ cargo build
 ### Runtime Errors
 
 **Problem**: Permission denied
+
 - Check data directory permissions
 - Ensure sufficient disk space
 
 **Problem**: Database locked
+
 - Close other instances of the application
 - Remove stale lock files
 

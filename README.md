@@ -13,6 +13,7 @@ Profile Pulse is a cross-platform desktop application built in Rust that helps y
 ## ✨ Features
 
 ### Current
+
 - 🚧 **In Development** - Phase 1 Foundation (80% complete)
 - ✅ **Database Layer** - SQLite with full CRUD operations
 - ✅ **Core Models** - Contact and social profile data structures
@@ -114,7 +115,7 @@ See the [Roadmap](docs/ROADMAP.md) for detailed progress and [Status](STATUS.md)
 ✅ **Database Layer**: SQLite with migrations, models, and repository pattern  
 ✅ **Core Domain**: Contact and social profile models with validation  
 ✅ **Application Setup**: Configuration, logging, and initialization  
-✅ **CI/CD**: GitHub Actions workflow for testing and building  
+✅ **CI/CD**: GitHub Actions workflow for testing and building
 
 ### What's Next
 

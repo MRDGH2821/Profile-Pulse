@@ -30,6 +30,7 @@ cargo run
 ### System Dependencies
 
 #### Ubuntu/Debian
+
 ```bash
 sudo apt update
 sudo apt install -y \
@@ -40,6 +41,7 @@ sudo apt install -y \
 ```
 
 #### Fedora
+
 ```bash
 sudo dnf install -y \
   gcc \
@@ -49,12 +51,14 @@ sudo dnf install -y \
 ```
 
 #### macOS
+
 ```bash
 # Using Homebrew
 brew install sqlite3 pkg-config
 ```
 
 #### Windows
+
 - Install [Visual Studio Build Tools](https://visualstudio.microsoft.com/downloads/)
 - SQLite is bundled with sqlx (no separate installation needed)
 
@@ -174,11 +178,13 @@ cargo doc --document-private-items
 ### Watch Mode (Auto-rebuild)
 
 Install cargo-watch:
+
 ```bash
 cargo install cargo-watch
 ```
 
 Then use:
+
 ```bash
 # Auto-rebuild on changes
 cargo watch -x run
@@ -223,6 +229,7 @@ cargo run
 ### Compilation Errors
 
 **Error: `linker 'cc' not found`**
+
 ```bash
 # Install C compiler
 # Ubuntu/Debian: sudo apt install build-essential
@@ -231,6 +238,7 @@ cargo run
 ```
 
 **Error: `could not find native static library sqlite3`**
+
 ```bash
 # Install SQLite development files
 # Ubuntu/Debian: sudo apt install libsqlite3-dev
@@ -239,6 +247,7 @@ cargo run
 ```
 
 **Error: `error[E0433]: failed to resolve`**
+
 ```bash
 # Clean and rebuild
 cargo clean
@@ -248,15 +257,18 @@ cargo build
 ### Runtime Errors
 
 **Database locked**
+
 - Close any other instances of the application
 - Check for stale lock files
 - Increase connection timeout in configuration
 
 **Permission denied**
+
 - Ensure write permissions for data directory
 - Check disk space availability
 
 **Failed to initialize database**
+
 - Verify SQLite is installed
 - Check database path is valid
 - Ensure parent directories exist

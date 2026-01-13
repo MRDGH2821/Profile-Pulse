@@ -107,29 +107,35 @@ Before making changes, review the comprehensive documentation in the `docs/` dir
 ## 2024-12-15 14:30:22+00:00
 
 ### Request
+
 User asked to implement GitHub profile fetcher with rate limiting
 
 ### AI Model
+
 **Model**: Claude Sonnet 4.5
 **Provider**: Anthropic
 
 ### Work Performed
+
 - Implemented GitHubFetcher struct with async trait
 - Added rate limiting using governor crate
 - Created comprehensive error handling
 - Added unit tests and integration tests
 
 ### Files Changed
+
 - `src/social/github.rs` (created, ~250 lines)
 - `tests/integration/github_tests.rs` (created, ~80 lines)
 - `Cargo.toml` (modified, added governor dependency)
 
 ### Nature of Assistance
+
 - Code generation for fetcher implementation
 - Test case generation
 - Error handling patterns
 
 ### Human Involvement
+
 - Reviewed all generated code for correctness
 - Modified rate limiting to be more conservative (5 req/min instead of 10)
 - Added additional error cases not covered by AI
@@ -137,6 +143,7 @@ User asked to implement GitHub profile fetcher with rate limiting
 - Approved final implementation after modifications
 
 ### Testing Status
+
 - ✅ Compiled successfully
 - ✅ All 12 unit tests passing
 - ✅ Integration tests passing with mock API
@@ -252,6 +259,7 @@ All AI-assisted work must be documented as described in the "AI-Assisted Work Do
 ### AI Assistance Guidelines
 
 **AI can help with**:
+
 - Boilerplate code and scaffolding
 - Documentation and comments
 - Test cases and test data
@@ -261,6 +269,7 @@ All AI-assisted work must be documented as described in the "AI-Assisted Work Do
 - Research and best practices
 
 **Human must**:
+
 - Review all AI-generated code thoroughly
 - Test all functionality comprehensively
 - Make final decisions on architecture and approach
@@ -268,6 +277,7 @@ All AI-assisted work must be documented as described in the "AI-Assisted Work Do
 - Understand the code (never commit code you don't understand)
 
 **Always**:
+
 - Validate AI suggestions against project architecture (see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md))
 - Follow Rust best practices and idioms
 - Ensure code passes all tests and linters
@@ -275,6 +285,7 @@ All AI-assisted work must be documented as described in the "AI-Assisted Work Do
 - Include human review notes in the log
 
 **Never**:
+
 - Commit AI-generated code without review
 - Use AI-generated code you don't understand
 - Skip testing because "AI wrote it"
