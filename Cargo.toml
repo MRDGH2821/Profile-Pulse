@@ -1,0 +1,74 @@
+[package]
+name = "profile-pulse"
+version = "0.1.0"
+edition = "2024"
+description = "Desktop contact management app with social media profile synchronization"
+readme = "README.md"
+repository = "https://github.com/MRDGH2821/Profile-Pulse"
+license = "GPL-3.0-or-later"
+keywords = ["contacts", "desktop", "social-media", "vcard", "vcf"]
+categories = ["gui", "network-programming"]
+
+[[bin]]
+name = "profile-pulse"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0.100"
+async-trait = "0.1.89"
+chrono = { version = "0.4.42", features = ["serde"] }
+directories = "6.0.0"
+dotenv = "0.15.0"
+dotenvy = "0.15.7"
+governor = "0.10.4"
+iced = { version = "0.14.0", features = ["debug", "image", "tokio"] }
+image = { version = "0.25.9", features = ["jpeg", "png", "webp"] }
+# Caching
+moka = { version = "0.12", features = ["future"] }
+# HTTP Client
+reqwest = { version = "0.13", features = ["cookies", "json"] }
+reqwest-middleware = "0.5"
+reqwest-retry = "0.9"
+# Web Scraping
+scraper = "0.25"
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+# Database
+sqlx = { version = "0.8", features = ["chrono", "migrate", "runtime-tokio-rustls", "sqlite", "uuid"] }
+# Fuzzy Matching (for profile discovery)
+strsim = "0.11"
+# Error Handling
+thiserror = "2.0"
+# Async Runtime
+tokio = { version = "1.49", features = ["full"] }
+# Logging
+tracing = "0.1"
+tracing-appender = "0.2"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+# UUID
+uuid = { version = "1.19", features = ["serde", "v4"] }
+# VCF/vCard Support
+vobject = "0.8"
+
+[dev-dependencies]
+# Testing
+mockito = "1.7"
+tempfile = "3.24"
+tokio-test = "0.4"
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3
+strip = true
+lto = "thin"
+codegen-units = 1
+
+[profile.test]
+opt-level = 1
+
+[profile.dev-opt]
+inherits = "dev"
+opt-level = 1

@@ -1,1 +1,75 @@
+# Rust
+/target
+Cargo.lock
+*.pdb
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Application data
+profile-pulse.db*
+
+# Cache
+cache/
+*.cache
+
+# Logs
+*.log
+logs/
+
+# Testing
+coverage/
+
+# MegaLinter
 megalinter-reports/
+
+# Build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Backup files
+*.bak
+*.tmp
+
+# Documentation builds
+docs/_build/
+target/doc/
+
+# Profiling
+flamegraph.svg
+perf.data
+perf.data.old
+
+# Package managers
+node_modules/
+package-lock.json
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+.directory
+.Trash-*
