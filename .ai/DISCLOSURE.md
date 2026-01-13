@@ -1,3 +1,13 @@
+# AI Disclosure (ARCHIVED COPY)
+
+> **⚠️ NOTICE**: This is an archived copy for reference purposes only.  
+> **AUTHORITATIVE VERSION**: See [`DISCLOSURE.md`](../DISCLOSURE.md) in the project root.  
+> **Last Synced**: January 13, 2025  
+> 
+> This file was moved to `.ai/` folder for organizational purposes. The project root version is the official record of all AI usage.
+
+---
+
 # AI Disclosure
 
 ## Purpose

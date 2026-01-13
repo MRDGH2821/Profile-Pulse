@@ -81,16 +81,78 @@ Before making changes, review the comprehensive documentation in the `docs/` dir
 
 ### AI-Assisted Work Documentation
 
-- Document all AI-assisted changes in the `.ai/logs` folder as markdown files
-- Use the naming format: `YYYY-MM-DD.md` (e.g., `2024-12-15.md`)
-- Each documentation file should include:
-  - The prompt or request that initiated the work
-  - Description of what was done
-  - Which AI model was used (e.g., Claude Sonnet 4.5, GPT-4, etc.)
-- If more prompts are provided on the same day, append them to the existing log file with timestamps
-- Use the `date` command to generate timestamps (e.g., `date --iso-8601=seconds` or `date '+%Y-%m-%d %H:%M:%S'`)
-- Place any other relevant documents (prompts, examples, references) in the `.ai` folder
-- This provides transparency and helps track AI contributions to the project
+**IMPORTANT**: This project maintains full transparency about AI assistance through work logs.
+
+**All AI-assisted work must be documented** in `.ai/logs/YYYY-MM-DD.md` files:
+
+- **Naming format**: `YYYY-MM-DD.md` (e.g., `2024-12-15.md`)
+- **Multiple sessions per day**: Append to the existing log file with timestamps
+- **Generate timestamps**: Use `date --iso-8601=seconds` or `date '+%Y-%m-%d %H:%M:%S'`
+
+**Each log entry must include**:
+
+1. **Timestamp** - When the work was performed
+2. **Request/Prompt** - What initiated the work (user request or task description)
+3. **AI Model** - Model name and version (e.g., Claude Sonnet 4.5, GPT-4, etc.)
+4. **Provider** - AI provider (e.g., Anthropic, OpenAI)
+5. **Work Performed** - Detailed description of what was done
+6. **Files Changed** - List of files created/modified with line counts
+7. **Nature of Assistance** - Type of help (code generation, documentation, refactoring, debugging, etc.)
+8. **Human Involvement** - What decisions were made by humans, how output was reviewed/tested/modified, what was rejected or changed
+9. **Testing Status** - Whether code was tested, compilation status, test results
+
+**Example log entry format**:
+
+```markdown
+## 2024-12-15 14:30:22+00:00
+
+### Request
+User asked to implement GitHub profile fetcher with rate limiting
+
+### AI Model
+**Model**: Claude Sonnet 4.5
+**Provider**: Anthropic
+
+### Work Performed
+- Implemented GitHubFetcher struct with async trait
+- Added rate limiting using governor crate
+- Created comprehensive error handling
+- Added unit tests and integration tests
+
+### Files Changed
+- `src/social/github.rs` (created, ~250 lines)
+- `tests/integration/github_tests.rs` (created, ~80 lines)
+- `Cargo.toml` (modified, added governor dependency)
+
+### Nature of Assistance
+- Code generation for fetcher implementation
+- Test case generation
+- Error handling patterns
+
+### Human Involvement
+- Reviewed all generated code for correctness
+- Modified rate limiting to be more conservative (5 req/min instead of 10)
+- Added additional error cases not covered by AI
+- Tested with real GitHub API
+- Approved final implementation after modifications
+
+### Testing Status
+- ✅ Compiled successfully
+- ✅ All 12 unit tests passing
+- ✅ Integration tests passing with mock API
+- ⏳ Manual testing with real API pending
+```
+
+**Additional Materials**: Place any other relevant documents (prompts, examples, references, generated docs) in the `.ai` folder
+
+**Commit Message Format**: Reference the work log in commit messages:
+
+```
+feat(social): implement GitHub profile fetcher
+
+AI-assisted implementation reviewed and tested.
+See .ai/logs/2024-12-15.md for details.
+```
 
 ## Dev Environment Tips
 
@@ -179,49 +241,45 @@ test(core): add contact validation tests
 chore(deps): update sqlx to 0.7.3
 ```
 
-## AI Usage and Disclosure
+## AI Usage and Transparency
 
-**IMPORTANT**: This project maintains transparency about AI assistance.
+**IMPORTANT**: This project maintains full transparency about AI assistance.
 
-### When Using AI Tools
+### Documentation Requirements
 
-1. **Document in DISCLOSURE.md**: Update [DISCLOSURE.md](DISCLOSURE.md) with:
-   - Date of AI usage
-   - AI model and provider
-   - What was generated (files, code, documentation)
-   - Nature of human involvement and review
-
-2. **Template for Updates**:
-
-   ```markdown
-   ### [Date] - [Brief Description]
-
-   **AI Model**: [Model name and version]
-   **Generated Content**:
-
-   - [File or feature description]
-
-   **Human Involvement**:
-
-   - [What decisions were made]
-   - [How output was reviewed/modified]
-   ```
-
-3. **Commit Message**: Include AI disclosure in commit
-
-   ```
-   feat(social): implement GitHub profile fetcher
-
-   AI-assisted implementation reviewed and tested.
-   See DISCLOSURE.md for details.
-   ```
+All AI-assisted work must be documented as described in the "AI-Assisted Work Documentation" section above. Every AI session requires creating or updating the daily log file in `.ai/logs/YYYY-MM-DD.md`.
 
 ### AI Assistance Guidelines
 
-- AI can help with: boilerplate code, documentation, test cases, refactoring suggestions
-- Human must: review all code, test thoroughly, make final decisions, approve changes
-- Always: validate AI suggestions against project architecture and Rust best practices
-- Document: all significant AI contributions in DISCLOSURE.md
+**AI can help with**:
+- Boilerplate code and scaffolding
+- Documentation and comments
+- Test cases and test data
+- Refactoring suggestions
+- Bug fixes and debugging
+- Code review and optimization suggestions
+- Research and best practices
+
+**Human must**:
+- Review all AI-generated code thoroughly
+- Test all functionality comprehensively
+- Make final decisions on architecture and approach
+- Approve all changes before committing
+- Understand the code (never commit code you don't understand)
+
+**Always**:
+- Validate AI suggestions against project architecture (see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md))
+- Follow Rust best practices and idioms
+- Ensure code passes all tests and linters
+- Document the AI assistance in `.ai/logs/`
+- Include human review notes in the log
+
+**Never**:
+- Commit AI-generated code without review
+- Use AI-generated code you don't understand
+- Skip testing because "AI wrote it"
+- Forget to document AI usage
+- Rely solely on AI for architectural decisions
 
 ## Troubleshooting
 
@@ -273,7 +331,7 @@ chore(deps): update sqlx to 0.7.3
 2. Implement according to [ARCHITECTURE.md](docs/ARCHITECTURE.md) design
 3. Write tests alongside implementation
 4. Update documentation as needed
-5. Document AI usage in [DISCLOSURE.md](DISCLOSURE.md)
+5. Document AI usage in `.ai/logs/YYYY-MM-DD.md`
 
 ### When Integrating APIs
 
@@ -293,7 +351,7 @@ chore(deps): update sqlx to 0.7.3
 
 ### Documentation Updates
 
-- Keep [DISCLOSURE.md](DISCLOSURE.md) current with AI usage
+- Keep `.ai/logs/` current with all AI usage (required for every session)
 - Update [ROADMAP.md](docs/ROADMAP.md) task checkboxes as work completes
 - Modify [ARCHITECTURE.md](docs/ARCHITECTURE.md) if design changes
 - Update [DEVELOPMENT.md](docs/DEVELOPMENT.md) if workflow changes
