@@ -15,8 +15,9 @@ mod discovery;
 mod social;
 mod ui;
 mod utils;
+mod vcf;
 
-use db::{init_pool, run_migrations, DatabaseConfig};
+use db::{init_pool, run_migrations, repository::ContactRepository, DatabaseConfig};
 
 /// Application configuration
 #[derive(Debug, Clone)]
@@ -98,8 +99,8 @@ fn init_logging(debug: bool) {
         .init();
 }
 
-/// Initialize the application
-async fn init_app(config: &AppConfig) -> Result<()> {
+/// Initialize the application and return repository
+async fn init_app(config: &AppConfig) -> Result<ContactRepository> {
     info!("Initializing Profile Pulse");
     info!("Data directory: {}", config.data_dir.display());
     info!("Cache directory: {}", config.cache_dir.display());
@@ -129,12 +130,13 @@ async fn init_app(config: &AppConfig) -> Result<()> {
         stats.contact_count, stats.profile_count, stats.cache_size
     );
 
-    Ok(())
+    // Create repository
+    let repository = ContactRepository::new(pool);
+    Ok(repository)
 }
 
 /// Main application entry point
-#[tokio::main]
-async fn main() -> Result<()> {
+fn main() -> Result<()> {
     // Load configuration
     let config = AppConfig::from_env().context("Failed to load application configuration")?;
 
@@ -143,18 +145,26 @@ async fn main() -> Result<()> {
 
     info!("Starting Profile Pulse v{}", env!("CARGO_PKG_VERSION"));
 
-    // Initialize application
-    if let Err(e) = init_app(&config).await {
-        error!("Failed to initialize application: {}", e);
-        error!("Application will now exit");
-        return Err(e);
-    }
+    // Initialize application (run async init in separate runtime)
+    let repository = tokio::runtime::Runtime::new()
+        .context("Failed to create Tokio runtime")?
+        .block_on(async {
+            match init_app(&config).await {
+                Ok(repo) => {
+                    info!("Application initialized successfully");
+                    Ok(repo)
+                }
+                Err(e) => {
+                    error!("Failed to initialize application: {}", e);
+                    error!("Application will now exit");
+                    Err(e)
+                }
+            }
+        })?;
 
-    info!("Application initialized successfully");
-
-    // Run the GUI application
+    // Run the GUI application (Iced will create its own runtime)
     info!("Launching GUI...");
-    match ui::run() {
+    match ui::run_with_repository(repository) {
         Ok(_) => {
             info!("Application closed normally");
             Ok(())
