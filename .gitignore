@@ -30,6 +30,7 @@ cache/
 # Logs
 *.log
 logs/
+!.ai/logs
 
 # Testing
 coverage/
