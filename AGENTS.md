@@ -79,6 +79,21 @@ Before making changes, review the comprehensive documentation in the `docs/` dir
 3. Review [DEVELOPMENT.md](docs/DEVELOPMENT.md) for setup instructions
 4. Understand the module structure and responsibilities
 
+### AI-Assisted Work Documentation
+
+- Document all AI-assisted changes in the `.ai/logs` folder as markdown files
+- Use the naming format: `YYYY-MM-DD.md` (e.g., `2024-12-15.md`)
+- Each documentation file should include:
+  - The prompt or request that initiated the work
+  - Description of what was done
+  - Which AI model was used (e.g., Claude Sonnet 4.5, GPT-4, etc.)
+- If more prompts are provided on the same day, append them to the existing log file with timestamps
+- Use the `date` command to generate timestamps (e.g., `date --iso-8601=seconds` or `date '+%Y-%m-%d %H:%M:%S'`)
+- Place any other relevant documents (prompts, examples, references) in the `.ai` folder
+- This provides transparency and helps track AI contributions to the project
+
+## Dev Environment Tips
+
 ### Development Process
 
 - Use `--help` or `help` subcommand to get help on a command. It can even reveal hints on how to proceed ahead or optimize the number of steps.
