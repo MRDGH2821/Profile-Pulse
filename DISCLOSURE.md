@@ -104,6 +104,70 @@ This project is committed to transparency regarding AI use:
 - Human oversight and decision-making is maintained
 - Updates to this disclosure will be made if AI is used in future development
 
+## Recording Future AI Usage
+
+**IMPORTANT**: When using AI tools for future work on this project, update this document immediately.
+
+### Template for AI Usage Entries
+
+Add new entries under the "AI-Generated Content" section using this format:
+
+```markdown
+### [Date] - [Brief Description]
+
+**AI Model**: [Model name and version]
+**Provider**: [e.g., Anthropic, OpenAI]
+**Generated Content**:
+
+- [File or feature description with line count if applicable]
+- [What specifically was created or modified]
+
+**Nature of Assistance**:
+
+- [e.g., Code generation, documentation, refactoring, bug fixing]
+
+**Human Involvement**:
+
+- [Decisions made by human]
+- [How output was reviewed/tested/modified]
+- [What was rejected or changed]
+```
+
+### Example Entry
+
+```markdown
+### January 15, 2025 - GitHub Profile Fetcher Implementation
+
+**AI Model**: Claude Sonnet 4 (claude-sonnet-4-20250514)
+**Provider**: Anthropic
+**Generated Content**:
+
+- `src/social/github.rs` - GitHubFetcher implementation (~200 lines)
+- Unit tests for GitHub integration (~100 lines)
+
+**Nature of Assistance**:
+
+- Boilerplate HTTP client setup
+- Error handling patterns
+- Test case generation
+
+**Human Involvement**:
+
+- Reviewed all generated code for correctness
+- Modified rate limiting logic to be more conservative
+- Added additional error cases not covered by AI
+- Tested with real GitHub API
+- Approved final implementation
+```
+
+### Guidelines for Documentation
+
+1. **Document Immediately**: Update DISCLOSURE.md before committing AI-generated changes
+2. **Be Specific**: List exact files and approximate line counts
+3. **Note Modifications**: Describe changes made to AI output
+4. **Include Context**: Explain why AI was used and what problem it solved
+5. **Review Status**: Indicate whether code was tested, reviewed, or deployed
+
 ## Validation
 
 The AI-generated documentation should be treated as a starting point and planning guide. As development progresses:
@@ -120,6 +184,40 @@ If you have questions about the use of AI in this project or concerns about any 
 1. Open an issue on the project repository
 2. Review the specific documentation in question
 3. Understand that all AI output was reviewed and approved by the project owner
+
+## AI Usage Log
+
+This section records all AI assistance used in the project beyond the initial documentation.
+
+### January 13, 2025 - Initial Documentation and License
+
+**AI Model**: Claude Sonnet 4 (claude-sonnet-4-20250514)
+**Provider**: Anthropic
+**Generated Content**:
+
+- All files listed in "Documentation Files" section above
+- LICENSE file (GPLv3 full text)
+- This DISCLOSURE.md document (structure and initial content)
+- Updates to AGENTS.md with project-specific guidance
+
+**Nature of Assistance**:
+
+- Project planning and architecture design
+- Comprehensive technical documentation
+- AI usage documentation framework
+
+**Human Involvement**:
+
+- Provided project concept and requirements
+- Made all key decisions (Rust, GPL license, pure implementation)
+- Requested GPLv3-or-later license specifically
+- Requested AI disclosure document creation
+- Reviewed and approved all content
+- Directed addition of AI usage documentation guidelines
+
+---
+
+_Future AI usage will be documented below this line. Each entry should include date, model, generated content, and human involvement._
 
 ## License
 
