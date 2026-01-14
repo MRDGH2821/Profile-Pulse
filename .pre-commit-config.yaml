@@ -14,7 +14,7 @@ repos:
   - hooks:
       - args:
           - --strict
-          - --scopes zed,vscode,cspell,megalinter,pre-commit
+          - --scopes zed,vscode,cspell,megalinter,pre-commit,ui
           - --force-scope
           - build
           - chore
