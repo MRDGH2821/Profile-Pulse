@@ -83,16 +83,31 @@ pub async fn init_pool(config: &DatabaseConfig) -> Result<SqlitePool> {
 pub async fn run_migrations(pool: &SqlitePool) -> Result<()> {
     info!("Running database migrations");
 
-    // Read and execute the migration file
-    let migration_sql = include_str!("migrations/20250113_001_initial_schema.sql");
+    // Read and execute the initial migration
+    let migration_sql_1 = include_str!("migrations/20250113_001_initial_schema.sql");
 
-    sqlx::query(migration_sql)
+    sqlx::query(migration_sql_1)
         .execute(pool)
         .await
-        .context("Failed to run database migrations")?;
+        .context("Failed to run migration 1")?;
 
-    info!("Database migrations completed successfully");
+    // Read and execute the URLs table migration
+    let migration_sql_2 = include_str!("migrations/20250114_002_add_urls_table.sql");
 
+    sqlx::query(migration_sql_2)
+        .execute(pool)
+        .await
+        .context("Failed to run migration 2")?;
+
+    // Read and execute the structured fields migration
+    let migration_sql_3 = include_str!("migrations/20250115_001_add_structured_fields.sql");
+
+    sqlx::query(migration_sql_3)
+        .execute(pool)
+        .await
+        .context("Failed to run migration 3")?;
+
+    info!("Database migrations completed");
     Ok(())
 }
 
@@ -111,7 +126,7 @@ pub async fn get_stats(pool: &SqlitePool) -> Result<DatabaseStats> {
         .fetch_one(pool)
         .await?;
 
-    let profile_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM social_profiles")
+    let profile_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM contact_urls")
         .fetch_one(pool)
         .await?;
 

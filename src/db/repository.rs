@@ -7,8 +7,13 @@ use sqlx::SqlitePool;
 use std::collections::HashMap;
 use uuid::Uuid;
 
-use super::models::{ContactRow, CustomFieldRow, SocialProfileRow};
-use crate::core::contact::{Contact, SocialProfile};
+use super::models::{
+    ContactAddressRow, ContactDateRow, ContactEmailRow, ContactPhoneRow, ContactRow,
+    ContactUrlRow, CustomFieldRow, SocialProfileRow,
+};
+use crate::core::contact::{
+    Contact, ContactAddress, ContactDate, ContactEmail, ContactPhone, ContactUrl, SocialProfile,
+};
 
 /// Repository for managing contacts in the database
 #[derive(Debug, Clone)]
@@ -30,16 +35,24 @@ impl ContactRepository {
         let contact_row = ContactRow::from_contact(contact);
         sqlx::query(
             r#"
-            INSERT INTO contacts (id, name, email, phone, organization, title, photo_url, photo_blob, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO contacts (id, name, name_prefix, first_name, middle_name, last_name, name_suffix, nickname, notes, email, phone, organization, title, department, photo_url, photo_blob, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             "#
         )
         .bind(&contact_row.id)
         .bind(&contact_row.name)
+        .bind(&contact_row.name_prefix)
+        .bind(&contact_row.first_name)
+        .bind(&contact_row.middle_name)
+        .bind(&contact_row.last_name)
+        .bind(&contact_row.name_suffix)
+        .bind(&contact_row.nickname)
+        .bind(&contact_row.notes)
         .bind(&contact_row.email)
         .bind(&contact_row.phone)
         .bind(&contact_row.organization)
         .bind(&contact_row.title)
+        .bind(&contact_row.department)
         .bind(&contact_row.photo_url)
         .bind(&contact_row.photo_blob)
         .bind(contact_row.created_at)
@@ -48,9 +61,33 @@ impl ContactRepository {
         .await
         .context("Failed to insert contact")?;
 
-        // Insert social profiles
-        for profile in &contact.social_profiles {
-            self.insert_social_profile(&mut tx, profile, &contact.id)
+        // Insert contact emails
+        for email in &contact.emails {
+            self.insert_contact_email(&mut tx, email, &contact.id)
+                .await?;
+        }
+
+        // Insert contact phones
+        for phone in &contact.phones {
+            self.insert_contact_phone(&mut tx, phone, &contact.id)
+                .await?;
+        }
+
+        // Insert contact addresses
+        for address in &contact.addresses {
+            self.insert_contact_address(&mut tx, address, &contact.id)
+                .await?;
+        }
+
+        // Insert contact dates
+        for date in &contact.dates {
+            self.insert_contact_date(&mut tx, date, &contact.id)
+                .await?;
+        }
+
+        // Insert contact URLs
+        for url in &contact.urls {
+            self.insert_contact_url(&mut tx, url, &contact.id)
                 .await?;
         }
 
@@ -78,13 +115,23 @@ impl ContactRepository {
             return Ok(None);
         };
 
-        // Fetch social profiles
-        let profiles = self.get_social_profiles(&id).await?;
+        // Fetch structured fields
+        let emails = self.get_contact_emails(&id).await?;
+        let phones = self.get_contact_phones(&id).await?;
+        let addresses = self.get_contact_addresses(&id).await?;
+        let dates = self.get_contact_dates(&id).await?;
+        let urls = self.get_contact_urls(&id).await?;
 
         // Fetch custom fields
         let custom_fields = self.get_custom_fields(&id).await?;
 
-        Ok(Some(contact_row.to_contact(profiles, custom_fields)))
+        let mut contact = contact_row.to_contact(urls, custom_fields);
+        contact.emails = emails;
+        contact.phones = phones;
+        contact.addresses = addresses;
+        contact.dates = dates;
+
+        Ok(Some(contact))
     }
 
     /// Update an existing contact
@@ -96,16 +143,26 @@ impl ContactRepository {
         sqlx::query(
             r#"
             UPDATE contacts 
-            SET name = ?, email = ?, phone = ?, organization = ?, title = ?, 
-                photo_url = ?, photo_blob = ?, updated_at = ?
+            SET name = ?, name_prefix = ?, first_name = ?, middle_name = ?, last_name = ?, 
+                name_suffix = ?, nickname = ?, notes = ?, email = ?, phone = ?, 
+                organization = ?, title = ?, department = ?, photo_url = ?, photo_blob = ?, 
+                updated_at = ?
             WHERE id = ?
             "#,
         )
         .bind(&contact_row.name)
+        .bind(&contact_row.name_prefix)
+        .bind(&contact_row.first_name)
+        .bind(&contact_row.middle_name)
+        .bind(&contact_row.last_name)
+        .bind(&contact_row.name_suffix)
+        .bind(&contact_row.nickname)
+        .bind(&contact_row.notes)
         .bind(&contact_row.email)
         .bind(&contact_row.phone)
         .bind(&contact_row.organization)
         .bind(&contact_row.title)
+        .bind(&contact_row.department)
         .bind(&contact_row.photo_url)
         .bind(&contact_row.photo_blob)
         .bind(contact_row.updated_at)
@@ -114,14 +171,58 @@ impl ContactRepository {
         .await
         .context("Failed to update contact")?;
 
-        // Delete and recreate social profiles (simpler than diff)
-        sqlx::query("DELETE FROM social_profiles WHERE contact_id = ?")
+        // Delete and recreate contact emails (simpler than diff)
+        sqlx::query("DELETE FROM contact_emails WHERE contact_id = ?")
             .bind(&contact_row.id)
             .execute(&mut *tx)
             .await?;
 
-        for profile in &contact.social_profiles {
-            self.insert_social_profile(&mut tx, profile, &contact.id)
+        for email in &contact.emails {
+            self.insert_contact_email(&mut tx, email, &contact.id)
+                .await?;
+        }
+
+        // Delete and recreate contact phones
+        sqlx::query("DELETE FROM contact_phones WHERE contact_id = ?")
+            .bind(&contact_row.id)
+            .execute(&mut *tx)
+            .await?;
+
+        for phone in &contact.phones {
+            self.insert_contact_phone(&mut tx, phone, &contact.id)
+                .await?;
+        }
+
+        // Delete and recreate contact addresses
+        sqlx::query("DELETE FROM contact_addresses WHERE contact_id = ?")
+            .bind(&contact_row.id)
+            .execute(&mut *tx)
+            .await?;
+
+        for address in &contact.addresses {
+            self.insert_contact_address(&mut tx, address, &contact.id)
+                .await?;
+        }
+
+        // Delete and recreate contact dates
+        sqlx::query("DELETE FROM contact_dates WHERE contact_id = ?")
+            .bind(&contact_row.id)
+            .execute(&mut *tx)
+            .await?;
+
+        for date in &contact.dates {
+            self.insert_contact_date(&mut tx, date, &contact.id)
+                .await?;
+        }
+
+        // Delete and recreate contact URLs (simpler than diff)
+        sqlx::query("DELETE FROM contact_urls WHERE contact_id = ?")
+            .bind(&contact_row.id)
+            .execute(&mut *tx)
+            .await?;
+
+        for url in &contact.urls {
+            self.insert_contact_url(&mut tx, url, &contact.id)
                 .await?;
         }
 
@@ -165,9 +266,19 @@ impl ContactRepository {
         let mut contacts = Vec::new();
         for row in contact_rows {
             let id = Uuid::parse_str(&row.id)?;
-            let profiles = self.get_social_profiles(&id).await?;
+            let emails = self.get_contact_emails(&id).await?;
+            let phones = self.get_contact_phones(&id).await?;
+            let addresses = self.get_contact_addresses(&id).await?;
+            let dates = self.get_contact_dates(&id).await?;
+            let urls = self.get_contact_urls(&id).await?;
             let custom_fields = self.get_custom_fields(&id).await?;
-            contacts.push(row.to_contact(profiles, custom_fields));
+            
+            let mut contact = row.to_contact(urls, custom_fields);
+            contact.emails = emails;
+            contact.phones = phones;
+            contact.addresses = addresses;
+            contact.dates = dates;
+            contacts.push(contact);
         }
 
         Ok(contacts)
@@ -193,9 +304,19 @@ impl ContactRepository {
         let mut contacts = Vec::new();
         for row in contact_rows {
             let id = Uuid::parse_str(&row.id)?;
-            let profiles = self.get_social_profiles(&id).await?;
+            let emails = self.get_contact_emails(&id).await?;
+            let phones = self.get_contact_phones(&id).await?;
+            let addresses = self.get_contact_addresses(&id).await?;
+            let dates = self.get_contact_dates(&id).await?;
+            let urls = self.get_contact_urls(&id).await?;
             let custom_fields = self.get_custom_fields(&id).await?;
-            contacts.push(row.to_contact(profiles, custom_fields));
+            
+            let mut contact = row.to_contact(urls, custom_fields);
+            contact.emails = emails;
+            contact.phones = phones;
+            contact.addresses = addresses;
+            contact.dates = dates;
+            contacts.push(contact);
         }
 
         Ok(contacts)
@@ -209,7 +330,136 @@ impl ContactRepository {
         Ok(count)
     }
 
-    /// Helper: Insert a social profile within a transaction
+    /// Helper: Insert a contact email within a transaction
+    async fn insert_contact_email(
+        &self,
+        tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+        email: &ContactEmail,
+        contact_id: &Uuid,
+    ) -> Result<()> {
+        let row = ContactEmailRow::from_contact_email(email, contact_id);
+        sqlx::query(
+            r#"
+            INSERT INTO contact_emails (id, contact_id, email, label, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            "#
+        )
+        .bind(&row.id)
+        .bind(&row.contact_id)
+        .bind(&row.email)
+        .bind(&row.label)
+        .bind(row.created_at)
+        .bind(row.updated_at)
+        .execute(&mut **tx)
+        .await?;
+        Ok(())
+    }
+
+    /// Helper: Insert a contact phone within a transaction
+    async fn insert_contact_phone(
+        &self,
+        tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+        phone: &ContactPhone,
+        contact_id: &Uuid,
+    ) -> Result<()> {
+        let row = ContactPhoneRow::from_contact_phone(phone, contact_id);
+        sqlx::query(
+            r#"
+            INSERT INTO contact_phones (id, contact_id, phone, label, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            "#
+        )
+        .bind(&row.id)
+        .bind(&row.contact_id)
+        .bind(&row.phone)
+        .bind(&row.label)
+        .bind(row.created_at)
+        .bind(row.updated_at)
+        .execute(&mut **tx)
+        .await?;
+        Ok(())
+    }
+
+    /// Helper: Insert a contact address within a transaction
+    async fn insert_contact_address(
+        &self,
+        tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+        address: &ContactAddress,
+        contact_id: &Uuid,
+    ) -> Result<()> {
+        let row = ContactAddressRow::from_contact_address(address, contact_id);
+        sqlx::query(
+            r#"
+            INSERT INTO contact_addresses (id, contact_id, street, city, state, postal_code, country, label, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            "#
+        )
+        .bind(&row.id)
+        .bind(&row.contact_id)
+        .bind(&row.street)
+        .bind(&row.city)
+        .bind(&row.state)
+        .bind(&row.postal_code)
+        .bind(&row.country)
+        .bind(&row.label)
+        .bind(row.created_at)
+        .bind(row.updated_at)
+        .execute(&mut **tx)
+        .await?;
+        Ok(())
+    }
+
+    /// Helper: Insert a contact date within a transaction
+    async fn insert_contact_date(
+        &self,
+        tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+        date: &ContactDate,
+        contact_id: &Uuid,
+    ) -> Result<()> {
+        let row = ContactDateRow::from_contact_date(date, contact_id);
+        sqlx::query(
+            r#"
+            INSERT INTO contact_dates (id, contact_id, date, label, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            "#
+        )
+        .bind(&row.id)
+        .bind(&row.contact_id)
+        .bind(&row.date)
+        .bind(&row.label)
+        .bind(row.created_at)
+        .bind(row.updated_at)
+        .execute(&mut **tx)
+        .await?;
+        Ok(())
+    }
+
+    /// Helper: Insert a contact URL within a transaction
+    async fn insert_contact_url(
+        &self,
+        tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+        url: &ContactUrl,
+        contact_id: &Uuid,
+    ) -> Result<()> {
+        let row = ContactUrlRow::from_contact_url(url, contact_id);
+        sqlx::query(
+            r#"
+            INSERT INTO contact_urls (id, contact_id, url, label, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            "#
+        )
+        .bind(&row.id)
+        .bind(&row.contact_id)
+        .bind(&row.url)
+        .bind(&row.label)
+        .bind(row.created_at)
+        .bind(row.updated_at)
+        .execute(&mut **tx)
+        .await?;
+        Ok(())
+    }
+
+    /// Helper: Insert a social profile within a transaction (for profile_cache)
     async fn insert_social_profile(
         &self,
         tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
@@ -219,7 +469,7 @@ impl ContactRepository {
         let row = SocialProfileRow::from_social_profile(profile, contact_id);
         sqlx::query(
             r#"
-            INSERT INTO social_profiles (id, contact_id, platform, username, url, profile_pic_url, verified, confidence_score, discovered_at, created_at, updated_at)
+            INSERT INTO profile_cache (id, contact_id, platform, username, url, profile_pic_url, verified, confidence_score, discovered_at, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             "#
         )
@@ -264,10 +514,71 @@ impl ContactRepository {
         Ok(())
     }
 
-    /// Helper: Get social profiles for a contact
+    /// Helper: Get contact emails for a contact
+    async fn get_contact_emails(&self, contact_id: &Uuid) -> Result<Vec<ContactEmail>> {
+        let rows: Vec<ContactEmailRow> =
+            sqlx::query_as("SELECT * FROM contact_emails WHERE contact_id = ?")
+                .bind(contact_id.to_string())
+                .fetch_all(&self.pool)
+                .await?;
+
+        Ok(rows.into_iter().map(|r| r.to_contact_email()).collect())
+    }
+
+    /// Helper: Get contact phones for a contact
+    async fn get_contact_phones(&self, contact_id: &Uuid) -> Result<Vec<ContactPhone>> {
+        let rows: Vec<ContactPhoneRow> =
+            sqlx::query_as("SELECT * FROM contact_phones WHERE contact_id = ?")
+                .bind(contact_id.to_string())
+                .fetch_all(&self.pool)
+                .await?;
+
+        Ok(rows.into_iter().map(|r| r.to_contact_phone()).collect())
+    }
+
+    /// Helper: Get contact addresses for a contact
+    async fn get_contact_addresses(&self, contact_id: &Uuid) -> Result<Vec<ContactAddress>> {
+        let rows: Vec<ContactAddressRow> =
+            sqlx::query_as("SELECT * FROM contact_addresses WHERE contact_id = ?")
+                .bind(contact_id.to_string())
+                .fetch_all(&self.pool)
+                .await?;
+
+        Ok(rows.into_iter().map(|r| r.to_contact_address()).collect())
+    }
+
+    /// Helper: Get contact dates for a contact
+    async fn get_contact_dates(&self, contact_id: &Uuid) -> Result<Vec<ContactDate>> {
+        let rows: Vec<ContactDateRow> =
+            sqlx::query_as("SELECT * FROM contact_dates WHERE contact_id = ?")
+                .bind(contact_id.to_string())
+                .fetch_all(&self.pool)
+                .await?;
+
+        let mut dates = Vec::new();
+        for row in rows {
+            if let Ok(date) = row.to_contact_date() {
+                dates.push(date);
+            }
+        }
+        Ok(dates)
+    }
+
+    /// Helper: Get contact URLs for a contact
+    async fn get_contact_urls(&self, contact_id: &Uuid) -> Result<Vec<ContactUrl>> {
+        let rows: Vec<ContactUrlRow> =
+            sqlx::query_as("SELECT * FROM contact_urls WHERE contact_id = ?")
+                .bind(contact_id.to_string())
+                .fetch_all(&self.pool)
+                .await?;
+
+        Ok(rows.into_iter().map(|r| r.to_contact_url()).collect())
+    }
+
+    /// Helper: Get social profiles for a contact (for profile_cache)
     async fn get_social_profiles(&self, contact_id: &Uuid) -> Result<Vec<SocialProfile>> {
         let rows: Vec<SocialProfileRow> =
-            sqlx::query_as("SELECT * FROM social_profiles WHERE contact_id = ?")
+            sqlx::query_as("SELECT * FROM profile_cache WHERE contact_id = ?")
                 .bind(contact_id.to_string())
                 .fetch_all(&self.pool)
                 .await?;
@@ -290,7 +601,7 @@ impl ContactRepository {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::contact::SocialPlatform;
+    use chrono::{Datelike, NaiveDate};
 
     async fn setup_test_db() -> SqlitePool {
         let pool = SqlitePool::connect("sqlite::memory:")
@@ -301,7 +612,17 @@ mod tests {
         sqlx::query(include_str!("migrations/20250113_001_initial_schema.sql"))
             .execute(&pool)
             .await
-            .expect("Failed to run migrations");
+            .expect("Failed to run migration 1");
+
+        sqlx::query(include_str!("migrations/20250114_002_add_urls_table.sql"))
+            .execute(&pool)
+            .await
+            .expect("Failed to run migration 2");
+
+        sqlx::query(include_str!("migrations/20250115_001_add_structured_fields.sql"))
+            .execute(&pool)
+            .await
+            .expect("Failed to run migration 3");
 
         pool
     }
@@ -396,31 +717,33 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_contact_with_social_profiles() {
+    async fn test_contact_with_urls() {
         let pool = setup_test_db().await;
         let repo = ContactRepository::new(pool);
 
-        let profile = SocialProfile::new(
-            SocialPlatform::GitHub,
-            "testuser",
-            "https://github.com/testuser",
-        );
+        // Create contact with URLs
+        let url1 = ContactUrl::new("https://github.com/testuser", Some("GitHub".to_string()));
+        let url2 = ContactUrl::new("https://myblog.com", Some("Blog".to_string()));
 
         let contact = Contact::builder()
             .name("Test User")
-            .social_profile(profile)
+            .url(url1)
+            .url(url2)
             .build()
             .unwrap();
 
         repo.create(&contact).await.unwrap();
 
         let retrieved = repo.read(contact.id).await.unwrap().unwrap();
-        assert_eq!(retrieved.social_profiles.len(), 1);
-        assert_eq!(
-            retrieved.social_profiles[0].platform,
-            SocialPlatform::GitHub
-        );
-        assert_eq!(retrieved.social_profiles[0].username, "testuser");
+        assert_eq!(retrieved.urls.len(), 2);
+        
+        let github_urls = retrieved.find_urls_by_label("GitHub");
+        assert_eq!(github_urls.len(), 1);
+        assert_eq!(github_urls[0].url, "https://github.com/testuser");
+        
+        let blog_urls = retrieved.find_urls_by_label("Blog");
+        assert_eq!(blog_urls.len(), 1);
+        assert_eq!(blog_urls[0].url, "https://myblog.com");
     }
 
     #[tokio::test]
@@ -434,5 +757,93 @@ mod tests {
         repo.create(&Contact::new("User 2")).await.unwrap();
 
         assert_eq!(repo.count().await.unwrap(), 2);
+    }
+
+    #[tokio::test]
+    async fn test_contact_with_structured_fields() {
+        let pool = setup_test_db().await;
+        let repo = ContactRepository::new(pool);
+
+        // Create contact with all structured fields
+        let email1 = ContactEmail::new("home@example.com", "Home");
+        let email2 = ContactEmail::new("work@example.com", "Work");
+        let phone1 = ContactPhone::new("+1234567890", "Mobile");
+        let phone2 = ContactPhone::new("+9876543210", "Home");
+        let address = ContactAddress::builder()
+            .street("123 Main St")
+            .city("Springfield")
+            .state("IL")
+            .postal_code("62701")
+            .label("Home")
+            .build();
+        let date = ContactDate::new(
+            NaiveDate::from_ymd_opt(1990, 5, 15).unwrap(),
+            "Birthday",
+        );
+
+        let contact = Contact::builder()
+            .name("Test User")
+            .email_entry(email1)
+            .email_entry(email2)
+            .phone_entry(phone1)
+            .phone_entry(phone2)
+            .address(address)
+            .date(date)
+            .build()
+            .unwrap();
+
+        repo.create(&contact).await.unwrap();
+
+        let retrieved = repo.read(contact.id).await.unwrap().unwrap();
+        
+        // Verify emails
+        assert_eq!(retrieved.emails.len(), 2);
+        assert_eq!(retrieved.emails[0].email, "home@example.com");
+        assert_eq!(retrieved.emails[0].label, "Home");
+        assert_eq!(retrieved.emails[1].email, "work@example.com");
+        assert_eq!(retrieved.emails[1].label, "Work");
+        
+        // Verify phones
+        assert_eq!(retrieved.phones.len(), 2);
+        assert_eq!(retrieved.phones[0].phone, "+1234567890");
+        assert_eq!(retrieved.phones[0].label, "Mobile");
+        
+        // Verify addresses
+        assert_eq!(retrieved.addresses.len(), 1);
+        assert_eq!(retrieved.addresses[0].street, Some("123 Main St".to_string()));
+        assert_eq!(retrieved.addresses[0].city, Some("Springfield".to_string()));
+        assert_eq!(retrieved.addresses[0].label, "Home");
+        
+        // Verify dates
+        assert_eq!(retrieved.dates.len(), 1);
+        assert_eq!(retrieved.dates[0].date.year(), 1990);
+        assert_eq!(retrieved.dates[0].label, "Birthday");
+    }
+
+    #[tokio::test]
+    async fn test_update_structured_fields() {
+        let pool = setup_test_db().await;
+        let repo = ContactRepository::new(pool);
+
+        // Create contact with one email
+        let mut contact = Contact::builder()
+            .name("Test User")
+            .email_entry(ContactEmail::new("old@example.com", "Home"))
+            .build()
+            .unwrap();
+
+        repo.create(&contact).await.unwrap();
+
+        // Update with different emails
+        contact.emails.clear();
+        contact.emails.push(ContactEmail::new("new1@example.com", "Home"));
+        contact.emails.push(ContactEmail::new("new2@example.com", "Work"));
+
+        repo.update(&contact).await.unwrap();
+
+        let retrieved = repo.read(contact.id).await.unwrap().unwrap();
+        assert_eq!(retrieved.emails.len(), 2);
+        assert_eq!(retrieved.emails[0].email, "new1@example.com");
+        assert_eq!(retrieved.emails[1].email, "new2@example.com");
     }
 }

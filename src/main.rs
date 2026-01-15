@@ -16,6 +16,7 @@ mod social;
 mod ui;
 mod utils;
 mod vcf;
+mod workspace;
 
 use db::{init_pool, run_migrations, repository::ContactRepository, DatabaseConfig};
 
@@ -144,27 +145,12 @@ fn main() -> Result<()> {
     init_logging(config.debug);
 
     info!("Starting Profile Pulse v{}", env!("CARGO_PKG_VERSION"));
+    info!("Data directory: {}", config.data_dir.display());
 
-    // Initialize application (run async init in separate runtime)
-    let repository = tokio::runtime::Runtime::new()
-        .context("Failed to create Tokio runtime")?
-        .block_on(async {
-            match init_app(&config).await {
-                Ok(repo) => {
-                    info!("Application initialized successfully");
-                    Ok(repo)
-                }
-                Err(e) => {
-                    error!("Failed to initialize application: {}", e);
-                    error!("Application will now exit");
-                    Err(e)
-                }
-            }
-        })?;
-
-    // Run the GUI application (Iced will create its own runtime)
-    info!("Launching GUI...");
-    match ui::run_with_repository(repository) {
+    // Run the GUI application with workspace support
+    // No need to initialize database upfront - each workspace has its own
+    info!("Launching GUI with workspace selector...");
+    match ui::run() {
         Ok(_) => {
             info!("Application closed normally");
             Ok(())
