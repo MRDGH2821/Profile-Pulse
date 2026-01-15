@@ -55,6 +55,10 @@ This file provides guidance for AI coding assistants working with this project.
 ```markdown
 ## 2024-12-15 14:30:22+00:00
 
+### Prompt
+
+> Implement GitHub profile fetcher with rate limiting
+
 ### Request
 
 User asked to implement GitHub profile fetcher with rate limiting
