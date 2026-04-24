@@ -308,31 +308,31 @@ pub trait ProfileFetcher: Send + Sync {
 ### Core Dependencies
 
 ```toml
-iced = "0.12"              # GUI framework
-tokio = "1.35"             # Async runtime
-sqlx = "0.7"               # Database (SQLite)
-vobject = "0.9"            # VCF parsing (Phase 2)
-reqwest = "0.11"           # HTTP client
-scraper = "0.18"           # Web scraping
-image = "0.24"             # Image processing
-serde = "1.0"              # Serialization
-thiserror = "1.0"          # Error handling
-anyhow = "1.0"             # Error context
-tracing = "0.1"            # Logging
-chrono = "0.4"             # Date/time
-uuid = "1.6"               # UUIDs
-strsim = "0.10"            # String similarity
-governor = "0.6"           # Rate limiting
-moka = "0.12"              # Caching
-async-trait = "0.1"        # Async traits
+iced = "0.12"       # GUI framework
+tokio = "1.35"      # Async runtime
+sqlx = "0.7"        # Database (SQLite)
+vobject = "0.9"     # VCF parsing (Phase 2)
+reqwest = "0.11"    # HTTP client
+scraper = "0.18"    # Web scraping
+image = "0.24"      # Image processing
+serde = "1.0"       # Serialization
+thiserror = "1.0"   # Error handling
+anyhow = "1.0"      # Error context
+tracing = "0.1"     # Logging
+chrono = "0.4"      # Date/time
+uuid = "1.6"        # UUIDs
+strsim = "0.10"     # String similarity
+governor = "0.6"    # Rate limiting
+moka = "0.12"       # Caching
+async-trait = "0.1" # Async traits
 ```
 
 ### Development Dependencies
 
 ```toml
-mockito = "1.2"            # HTTP mocking
-tempfile = "3.8"           # Temporary files
-tokio-test = "0.4"         # Async test utilities
+mockito = "1.2"    # HTTP mocking
+tempfile = "3.8"   # Temporary files
+tokio-test = "0.4" # Async test utilities
 ```
 
 ## ✅ What Works (Theoretically)

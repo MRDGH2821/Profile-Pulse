@@ -3,6 +3,7 @@
 ## 🔍 How It Currently Works
 
 ### Step 1: VCF Import Process
+
 ```rust
 // In parse_vcard()
 let social_profiles = extract_social_profiles(&vcard);
@@ -12,6 +13,7 @@ for profile in social_profiles {
 ```
 
 ### Step 2: URL Extraction
+
 ```rust
 fn extract_social_profiles(vcard: &VCard) -> Vec<SocialProfile> {
     for prop in &vcard.properties {
@@ -27,6 +29,7 @@ fn extract_social_profiles(vcard: &VCard) -> Vec<SocialProfile> {
 **Key point**: Iterates through ALL URL fields, but only keeps recognized social media URLs.
 
 ### Step 3: Social Media Detection
+
 ```rust
 fn parse_social_url(url: &str) -> Option<SocialProfile> {
     // Returns Some(profile) ONLY if URL matches:
@@ -36,12 +39,13 @@ fn parse_social_url(url: &str) -> Option<SocialProfile> {
     // - instagram.com/USERNAME
     // - github.com/USERNAME
     // - DOMAIN/@USERNAME (Mastodon)
-    
+
     // Returns None for everything else
 }
 ```
 
 ### Step 4: Username Extraction
+
 ```rust
 fn extract_path_segment(url: &str, after: &str) -> Option<String> {
     // Extracts username from path
@@ -55,14 +59,14 @@ fn extract_path_segment(url: &str, after: &str) -> Option<String> {
 
 ### URLs in test contact.vcf:
 
-| URL | Label | Result |
-|-----|-------|--------|
-| `https://profile.com` | PROFILE | ❌ Lost (no username path) |
-| `https://blog.com` | BLOG | ❌ Lost (no username path) |
-| `https://homepage.com` | HomePage | ❌ Lost (no username path) |
-| `https://work.com` | WORK | ❌ Lost (no username path) |
-| `https://github.com` | GitHub | ❌ Lost (no username!) |
-| `https://instagram.com` | Instagram | ❌ Lost (no username!) |
+| URL                     | Label     | Result                     |
+| ----------------------- | --------- | -------------------------- |
+| `https://profile.com`   | PROFILE   | ❌ Lost (no username path) |
+| `https://blog.com`      | BLOG      | ❌ Lost (no username path) |
+| `https://homepage.com`  | HomePage  | ❌ Lost (no username path) |
+| `https://work.com`      | WORK      | ❌ Lost (no username path) |
+| `https://github.com`    | GitHub    | ❌ Lost (no username!)     |
+| `https://instagram.com` | Instagram | ❌ Lost (no username!)     |
 
 ### Why They're Lost:
 
@@ -82,42 +86,54 @@ fn extract_path_segment(url: &str, after: &str) -> Option<String> {
 ## 🚨 Critical Problems
 
 ### Problem 1: Only Social Media URLs Are Kept
+
 **Current behavior**:
+
 - ✅ Keeps: `https://github.com/johndoe`
 - ❌ Loses: `https://blog.com`
 
 **What we need**:
+
 - ✅ Keep ALL URLs
 - ✅ Tag social media URLs as profiles
 - ✅ Store generic URLs separately
 
 ### Problem 2: Social URLs Without Usernames Lost
+
 **Current behavior**:
+
 - ✅ Keeps: `https://instagram.com/johndoe`
 - ❌ Loses: `https://instagram.com`
 
 **What we need**:
+
 - ✅ Keep URL even without username
-- ⚠️  Maybe mark as "unverified" or "incomplete"
+- ⚠️ Maybe mark as "unverified" or "incomplete"
 
 ### Problem 3: Custom Labels Ignored
+
 **Current behavior**:
+
 ```vcf
 item6.URL:https://github.com
 item6.X-ABLabel:GitHub
 ```
+
 - Label "GitHub" is read but not associated
 - `itemN.X-ABLabel` pattern not handled
 
 **What we need**:
+
 - Parse `itemN.` prefix
 - Associate `X-ABLabel` with corresponding field
 - Store label with URL/profile
 
 ### Problem 4: Social Profiles vs Generic URLs
+
 **Data structure mismatch**:
 
 **We have**:
+
 ```rust
 Contact {
     social_profiles: Vec<SocialProfile>,  // Only for recognized platforms
@@ -126,6 +142,7 @@ Contact {
 ```
 
 **We need**:
+
 ```rust
 Contact {
     social_profiles: Vec<SocialProfile>,  // LinkedIn, GitHub, etc.
@@ -134,6 +151,7 @@ Contact {
 ```
 
 **Current workaround**:
+
 - URLs stored in `custom_fields` as `url_0`, `url_1`, etc. (from UI)
 - But VCF import doesn't populate these!
 
@@ -144,6 +162,7 @@ Contact {
 ### Example: Import test contact.vcf
 
 **Input**:
+
 ```vcf
 item3.URL:https://profile.com
 item6.URL:https://github.com
@@ -151,6 +170,7 @@ item7.URL:https://instagram.com
 ```
 
 **Processing**:
+
 1. `extract_social_profiles()` is called
 2. All 3 URLs processed by `parse_social_url()`
 3. Results:
@@ -161,6 +181,7 @@ item7.URL:https://instagram.com
 5. **Result**: Contact has 0 social profiles, 0 URLs
 
 **Expected**:
+
 - Contact should have 3 URLs stored somewhere
 - GitHub and Instagram should be tagged as potential social profiles
 
@@ -185,6 +206,7 @@ Database (social_profiles table)
 ```
 
 **Missing flow**:
+
 ```
 VCF File (all URLs)
   ↓
@@ -232,26 +254,28 @@ Database (in contact custom_fields JSON)
 ## 🛠️ How to Fix
 
 ### Fix 1: Extract ALL URLs (Not Just Social)
+
 ```rust
 fn extract_all_urls(vcard: &VCard) -> Vec<(String, Option<String>)> {
     // Returns Vec of (url, optional_label)
     let mut urls = Vec::new();
-    
+
     // Parse itemN.X-ABLabel associations
     let labels = parse_item_labels(vcard);
-    
+
     for prop in &vcard.properties {
         if prop.name == "URL" || prop.name.ends_with(".URL") {
             let label = extract_label_for_item(prop.name, &labels);
             urls.push((prop.value.clone(), label));
         }
     }
-    
+
     urls
 }
 ```
 
 ### Fix 2: Store URLs in custom_fields
+
 ```rust
 // In parse_vcard()
 let urls = extract_all_urls(&vcard);
@@ -264,6 +288,7 @@ for (i, (url, label)) in urls.iter().enumerate() {
 ```
 
 ### Fix 3: Still Extract Social Profiles
+
 ```rust
 // Also attempt to parse as social profile
 for (url, _label) in &urls {
@@ -273,7 +298,8 @@ for (url, _label) in &urls {
 }
 ```
 
-**Result**: 
+**Result**:
+
 - ALL URLs preserved in custom_fields
 - Social media URLs ALSO in social_profiles
 - Labels associated with URLs
@@ -284,18 +310,21 @@ for (url, _label) in &urls {
 ## 📝 Recommended Implementation
 
 ### Option A: Dual Storage (Recommended)
+
 - Store ALL URLs in `custom_fields` (url_0, url_1, etc.)
 - ALSO extract social profiles to `social_profiles` table
 - Social URLs exist in both places
 - No data loss, enables profile fetching
 
 ### Option B: URLs Only
+
 - Store ALL URLs in `custom_fields`
 - Dynamically detect social platforms in UI
 - No separate social_profiles table usage
 - Simpler but loses rich metadata
 
 ### Option C: Social Profiles Only
+
 - Keep current behavior
 - Accept loss of generic URLs
 - Only social media profiles matter
@@ -308,6 +337,7 @@ for (url, _label) in &urls {
 ## 🧪 Test Case
 
 ### Input VCF:
+
 ```vcf
 item1.URL:https://blog.johndoe.com
 item1.X-ABLabel:BLOG
@@ -317,6 +347,7 @@ URL;TYPE=WORK:https://company.com
 ```
 
 ### Expected Output:
+
 ```rust
 Contact {
     custom_fields: {
@@ -338,6 +369,7 @@ Contact {
 ```
 
 ### Current Output:
+
 ```rust
 Contact {
     custom_fields: {},
@@ -357,13 +389,13 @@ Contact {
 
 ## 📊 Summary
 
-| Aspect | Current | Needed |
-|--------|---------|--------|
-| Social URLs with username | ✅ Extracted | ✅ Keep |
-| Social URLs without username | ❌ Lost | ⚠️  Preserve |
-| Generic URLs | ❌ Lost | ✅ Preserve |
-| URL labels | ❌ Ignored | ✅ Preserve |
-| itemN.X-ABLabel | ❌ Not parsed | ✅ Parse |
-| Storage location | social_profiles only | custom_fields + social_profiles |
+| Aspect                       | Current              | Needed                          |
+| ---------------------------- | -------------------- | ------------------------------- |
+| Social URLs with username    | ✅ Extracted         | ✅ Keep                         |
+| Social URLs without username | ❌ Lost              | ⚠️ Preserve                     |
+| Generic URLs                 | ❌ Lost              | ✅ Preserve                     |
+| URL labels                   | ❌ Ignored           | ✅ Preserve                     |
+| itemN.X-ABLabel              | ❌ Not parsed        | ✅ Parse                        |
+| Storage location             | social_profiles only | custom_fields + social_profiles |
 
 **Verdict**: Need to implement dual-storage approach to preserve all data while maintaining social profile functionality.

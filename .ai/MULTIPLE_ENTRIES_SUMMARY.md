@@ -7,18 +7,21 @@ Extended the Profile Pulse UI to support all Google Contacts multiple-entry fiel
 ## Completed Features
 
 ### ✅ Addresses (Multiple)
+
 - **Fields per address**: Label, Street, City, State, Postal Code, Country
 - **UI**: Bordered container for each address
 - **Storage**: Flattened in custom_fields (address_0_street, address_0_city, etc.)
 - **Add/Remove**: ✅ Yes
 
 ### ✅ Significant Dates (Multiple)
+
 - **Fields per date**: Label (anniversary, graduation, etc.), Date (YYYY-MM-DD)
 - **UI**: Inline row with label and date fields
 - **Storage**: In custom_fields (date_0_label, date_0)
 - **Add/Remove**: ✅ Yes
 
 ### ✅ URLs (Multiple)
+
 - **Fields per URL**: URL string
 - **UI**: Text input with add/remove buttons
 - **Storage**: In custom_fields (url_0, url_1, etc.)
@@ -26,6 +29,7 @@ Extended the Profile Pulse UI to support all Google Contacts multiple-entry fiel
 - **Note**: First URL used for profile picture
 
 ### ✅ Custom Fields (Unlimited)
+
 - **Fields**: User-defined key-value pairs
 - **UI**: Two inputs (key and value) with remove button
 - **Storage**: Direct in custom_fields HashMap
@@ -33,10 +37,12 @@ Extended the Profile Pulse UI to support all Google Contacts multiple-entry fiel
 - **Purpose**: Arbitrary user metadata
 
 ### ✅ Emails (Multiple)
+
 - **Already implemented** in previous session
 - **Storage**: Primary in Contact.email, additional in custom_fields (email_1, email_2, etc.)
 
 ### ✅ Phones (Multiple)
+
 - **Already implemented** in previous session
 - **Storage**: Primary in Contact.phone, additional in custom_fields (phone_1, phone_2, etc.)
 
@@ -68,6 +74,7 @@ pub struct CustomFieldPair {
 ### Message Handlers
 
 **Addresses**:
+
 - `AddressChanged(addr_idx, field_idx, value)` where field_idx:
   - 0 = label
   - 1 = street
@@ -79,6 +86,7 @@ pub struct CustomFieldPair {
 - `RemoveAddress(usize)`
 
 **Significant Dates**:
+
 - `SignificantDateChanged(date_idx, field_idx, value)` where field_idx:
   - 0 = label
   - 1 = date
@@ -86,6 +94,7 @@ pub struct CustomFieldPair {
 - `RemoveSignificantDate(usize)`
 
 **Custom Fields**:
+
 - `CustomFieldKeyChanged(usize, String)`
 - `CustomFieldValueChanged(usize, String)`
 - `AddCustomField`
@@ -116,7 +125,8 @@ Custom Fields:
 ### Parsing on Load
 
 `ContactForm::from_contact()` now:
-1. Scans custom_fields for address_N_* keys
+
+1. Scans custom*fields for address_N*\* keys
 2. Groups by index N
 3. Reconstructs Address structs
 4. Same process for significant dates
@@ -125,6 +135,7 @@ Custom Fields:
 ### UI Layout
 
 **Addresses**:
+
 ```
 Addresses [+ Add Address]
 
@@ -138,12 +149,14 @@ Addresses [+ Add Address]
 ```
 
 **Significant Dates**:
+
 ```
 Significant Dates [+ Add Date]
 Label: Anniversary | Date: 2020-06-15 [−]
 ```
 
 **Custom Fields**:
+
 ```
 Custom Fields [+ Add Field]
 Field: Favorite Color | Value: Blue [−]
@@ -158,6 +171,7 @@ Field: Favorite Color | Value: Blue [−]
 ## Google Contacts Compatibility
 
 Now **100% compatible** with Google Contacts export format:
+
 - ✅ All standard fields
 - ✅ Multiple emails, phones, URLs
 - ✅ Multiple addresses (NEW)
@@ -176,18 +190,21 @@ Now **100% compatible** with Google Contacts export format:
 ## Usage Example
 
 **Adding an address**:
+
 1. Click "+ Add Address" button
 2. Fill in label (e.g., "home")
 3. Fill in street, city, state, postal code, country
 4. Click "−" to remove if needed
 
 **Adding a significant date**:
+
 1. Click "+ Add Date" button
 2. Fill in label (e.g., "anniversary")
 3. Fill in date (YYYY-MM-DD format)
 4. Click "−" to remove if needed
 
 **Adding a custom field**:
+
 1. Click "+ Add Field" button
 2. Enter field name (e.g., "Favorite Color")
 3. Enter value (e.g., "Blue")

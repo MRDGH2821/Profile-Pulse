@@ -79,16 +79,16 @@ struct Workspace {
 impl WorkspaceManager {
     // Load all workspaces from index
     fn load_workspaces(&self) -> Result<Vec<Workspace>>;
-    
+
     // Create new empty workspace
     fn create_empty_workspace(&self, name: String) -> Result<Workspace>;
-    
+
     // Create workspace from existing VCF
     fn create_workspace(&self, name: String, vcf_path: PathBuf) -> Result<Workspace>;
-    
+
     // Delete workspace (removes folder)
     fn delete_workspace(&self, workspace_id: Uuid) -> Result<()>;
-    
+
     // Update workspace metadata
     fn update_workspace(&self, workspace: &Workspace) -> Result<()>;
 }
@@ -284,6 +284,7 @@ CREATE TABLE profile_cache (...);
 ```
 
 **Key Points**:
+
 - Schema identical across all workspaces
 - Migrations run independently per workspace
 - No shared data between workspace databases
@@ -307,6 +308,7 @@ Device A                    Cloud Storage                Device B
 ```
 
 **Benefits**:
+
 - Only sync VCF files (small, standard format)
 - Databases regenerated on each device
 - No database sync conflicts
@@ -317,17 +319,20 @@ Device A                    Cloud Storage                Device B
 ### Why SQLite Per Workspace?
 
 **Advantages**:
+
 - Fast indexed queries for search/filter
 - Efficient for hundreds/thousands of contacts
 - Better than parsing VCF on every operation
 - Enables advanced features (caching, analytics)
 
 **Trade-offs**:
+
 - Additional storage (VCF + DB)
 - Need to keep VCF and DB in sync
 - Startup overhead (initialize DB)
 
 **Mitigation**:
+
 - Lazy initialization (only when workspace opened)
 - DB is considered regenerable cache
 - VCF remains source of truth
@@ -404,16 +409,16 @@ fn migrate_old_database_to_workspace() -> Result<()> {
     // 1. Export all contacts from old DB to VCF
     let contacts = old_db.list_all();
     let vcf_content = export_to_vcf(contacts);
-    
+
     // 2. Create "Default" workspace
     let workspace = workspace_manager.create_empty_workspace("Default");
-    
+
     // 3. Import VCF into new workspace
     import_vcf_to_workspace(&workspace, vcf_content);
-    
+
     // 4. Archive old database (don't delete yet)
     rename("profile-pulse.db", "profile-pulse.db.backup");
-    
+
     Ok(())
 }
 ```

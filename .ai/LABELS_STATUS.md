@@ -171,6 +171,7 @@ Ready for comprehensive manual testing of dropdown functionality in the running 
 ### All Tests (70/70 passing)
 
 **Labels Module** (7 tests):
+
 - ✅ `test_email_label_parsing`
 - ✅ `test_phone_label_parsing`
 - ✅ `test_phone_label_vcard_type`
@@ -180,6 +181,7 @@ Ready for comprehensive manual testing of dropdown functionality in the running 
 - ✅ `test_label_common_options`
 
 **Contact Module** (37 tests, 10 new):
+
 - ✅ `test_contact_email`
 - ✅ `test_contact_phone`
 - ✅ `test_contact_address_builder`
@@ -191,6 +193,7 @@ Ready for comprehensive manual testing of dropdown functionality in the running 
 - ✅ (plus 29 existing tests)
 
 **Models Module** (8 tests, 4 new):
+
 - ✅ `test_contact_email_row_roundtrip`
 - ✅ `test_contact_phone_row_roundtrip`
 - ✅ `test_contact_address_row_roundtrip`
@@ -198,11 +201,13 @@ Ready for comprehensive manual testing of dropdown functionality in the running 
 - ✅ (plus 4 existing tests)
 
 **Repository Module** (9 tests, 2 new):
+
 - ✅ `test_contact_with_structured_fields`
 - ✅ `test_update_structured_fields`
 - ✅ (plus 7 existing tests)
 
 **VCF Module** (14 tests, 5 new):
+
 - ✅ `test_export_structured_emails`
 - ✅ `test_export_structured_phones`
 - ✅ `test_export_structured_addresses`
@@ -212,6 +217,7 @@ Ready for comprehensive manual testing of dropdown functionality in the running 
 - ✅ (plus 8 existing tests)
 
 **Other Modules** (11 tests):
+
 - ✅ All existing tests still pass
 
 ---
@@ -219,12 +225,14 @@ Ready for comprehensive manual testing of dropdown functionality in the running 
 ## Files Changed
 
 ### Created (4 files, ~996 lines)
+
 - `src/core/labels.rs` (461 lines)
 - `src/db/migrations/20250115_001_add_structured_fields.sql` (87 lines)
 - `.ai/DROPDOWN_IMPLEMENTATION.md` (231 lines)
 - `.ai/logs/2026-01-15-dropdown-implementation.md` (237 lines)
 
 ### Modified (7 files, ~2,160 lines changed)
+
 - `src/core/contact.rs` (~350 lines added/changed)
 - `src/db/models.rs` (~250 lines added)
 - `src/db/repository.rs` (~310 lines added/changed)
@@ -234,6 +242,7 @@ Ready for comprehensive manual testing of dropdown functionality in the running 
 - `src/core/mod.rs` (1 line added)
 
 ### Total Impact
+
 - **~3,160 lines of new/modified code**
 - **28 new tests**
 - **0 breaking changes** (backward compatible)
@@ -243,22 +252,26 @@ Ready for comprehensive manual testing of dropdown functionality in the running 
 ## Design Highlights
 
 ### Type Safety
+
 - Enums for common labels prevent typos
 - Custom(String) variant allows flexibility
 - String storage in DB for maximum compatibility
 
 ### VCF Compatibility
+
 - Handles standard TYPE parameters
 - Supports Apple's `_$!<Label>!$_` format
 - Preserves `itemN.X-ABLabel` associations
 - Round-trip import/export fidelity
 
 ### Backward Compatibility
+
 - Deprecated `email`/`phone` fields still work
 - `primary_email()`/`primary_phone()` provide seamless fallback
 - Migration script preserves existing data
 
 ### Extensibility
+
 - Easy to add new label types
 - Common API across all label enums
 - Custom labels supported everywhere
@@ -270,11 +283,13 @@ Ready for comprehensive manual testing of dropdown functionality in the running 
 ### Why Enums + String Storage?
 
 **Enums in Code**:
+
 - Type safety at compile time
 - Autocomplete in IDEs
 - Clear common options for UI
 
 **String in Database**:
+
 - Forward compatibility (add new labels without migration)
 - User custom labels without schema changes
 - Simple queries and indexes
@@ -282,6 +297,7 @@ Ready for comprehensive manual testing of dropdown functionality in the running 
 ### Why Label Per Field?
 
 Instead of a global labels table:
+
 - Simpler data model
 - Better performance (no joins)
 - Field-specific label options (e.g., "Mobile" only for phones)
@@ -290,12 +306,14 @@ Instead of a global labels table:
 ### Why Not Normalize Labels?
 
 Could have done:
+
 ```sql
 CREATE TABLE labels (id, name);
 CREATE TABLE contact_emails (email, label_id REFERENCES labels);
 ```
 
 But chose direct strings because:
+
 - Labels are small (5-20 chars)
 - Reduces complexity
 - User custom labels are unique anyway

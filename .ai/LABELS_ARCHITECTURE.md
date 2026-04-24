@@ -29,16 +29,12 @@ pub enum FieldLabel {
 
 1. **EmailLabel** - `src/core/labels.rs`
    - Home, Work, Other, Custom(String)
-   
 2. **PhoneLabel** - `src/core/labels.rs`
    - Mobile, Home, Work, Main, HomeFax, WorkFax, Pager, Other, Custom(String)
-   
 3. **AddressLabel** - `src/core/labels.rs`
    - Home, Work, Other, Custom(String)
-   
 4. **DateLabel** - `src/core/labels.rs`
    - Birthday, Anniversary, Other, Custom(String)
-   
 5. **UrlLabel** - `src/core/labels.rs`
    - HomePage, Work, Blog, Profile, GitHub, LinkedIn, Twitter, Facebook, Instagram, Mastodon, Other, Custom(String)
 
@@ -66,15 +62,18 @@ impl Default for Label
 ### Special Conversions
 
 **PhoneLabel**:
+
 - `to_vcard_type()` - Converts to vCard TYPE parameter format
   - Example: `Mobile` → `"CELL"`, `HomeFax` → `"HOME;FAX"`
 
 **DateLabel & UrlLabel**:
+
 - `to_apple_format()` - Converts to Apple's special label format
   - Example: `Anniversary` → `"_$!<Anniversary>!$_"`
   - Example: `HomePage` → `"_$!<HomePage>!$_"`
 
 **UrlLabel**:
+
 - `is_social_media()` - Returns true for social platform labels
 
 ## Data Model
@@ -141,7 +140,7 @@ pub struct Contact {
     pub addresses: Vec<ContactAddress>,
     pub dates: Vec<ContactDate>,
     pub urls: Vec<ContactUrl>,
-    
+
     // Deprecated (for backward compatibility)
     pub email: Option<String>,
     pub phone: Option<String>,
@@ -157,7 +156,7 @@ impl Contact {
     pub fn add_phone(&mut self, phone: ContactPhone);
     pub fn add_address(&mut self, address: ContactAddress);
     pub fn add_date(&mut self, date: ContactDate);
-    
+
     // Get primary values (with fallback to deprecated fields)
     pub fn primary_email(&self) -> Option<&str>;
     pub fn primary_phone(&self) -> Option<&str>;
@@ -169,6 +168,7 @@ impl Contact {
 ### Tables (Migration: 20250115_001_add_structured_fields.sql)
 
 **contact_emails**:
+
 ```sql
 CREATE TABLE contact_emails (
     id TEXT PRIMARY KEY NOT NULL,
@@ -184,6 +184,7 @@ CREATE INDEX idx_contact_emails_label ON contact_emails(label);
 ```
 
 **contact_phones**:
+
 ```sql
 CREATE TABLE contact_phones (
     id TEXT PRIMARY KEY NOT NULL,
@@ -199,6 +200,7 @@ CREATE INDEX idx_contact_phones_label ON contact_phones(label);
 ```
 
 **contact_addresses**:
+
 ```sql
 CREATE TABLE contact_addresses (
     id TEXT PRIMARY KEY NOT NULL,
@@ -218,6 +220,7 @@ CREATE INDEX idx_contact_addresses_label ON contact_addresses(label);
 ```
 
 **contact_dates**:
+
 ```sql
 CREATE TABLE contact_dates (
     id TEXT PRIMARY KEY NOT NULL,
@@ -235,6 +238,7 @@ CREATE INDEX idx_contact_dates_label ON contact_dates(label);
 ### Database Models (src/db/models.rs)
 
 Row types for each structured field:
+
 - `ContactEmailRow` - to/from conversions
 - `ContactPhoneRow` - to/from conversions
 - `ContactAddressRow` - to/from conversions
@@ -245,6 +249,7 @@ Row types for each structured field:
 ### Import Behavior
 
 **Email**: Parse `EMAIL;TYPE=HOME` and `itemN.X-ABLabel`
+
 ```
 EMAIL;TYPE=INTERNET;TYPE=HOME:home@email.com  → Home
 EMAIL;TYPE=INTERNET;TYPE=WORK:work@email.com  → Work
@@ -253,6 +258,7 @@ item1.X-ABLabel:Custom                         → Custom
 ```
 
 **Phone**: Parse `TEL;TYPE=CELL` and handle special cases
+
 ```
 TEL;TYPE=CELL:+1234567890           → Mobile
 TEL;TYPE=HOME:+9999999999           → Home
@@ -262,12 +268,14 @@ item2.X-ABLabel:googleVoice         → Google Voice
 ```
 
 **Address**: Parse `ADR;TYPE=HOME`
+
 ```
 ADR;TYPE=HOME:;;123 Main St;Springfield;IL;62701;USA  → Home
 ADR;TYPE=WORK:;;456 Office Ave;Chicago;IL;60601;USA   → Work
 ```
 
 **Date**: Parse `BDAY` and `X-ABDATE` with labels
+
 ```
 BDAY:19900515                                  → Birthday
 item8.X-ABDATE:20000101
@@ -275,6 +283,7 @@ item8.X-ABLabel:_$!<Anniversary>!$_           → Anniversary
 ```
 
 **URL**: Parse `URL;TYPE=WORK` and `itemN.X-ABLabel` (already implemented)
+
 ```
 URL;TYPE=WORK:https://work.com                 → Work
 item6.URL:https://github.com
@@ -288,6 +297,7 @@ item3.X-ABLabel:PROFILE                        → Profile
 Export structured fields back to vCard format:
 
 **With TYPE parameters** (for standard labels):
+
 ```
 EMAIL;TYPE=INTERNET;TYPE=HOME:home@email.com
 TEL;TYPE=CELL:+1234567890
@@ -295,6 +305,7 @@ ADR;TYPE=HOME:;;123 Main St;Springfield;IL;62701;USA
 ```
 
 **With itemN.X-ABLabel** (for custom/special labels):
+
 ```
 item1.EMAIL;TYPE=INTERNET:custom@email.com
 item1.X-ABLabel:Custom
@@ -307,6 +318,7 @@ item3.X-ABLabel:GitHub
 ```
 
 **Apple special format** (for Anniversary, HomePage):
+
 ```
 item4.X-ABDATE:20000101
 item4.X-ABLabel:_$!<Anniversary>!$_
@@ -326,6 +338,7 @@ Each labeled field should have:
 3. **Current label** displayed or editable
 
 Example mockup:
+
 ```
 ┌─────────────────────────────────────────────┐
 │ Email 1:                                    │
@@ -351,6 +364,7 @@ Example mockup:
 ### Implementation Notes
 
 **Iced widget approach**:
+
 ```rust
 // For each field
 Row::new()
@@ -366,6 +380,7 @@ Row::new()
 ```
 
 **Custom label handling**:
+
 - If user selects "Custom..." from dropdown, show additional TextInput
 - Store the actual custom text in the label field
 - On form load, check if label matches common options; if not, show as custom
@@ -378,6 +393,7 @@ Row::new()
 **Matching**: Label matching should be case-insensitive
 
 Example:
+
 ```rust
 // When fetching profiles by label
 contact.urls.iter()
@@ -389,6 +405,7 @@ contact.urls.iter()
 ### Normalization (Optional)
 
 Consider normalizing labels on save:
+
 ```rust
 // Normalize common labels to standard casing
 fn normalize_email_label(label: &str) -> String {
@@ -397,6 +414,7 @@ fn normalize_email_label(label: &str) -> String {
 ```
 
 This ensures:
+
 - "home" → "Home"
 - "WORK" → "Work"
 - "custom" → "custom" (preserved as-is)
@@ -406,17 +424,20 @@ This ensures:
 ### Existing Data
 
 The migration script automatically migrates:
+
 - Existing `contacts.email` → `contact_emails` with label "Home"
 - Existing `contacts.phone` → `contact_phones` with label "Mobile"
 
 ### Backward Compatibility
 
 The deprecated `email` and `phone` fields remain in the schema for now:
+
 - `Contact.primary_email()` returns first email or deprecated field
 - `Contact.primary_phone()` returns first phone or deprecated field
 - VCF import populates both old and new fields temporarily
 
 Future versions can:
+
 1. Mark fields as deprecated in UI
 2. Prompt users to migrate
 3. Remove deprecated fields in major version bump
@@ -426,6 +447,7 @@ Future versions can:
 ### Test Coverage
 
 **Unit Tests** (`src/core/labels.rs`):
+
 - Label parsing (case-insensitive)
 - Common options verification
 - Apple format conversion
@@ -433,6 +455,7 @@ Future versions can:
 - Social media detection
 
 **Integration Tests** (TODO):
+
 - VCF import with all label types
 - VCF export preserving labels
 - Round-trip import/export verification
@@ -442,6 +465,7 @@ Future versions can:
 ### Test Data
 
 Use `.ai/samples/test contact.vcf` which contains:
+
 - 3 emails (Home, Work, Custom)
 - 9 phones (Home, Work, Cell, Main, Home Fax, Work Fax, Google Voice, Pager, unlabeled)
 - 6 URLs (Profile, Blog, HomePage, Work, GitHub, Instagram)
@@ -453,6 +477,7 @@ Use `.ai/samples/test contact.vcf` which contains:
 ### Label Suggestions
 
 Learn from user's custom labels:
+
 ```sql
 SELECT DISTINCT label, COUNT(*) as usage
 FROM contact_emails
@@ -467,6 +492,7 @@ Show frequently-used custom labels as suggestions.
 ### Label Icons
 
 Associate icons with common labels:
+
 - Email: 🏠 Home, 💼 Work, 📧 Other
 - Phone: 📱 Mobile, 🏠 Home, 💼 Work, 📠 Fax
 - Address: 🏠 Home, 💼 Work, 📍 Other
@@ -476,6 +502,7 @@ Associate icons with common labels:
 ### Label Localization
 
 Support translated labels in UI:
+
 ```rust
 fn localize_label(label: &str, locale: &str) -> String {
     match (label, locale) {

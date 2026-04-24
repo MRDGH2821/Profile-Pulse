@@ -21,6 +21,7 @@ This document summarizes the label dropdown implementation added to the Profile 
 ### 2. Custom Label Support
 
 When "Custom" is selected from any dropdown:
+
 - A text input field appears below the dropdown
 - User can type any custom label text
 - Label is saved as-is to the database
@@ -29,6 +30,7 @@ When "Custom" is selected from any dropdown:
 ### 3. Smart Label Recognition
 
 The system intelligently recognizes existing labels when loading contacts:
+
 - Case-insensitive matching (e.g., "WORK" → Work option)
 - Variant recognition (e.g., "cell" → Mobile option)
 - Unknown labels automatically select "Custom" and populate text field
@@ -54,12 +56,14 @@ The system intelligently recognizes existing labels when loading contacts:
 Each field type uses a clean, consistent layout:
 
 **Email/Phone/URL Fields**:
+
 ```
 [Input Field (75%)        ] [Label Dropdown (25%)] [Remove]
 [Custom Label Input                              ] (if Custom selected)
 ```
 
 **Address Fields**:
+
 ```
 [Label Dropdown]
 [Custom Label Input] (if Custom selected)
@@ -69,6 +73,7 @@ Each field type uses a clean, consistent layout:
 ```
 
 **Date Fields**:
+
 ```
 [Label Dropdown (33%)] [Date Input (67%)        ] [Remove]
 [Custom Label Input                              ] (if Custom selected)
@@ -79,6 +84,7 @@ Each field type uses a clean, consistent layout:
 ### Data Structure
 
 Each form field (EmailForm, PhoneForm, etc.) contains:
+
 - `label: String` - The actual label stored and used (canonical)
 - `selected_option: Option<LabelOption>` - Current dropdown selection
 - `custom_label: String` - Buffer for custom label text input
@@ -86,12 +92,14 @@ Each form field (EmailForm, PhoneForm, etc.) contains:
 ### Message Flow
 
 **Dropdown Selection**:
+
 1. User selects option from dropdown
 2. `*LabelSelected` message sent with option
 3. `selected_option` field updated
 4. `label` field updated to match (or custom_label if Custom)
 
 **Custom Label Entry**:
+
 1. User types in custom label field
 2. `*CustomLabelChanged` message sent with text
 3. `custom_label` field updated
@@ -100,6 +108,7 @@ Each form field (EmailForm, PhoneForm, etc.) contains:
 ### Label Parsing
 
 Helper methods parse stored labels when loading contacts:
+
 - `parse_email_label(label)` → (dropdown_option, custom_text)
 - `parse_phone_label(label)` → (dropdown_option, custom_text)
 - `parse_address_label(label)` → (dropdown_option, custom_text)
@@ -111,6 +120,7 @@ Case-insensitive matching ensures "work", "Work", and "WORK" all map to the Work
 ## Database Storage
 
 Labels are stored as plain strings in the database:
+
 - `contact_emails.label` - Email label string
 - `contact_phones.label` - Phone label string
 - `contact_addresses.label` - Address label string
@@ -124,11 +134,13 @@ This simple approach provides maximum flexibility and maintains backward compati
 The label system integrates seamlessly with VCF operations:
 
 **Import**:
+
 - Standard vCard TYPE parameters recognized and mapped to dropdowns
 - Apple itemN.X-ABLabel custom labels preserved
 - Unknown labels automatically become Custom entries
 
 **Export**:
+
 - Predefined labels exported as standard TYPE parameters
 - Custom labels exported as itemN.X-ABLabel entries
 - Apple special formats (_$!<Label>!$_) handled correctly
@@ -136,11 +148,13 @@ The label system integrates seamlessly with VCF operations:
 ## Testing
 
 ### Automated Tests
+
 - ✅ All 70 existing tests pass
 - ✅ Compilation successful
 - ✅ No regressions introduced
 
 ### Manual Testing Required
+
 - ⏳ Dropdown appearance and behavior
 - ⏳ Custom label input field functionality
 - ⏳ Label persistence through save/load
@@ -167,17 +181,20 @@ The label system integrates seamlessly with VCF operations:
 ## Future Enhancements
 
 ### Short Term
+
 - Add validation for custom labels (non-empty, max length)
 - Show placeholder hints in custom label fields
 - Add icons to dropdown options
 
 ### Medium Term
+
 - Implement label suggestion from existing contacts
 - Add label frequency analytics
 - Platform-specific icons for URL labels
 - Search/filter for URL dropdown (12+ options)
 
 ### Long Term
+
 - Label normalization options
 - Bulk label editing
 - Label templates/presets
@@ -186,6 +203,7 @@ The label system integrates seamlessly with VCF operations:
 ## Usage Examples
 
 ### Example 1: Adding Email with Predefined Label
+
 ```
 1. Click "+ Add Email"
 2. Enter email: "john@work.com"
@@ -195,6 +213,7 @@ Result: Email stored with label "Work"
 ```
 
 ### Example 2: Adding Phone with Custom Label
+
 ```
 1. Click "+ Add Phone"
 2. Enter phone: "+1-800-GOOG-411"
@@ -205,6 +224,7 @@ Result: Phone stored with label "Google Voice"
 ```
 
 ### Example 3: Editing Contact with Custom Label
+
 ```
 1. Open contact with phone labeled "Google Voice"
 2. Dropdown shows "Custom" selected

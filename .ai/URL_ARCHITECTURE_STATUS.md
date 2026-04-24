@@ -12,6 +12,7 @@ We successfully refactored Profile Pulse to use **URL fields with labels** inste
 ## Architecture Change Summary
 
 ### Before (Old)
+
 ```rust
 pub struct Contact {
     // ...
@@ -27,11 +28,13 @@ pub struct SocialProfile {
 ```
 
 **Problems**:
+
 - Not VCF-standard (social_profiles is custom extension)
 - Required URL parsing to detect platform
 - Lost non-social URLs (blog, homepage)
 
 ### After (New)
+
 ```rust
 pub struct Contact {
     // ...
@@ -47,6 +50,7 @@ pub struct ContactUrl {
 ```
 
 **Benefits**:
+
 - ✅ VCF-compliant (uses standard URL fields)
 - ✅ Label-driven platform detection (no URL parsing)
 - ✅ Preserves ALL URLs (social + non-social)
@@ -59,6 +63,7 @@ pub struct ContactUrl {
 ### ✅ Completed (3 files)
 
 #### 1. Database Migration - `src/db/migrations/20250114_002_add_urls_table.sql`
+
 ```sql
 -- New table for URLs
 CREATE TABLE contact_urls (
@@ -77,6 +82,7 @@ ALTER TABLE profile_cache ADD COLUMN url_id TEXT REFERENCES contact_urls(id);
 ```
 
 #### 2. Contact Model - `src/core/contact.rs`
+
 - ✅ Added `ContactUrl` struct
 - ✅ Changed `Contact.social_profiles` → `Contact.urls`
 - ✅ Updated `ContactBuilder` to use `urls`
@@ -85,6 +91,7 @@ ALTER TABLE profile_cache ADD COLUMN url_id TEXT REFERENCES contact_urls(id);
 - ✅ Updated all tests
 
 #### 3. VCF Parser - `src/vcf/mod.rs`
+
 - ✅ Added `item_group` tracking for `itemN.*` properties
 - ✅ Implemented `extract_urls()` with two-pass label association:
   - Pass 1: Collect `itemN.X-ABLabel` mappings
@@ -96,6 +103,7 @@ ALTER TABLE profile_cache ADD COLUMN url_id TEXT REFERENCES contact_urls(id);
   - `test_import_google_contacts_vcf()` - full sample import
 
 **VCF Format Example**:
+
 ```
 item1.URL:https://github.com/johndoe
 item1.X-ABLabel:GitHub
@@ -108,14 +116,18 @@ item2.X-ABLabel:Blog
 ### ✅ Completed - All Refactoring Done (44/44 tests passing)
 
 #### 1. `src/db/models.rs` ✅
+
 **Completed**:
+
 - ✅ Added `ContactUrlRow` struct with `FromRow` derive
 - ✅ Added conversion methods: `to_contact_url()`, `from_contact_url()`
 - ✅ Updated `ContactRow.to_contact()` signature to use `urls: Vec<ContactUrl>`
 - ✅ Added roundtrip test for ContactUrlRow
 
 #### 2. `src/db/repository.rs` ✅
+
 **Completed**:
+
 - ✅ Added `insert_contact_url()` helper method
 - ✅ Added `get_contact_urls()` helper method
 - ✅ Updated all queries to use `contact_urls` table
@@ -124,7 +136,9 @@ item2.X-ABLabel:Blog
 - ✅ Updated test setup to apply both migrations
 
 #### 3. `src/ui/mod.rs` ✅
+
 **Completed**:
+
 - ✅ Removed `ContactForm.social_profiles` field entirely
 - ✅ Updated `from_contact()` to extract URLs from `Contact.urls`
 - ✅ Updated `to_contact()` to create ContactUrl objects
@@ -133,12 +147,16 @@ item2.X-ABLabel:Blog
 - ✅ Fixed imports (added ContactUrl, Space widget)
 
 #### 4. `src/db/mod.rs` ✅
+
 **Completed**:
+
 - ✅ Changed stats query: `social_profiles` → `contact_urls`
 - ✅ Updated `run_migrations()` to apply both migrations
 
 #### 5. Additional Fixes ✅
+
 **Completed**:
+
 - ✅ Fixed `SocialPlatform::from_str()` to return `None` for non-social labels
 - ✅ Added VCF value unescaping (`unescape_vcf_value()`) to handle `\:` escape sequences
 - ✅ Added NICKNAME extraction to custom fields in VCF parser
@@ -163,6 +181,7 @@ for url in contact.urls {
 ```
 
 **Profile Cache** (repurposed `social_profiles` table):
+
 - Stores fetched data: avatar_url, bio, follower_count, etc.
 - References source URL via `url_id` column
 - Has `last_fetched_at` timestamp for cache invalidation
@@ -172,6 +191,7 @@ for url in contact.urls {
 ## Testing Results
 
 ### Unit Tests ✅ (44/44 Passing)
+
 - ✅ `test_import_google_contacts_vcf()` - Imports all 6 URLs with correct labels
 - ✅ `test_parse_url_with_label()` - Verifies itemN.X-ABLabel association
 - ✅ `test_export_urls_with_labels()` - Round-trip export preserves labels
@@ -181,6 +201,7 @@ for url in contact.urls {
 - ✅ All database CRUD tests passing with new URL structure
 
 ### Integration Tests ✅
+
 - ✅ Imported `.ai/samples/test contact.vcf` successfully:
   - ✅ 6 URLs extracted with correct labels
   - ✅ Labels preserved: PROFILE, BLOG, _$!<HomePage>!$_, WORK, GitHub, Instagram
@@ -190,6 +211,7 @@ for url in contact.urls {
 - ✅ VCF escape sequences handled correctly (`\:` → `:`)
 
 ### Manual Testing ⏳ (Pending)
+
 - ⏳ Import real Google Contacts VCF (not yet tested)
 - ⏳ Verify UI shows all URLs with labels (compilation successful, needs runtime test)
 - ⏳ Test add/edit/delete URL functionality in UI
@@ -200,16 +222,20 @@ for url in contact.urls {
 ## Completed Steps ✅
 
 ### Step 1: Database Layer ✅ (45 min)
+
 1. ✅ Updated `src/db/models.rs` - Added `ContactUrlRow` with conversions
 2. ✅ Updated `src/db/repository.rs` - Replaced all social_profiles operations
 
 ### Step 2: UI Layer ✅ (45 min)
+
 3. ✅ Updated `src/ui/mod.rs` - Removed social_profiles, updated to use URLs
 
 ### Step 3: Stats Query ✅ (5 min)
+
 4. ✅ Updated `src/db/mod.rs` - Changed table name and added migration
 
 ### Step 4: Testing ✅ (60 min)
+
 5. ✅ Ran `cargo test` - All 44 tests passing
 6. ✅ Tested import of sample VCF - All 6 URLs with labels imported
 7. ⏳ Manual UI testing - Pending runtime verification
@@ -223,14 +249,14 @@ for url in contact.urls {
 
 From `.ai/samples/test contact.vcf`:
 
-| URL | Label | Type |
-|-----|-------|------|
-| https://profile.com | PROFILE | Generic |
-| https://blog.com | BLOG | Generic |
-| https://homepage.com | _$!<HomePage>!$_ | Generic |
-| https://work.com | WORK | Generic |
-| https://github.com | GitHub | Social |
-| https://instagram.com | Instagram | Social |
+| URL                   | Label            | Type    |
+| --------------------- | ---------------- | ------- |
+| https://profile.com   | PROFILE          | Generic |
+| https://blog.com      | BLOG             | Generic |
+| https://homepage.com  | _$!<HomePage>!$_ | Generic |
+| https://work.com      | WORK             | Generic |
+| https://github.com    | GitHub           | Social  |
+| https://instagram.com | Instagram        | Social  |
 
 **Expected Result**: All 6 URLs imported with labels intact.
 
@@ -239,12 +265,13 @@ From `.ai/samples/test contact.vcf`:
 ## Migration Notes
 
 ### For Existing Users (If App Already Deployed)
+
 If users have existing data in `social_profiles` table, a data migration would be needed:
 
 ```sql
 -- Migrate social_profiles → contact_urls
 INSERT INTO contact_urls (id, contact_id, url, label, created_at, updated_at)
-SELECT 
+SELECT
     id,
     contact_id,
     url,
@@ -255,6 +282,7 @@ FROM profile_cache;  -- (formerly social_profiles)
 ```
 
 ### Breaking Changes
+
 - API: `Contact.social_profiles` → `Contact.urls`
 - Database: `social_profiles` table → `profile_cache` (for cached data)
 - VCF: Export format now uses `itemN.URL` + `itemN.X-ABLabel`
@@ -264,16 +292,19 @@ FROM profile_cache;  -- (formerly social_profiles)
 ## Design Decisions
 
 ### Label Matching Strategy
+
 - **Case-Sensitive**: Labels are stored as-is from VCF
 - **Fetcher Matching**: Use case-insensitive comparison (`label.to_lowercase() == "github"`)
 - **Recognized Labels**: "GitHub", "LinkedIn", "Twitter", "X", "Facebook", "Instagram", "Mastodon"
 
 ### URL Validation
+
 - **No URL Parsing**: Don't parse URLs to detect platform (rely on labels)
 - **Generic URLs**: Store as-is with labels like "Blog", "Homepage", "Work"
 - **Missing Labels**: Allowed (label = None) - user can add manually later
 
 ### Profile Cache Strategy
+
 - **Separate Table**: `profile_cache` stores fetched data separately from URLs
 - **Reference**: `url_id` links cached data to source URL
 - **Caching**: Only social media URLs (detected via label) get fetched/cached
@@ -316,6 +347,7 @@ FROM profile_cache;  -- (formerly social_profiles)
 **Refactoring Complete**: ✅ All code changes done, all tests passing
 
 **Stats**:
+
 - **Files Modified**: 6 files
 - **Lines Changed**: ~400+ lines
 - **Tests Passing**: 44/44 (100%)
@@ -323,6 +355,7 @@ FROM profile_cache;  -- (formerly social_profiles)
 - **Time Spent**: ~3 hours
 
 **Key Achievements**:
+
 - ✅ VCF-compliant URL storage with labels (itemN.X-ABLabel)
 - ✅ Full data preservation from Google Contacts VCF
 - ✅ Cleaner architecture (label-driven platform detection)
@@ -331,6 +364,7 @@ FROM profile_cache;  -- (formerly social_profiles)
 - ✅ Database migration path defined and working
 
 **Next Phase**: Profile fetching implementation (Phase 3)
+
 - Use labels to identify which URLs to fetch
 - Implement platform-specific fetchers (GitHub, LinkedIn, etc.)
 - Cache fetched data in `profile_cache` table

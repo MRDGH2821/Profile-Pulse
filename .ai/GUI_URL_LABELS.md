@@ -14,6 +14,7 @@ The GUI has been enhanced to support adding and editing labels for URLs. Users c
 ## User Interface Changes
 
 ### Before (URLs only)
+
 ```
 URLs Section:
 [https://github.com/user                                    ] [−]
@@ -21,6 +22,7 @@ URLs Section:
 ```
 
 ### After (URLs + Labels)
+
 ```
 URLs Section:
 [https://github.com/user      ] [GitHub                    ] [−]
@@ -37,16 +39,15 @@ Each URL entry now consists of three elements in a row:
 1. **URL Input Field** (wider, Fill)
    - Placeholder: "URL 1", "URL 2", etc.
    - Full URL entry (https://...)
-   
 2. **Label Input Field** (2x width, FillPortion(2))
    - Placeholder: "Label (e.g., GitHub, Blog)"
    - Short descriptive label for the URL
-   
 3. **Remove Button** (−)
    - Appears only when > 1 URL exists
    - Removes the current URL entry
 
 ### Add URL Button
+
 - Located at the top of URLs section
 - Adds a new empty URL+label pair
 
@@ -89,6 +90,7 @@ pub enum Message {
 ### Data Flow
 
 **Form → Contact (Save)**:
+
 ```rust
 ContactForm.urls: Vec<UrlForm>
     ↓ to_contact()
@@ -98,6 +100,7 @@ Database: contact_urls table (id, contact_id, url, label)
 ```
 
 **Contact → Form (Load)**:
+
 ```rust
 Database: contact_urls table
     ↓ repository.read()
@@ -113,6 +116,7 @@ ContactForm.urls: Vec<UrlForm>  // label extracted or empty string
 ### Recommended Labels
 
 For social media profiles:
+
 - `GitHub` - GitHub profile
 - `LinkedIn` - LinkedIn profile
 - `Twitter` or `X` - Twitter/X profile
@@ -121,6 +125,7 @@ For social media profiles:
 - `Mastodon` - Mastodon profile
 
 For other URLs:
+
 - `Blog` - Personal blog
 - `Homepage` - Personal website
 - `Work` - Work-related URL
@@ -139,25 +144,31 @@ For other URLs:
 ## VCF Import/Export
 
 ### Import
+
 When importing VCF files, labels are extracted from `itemN.X-ABLabel`:
 
 ```
 item1.URL:https://github.com/johndoe
 item1.X-ABLabel:GitHub
 ```
+
 ↓
+
 ```rust
 ContactUrl {
     url: "https://github.com/johndoe",
     label: Some("GitHub"),
 }
 ```
+
 ↓ Displayed in form as:
+
 ```
 [https://github.com/johndoe] [GitHub]
 ```
 
 ### Export
+
 When exporting to VCF, labels are written as `itemN.X-ABLabel`:
 
 ```rust
@@ -166,7 +177,9 @@ ContactUrl {
     label: Some("GitHub"),
 }
 ```
+
 ↓ Exported as:
+
 ```
 item1.URL:https://github.com/johndoe
 item1.X-ABLabel:GitHub
@@ -214,6 +227,7 @@ URLs
 ```
 
 If a URL has no label, it's displayed without a prefix:
+
 ```
   https://example.com
 ```
@@ -244,6 +258,7 @@ When profile fetching is implemented, labels will be used to:
 ## Testing Checklist
 
 ### Manual Testing (Pending)
+
 - [ ] Add new contact with URLs and labels
 - [ ] Edit existing URL labels
 - [ ] Remove URLs (verify button disabled for last URL)
@@ -254,6 +269,7 @@ When profile fetching is implemented, labels will be used to:
 - [ ] Verify labels display correctly in detail view
 
 ### Automated Testing (Complete)
+
 - ✅ All 44 unit tests passing
 - ✅ VCF import/export with labels tested
 - ✅ ContactUrl creation with labels tested

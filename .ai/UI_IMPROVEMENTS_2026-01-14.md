@@ -11,6 +11,7 @@ Comprehensive overhaul of the Profile Pulse UI to support large contact lists (3
 **Problem**: Only 100 of 300+ contacts were displayed due to hardcoded limit in `LoadContacts` message handler.
 
 **Solution**:
+
 - Removed limit: Changed `repo.list(Some(100), Some(0))` to `repo.list(None, None)`
 - Implemented pagination to handle unlimited contacts
 - Added page navigation controls (Previous/Next)
@@ -20,6 +21,7 @@ Comprehensive overhaul of the Profile Pulse UI to support large contact lists (3
 **Problem**: ContactForm only had 5 basic fields (name, email, phone, organization, title). Missing many Google Contacts fields.
 
 **Solution**: Expanded ContactForm to include:
+
 - **Basic**: name, nickname, birthday, notes
 - **Contact**: emails (Vec), phones (Vec), urls (Vec), addresses (Vec)
 - **Work**: organization, title, department
@@ -32,6 +34,7 @@ Comprehensive overhaul of the Profile Pulse UI to support large contact lists (3
 **Problem**: Could only have one email, one phone, one URL per contact.
 
 **Solution**:
+
 - Changed to Vec<String> for emails, phones, URLs
 - Added Vec<Address> for multiple addresses
 - Added Vec<SignificantDate> for multiple dates
@@ -140,6 +143,7 @@ Shows ALL contact information in organized sections:
 ### Improved Contact List Items
 
 Each contact card shows:
+
 - Name (large, bold)
 - 📧 Email • 📱 Phone • 🏢 Organization
 - 🔗 N profiles • 🌐 N URLs
@@ -172,6 +176,7 @@ Each contact card shows:
 ### Data Structure Changes
 
 **ContactForm** (src/ui/mod.rs):
+
 ```rust
 pub struct ContactForm {
     // Basic fields
@@ -179,31 +184,32 @@ pub struct ContactForm {
     pub nickname: String,
     pub birthday: String,
     pub notes: String,
-    
+
     // Multiple value fields
     pub emails: Vec<String>,
     pub phones: Vec<String>,
     pub urls: Vec<String>,
     pub addresses: Vec<Address>,
     pub significant_dates: Vec<SignificantDate>,
-    
+
     // Work fields
     pub organization: String,
     pub title: String,
     pub department: String,
-    
+
     // Photo
     pub photo_url: String,
-    
+
     // Social profiles
     pub social_profiles: Vec<SocialProfileForm>,
-    
+
     // Custom fields (user-defined key-value pairs)
     pub custom_field_pairs: Vec<CustomFieldPair>,
 }
 ```
 
 **New Helper Structs**:
+
 ```rust
 pub struct Address {
     pub label: String,
@@ -291,6 +297,7 @@ pub struct State {
 ## Data Storage Strategy
 
 **Multiple Values** → Stored in custom_fields HashMap:
+
 - Primary email/phone → Contact.email, Contact.phone
 - Additional emails → custom_fields["email_1"], custom_fields["email_2"], ...
 - Additional phones → custom_fields["phone_1"], custom_fields["phone_2"], ...
@@ -300,6 +307,7 @@ pub struct State {
 - Custom fields → custom_fields[user_key] = user_value
 
 **Why this approach?**
+
 - No database schema changes needed
 - Compatible with existing VCF import/export
 - Extensible for future field types
@@ -311,6 +319,7 @@ pub struct State {
 ## Google Contacts Compatibility
 
 ✅ **Fully Supported Fields**:
+
 - Name (FN)
 - Nickname
 - Email (multiple)
@@ -325,6 +334,7 @@ pub struct State {
 - Social profiles (LinkedIn, Twitter, Facebook, Instagram, GitHub, Mastodon)
 
 ✅ **Newly Added**:
+
 - Addresses (multiple) with full parsing
 - Significant dates (multiple)
 - Custom fields (unlimited user-defined key-value pairs)
@@ -332,6 +342,7 @@ pub struct State {
 ## Profile Picture Fetching (Phase 3 Ready)
 
 URLs are now properly stored and accessible:
+
 1. User enters multiple URLs in contact form
 2. First URL becomes photo_url (Contact.photo_url)
 3. All URLs also stored in custom_fields (url_0, url_1, ...)
@@ -343,6 +354,7 @@ URLs are now properly stored and accessible:
 ## User Experience Improvements
 
 ### Before
+
 - Could only see 100 contacts
 - Had to scroll through all contacts
 - Only 5 editable fields
@@ -354,6 +366,7 @@ URLs are now properly stored and accessible:
 - Basic detail view
 
 ### After
+
 - Can see all 300+ contacts
 - Quick jump to any letter (A-Z)
 - Paginated for performance
@@ -405,6 +418,7 @@ URLs are now properly stored and accessible:
 ## Next Steps
 
 ### Immediate Testing
+
 1. `cargo build` ✅ Done
 2. `cargo test` ✅ Done (38/38 passing)
 3. `cargo run` → Test with real database
@@ -413,6 +427,7 @@ URLs are now properly stored and accessible:
 6. Report any issues
 
 ### Recommended Enhancements
+
 - Add confirmation dialog for contact deletion
 - Add loading spinner for database operations
 - Add keyboard shortcuts (Enter to save, Esc to cancel)
@@ -425,6 +440,7 @@ URLs are now properly stored and accessible:
 - Add suggestions for custom field keys
 
 ### Phase 3 Preparation
+
 - Implement ProfileFetcher trait
 - Add HTTP client with rate limiting
 - Implement platform-specific fetchers (GitHub, LinkedIn, etc.)
@@ -435,22 +451,26 @@ URLs are now properly stored and accessible:
 ## Architecture Benefits
 
 ### Scalability
+
 - Pagination handles unlimited contacts
 - Alphabetical filtering reduces cognitive load
 - 50 items per page keeps UI responsive
 
 ### Maintainability
+
 - Indexed message system scales to any number of dynamic fields
 - Helper structs (Address, SocialProfileForm) improve code organization
 - Section-based form rendering is easy to extend
 
 ### User Experience
+
 - Natural navigation (phone book style)
 - Visual feedback for all operations
 - No information loss (all fields preserved)
 - Compatible with standard contact formats (Google Contacts)
 
 ### Future-Proof
+
 - Custom fields HashMap supports arbitrary extensions
 - URL storage strategy supports profile picture fetching
 - Social profile structure ready for discovery features

@@ -220,22 +220,18 @@ tokio = { version = "1.35", features = ["full"] }
 
 # Database
 sqlx = { version = "0.7", features = [
-    "sqlite",
-    "runtime-tokio-rustls",
-    "migrate",
-    "chrono",
-    "uuid"
+  "sqlite",
+  "runtime-tokio-rustls",
+  "migrate",
+  "chrono",
+  "uuid"
 ] }
 
 # VCF/vCard Support
 vcard = "0.3"
 
 # HTTP Client
-reqwest = { version = "0.11", features = [
-    "json",
-    "cookies",
-    "rustls-tls"
-] }
+reqwest = { version = "0.11", features = ["json", "cookies", "rustls-tls"] }
 reqwest-middleware = "0.2"
 reqwest-retry = "0.3"
 
@@ -262,7 +258,7 @@ tracing-appender = "0.2"
 
 # Configuration
 config = "0.13"
-directories = "5.0"  # Platform-specific directories
+directories = "5.0" # Platform-specific directories
 
 # Date/Time
 chrono = { version = "0.4", features = ["serde"] }
@@ -288,7 +284,7 @@ async-trait = "0.1"
 mockito = "1.2"
 tempfile = "3.8"
 tokio-test = "0.4"
-insta = "1.34"  # Snapshot testing
+insta = "1.34"     # Snapshot testing
 
 # Benchmarking
 criterion = "0.5"
