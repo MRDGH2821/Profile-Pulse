@@ -1,0 +1,19 @@
+BEGIN:VCARD
+VERSION:4.0
+FN:Dr. Alice Marie Johnson PhD
+N:Johnson;Alice;Marie;Dr.;PhD
+NICKNAME:Ali
+NOTE:Important client - prefers email communication.\nAvailable Mon-Fri 9-5 PST
+ORG:TechCorp Inc;Research & Development
+TITLE:Senior Research Scientist
+EMAIL;TYPE=WORK:alice.johnson@techcorp.com
+EMAIL;TYPE=HOME:alice@personal.com
+TEL;TYPE=WORK:+1-555-123-4567
+TEL;TYPE=CELL:+1-555-987-6543
+ADR;TYPE=WORK:;;123 Innovation Dr;San Francisco;CA;94105;USA
+BDAY:19850615
+item1.URL:https://github.com/alicejohnson
+item1.X-ABLabel:GitHub
+item2.URL:https://linkedin.com/in/alicejohnson
+item2.X-ABLabel:LinkedIn
+END:VCARD

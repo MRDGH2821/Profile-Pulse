@@ -1,0 +1,43 @@
+BEGIN:VCARD
+VERSION:3.0
+FN:Prefix First name Middle name Surname Suffix
+N:Surname;First name;Middle name;Prefix;Suffix
+NICKNAME:Nickname
+X-PHONETIC-FIRST-NAME:Phonetic first
+X-PHONETIC-MIDDLE-NAME:Phonetic middle
+X-PHONETIC-LAST-NAME:Phonetic last
+X-FILE-AS:File as
+EMAIL;TYPE=INTERNET;TYPE=HOME:home@email.com
+EMAIL;TYPE=INTERNET;TYPE=WORK:work@email.com
+item1.EMAIL;TYPE=INTERNET:custom@email.com
+item1.X-ABLabel:Custom
+TEL;TYPE=HOME:+91 99999 99999
+TEL;TYPE=WORK:+1 444-444-4444
+TEL:+213 22 22 22 22
+TEL;TYPE=CELL:+54 11 2222-2222
+TEL;TYPE=MAIN:+1 555-555-5555
+TEL;TYPE=HOME;TYPE=FAX:+682 55 555
+TEL;TYPE=WORK;TYPE=FAX:+679 555 5555
+item2.TEL:+6905999
+item2.X-ABLabel:googleVoice
+TEL;TYPE=PAGER:+965 555 55555
+ORG:Company;Department
+TITLE:Job title
+BDAY:19700101
+item3.URL:https\://profile.com
+item3.X-ABLabel:PROFILE
+item4.URL:https\://blog.com
+item4.X-ABLabel:BLOG
+item5.URL:https\://homepage.com
+item5.X-ABLabel:_$!<HomePage>!$_
+URL;TYPE=WORK:https\://work.com
+item6.URL:https\://github.com
+item6.X-ABLabel:GitHub
+item7.URL:https\://instagram.com
+item7.X-ABLabel:Instagram
+item8.X-ABDATE:20000101
+item8.X-ABLabel:_$!<Anniversary>!$_
+X-ABDATE:20100101
+NOTE:Notes sample
+CATEGORIES:myContacts
+END:VCARD
