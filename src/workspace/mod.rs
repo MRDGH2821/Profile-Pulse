@@ -1,6 +1,6 @@
 //! Workspace management for multiple VCF files
 //!
-//! Each workspace represents a VCF file with its own database cache.
+//! Each workspace represents a VCF file (single source of truth).
 //! This allows users to manage multiple address books independently.
 
 use anyhow::{Context, Result};
@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use uuid::Uuid;
 
-/// A workspace represents a VCF file with its own database and cache
+/// A workspace represents a VCF file
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Workspace {
     /// Unique identifier for this workspace
@@ -19,8 +19,6 @@ pub struct Workspace {
     pub vcf_path: PathBuf,
     /// Path to the workspace directory
     pub workspace_dir: PathBuf,
-    /// Path to the SQLite database (cache)
-    pub db_path: PathBuf,
     /// When this workspace was created
     pub created_at: chrono::DateTime<chrono::Utc>,
     /// When this workspace was last accessed
@@ -33,7 +31,6 @@ impl Workspace {
     /// Create a new workspace
     pub fn new(name: String, vcf_path: PathBuf, workspace_dir: PathBuf) -> Self {
         let id = Uuid::new_v4();
-        let db_path = workspace_dir.join("contacts.db");
         let now = chrono::Utc::now();
 
         Self {
@@ -41,7 +38,6 @@ impl Workspace {
             name,
             vcf_path,
             workspace_dir,
-            db_path,
             created_at: now,
             last_accessed: now,
             contact_count: 0,
@@ -51,11 +47,6 @@ impl Workspace {
     /// Update last accessed timestamp
     pub fn touch(&mut self) {
         self.last_accessed = chrono::Utc::now();
-    }
-
-    /// Get the database path as a string
-    pub fn db_path_str(&self) -> String {
-        self.db_path.to_string_lossy().to_string()
     }
 
     /// Check if the VCF file exists
@@ -288,7 +279,7 @@ mod tests {
         assert_eq!(workspace.name, name);
         assert_eq!(workspace.vcf_path, vcf_path);
         assert_eq!(workspace.workspace_dir, workspace_dir);
-        assert!(workspace.db_path.to_string_lossy().contains("contacts.db"));
+        assert!(workspace.vcf_path.to_string_lossy().contains("test.vcf"));
     }
 
     #[test]

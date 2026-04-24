@@ -878,7 +878,7 @@ mod tests {
         let result = Contact::builder().email("test@example.com").build();
 
         assert!(result.is_err());
-        assert!(matches!(result, Err(ContactBuilderError::MissingName)));
+        assert!(matches!(result, Err(ContactBuilderError::EmptyName)));
     }
 
     #[test]

@@ -7,10 +7,6 @@ use thiserror::Error;
 /// Main application error type
 #[derive(Error, Debug)]
 pub enum AppError {
-    /// Database operation failed
-    #[error("Database error: {0}")]
-    Database(#[from] sqlx::Error),
-
     /// I/O operation failed
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),

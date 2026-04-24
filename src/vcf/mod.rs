@@ -3,6 +3,10 @@
 //! This module handles parsing vCard files, extracting contact information,
 //! and converting between Contact models and vCard format.
 
+pub mod repository;
+
+pub use repository::VcfRepository;
+
 use crate::core::contact::{
     Contact, ContactAddress, ContactBuilder, ContactDate, ContactEmail, ContactPhone, ContactUrl,
     SocialPlatform, SocialProfile,
@@ -21,7 +25,22 @@ pub fn import_from_file(path: &Path) -> Result<Vec<Contact>> {
     import_from_string(&content)
 }
 
-/// Parse VCF content from a string and return a list of contacts
+/// Parse vCard string content and return contacts (alias for repository use)
+pub fn import_contacts_from_vcf(content: &str) -> Result<Vec<Contact>> {
+    import_from_string(content)
+}
+
+/// Export contacts to VCF string (alias for repository use)
+pub fn export_contacts_to_vcf(contacts: &[Contact]) -> Result<String> {
+    let mut vcf_content = String::new();
+    for contact in contacts {
+        let vcard_str = export_contact(contact)?;
+        vcf_content.push_str(&vcard_str);
+    }
+    Ok(vcf_content)
+}
+
+/// Parse vCard string content and return contacts
 pub fn import_from_string(content: &str) -> Result<Vec<Contact>> {
     let vcards = parse_vcards(content)?;
     let mut contacts = Vec::new();
@@ -152,6 +171,39 @@ fn parse_vcard(vcard: VCard) -> Result<Contact> {
     let name = extract_name(&vcard)?;
     let mut builder = ContactBuilder::new().name(name);
 
+    // Extract structured name components
+    let (prefix, given, additional, family, suffix) = extract_structured_name(&vcard);
+    if let Some(prefix) = prefix {
+        builder = builder.name_prefix(prefix);
+    }
+    if let Some(given) = given {
+        builder = builder.first_name(given);
+    }
+    if let Some(additional) = additional {
+        builder = builder.middle_name(additional);
+    }
+    if let Some(family) = family {
+        builder = builder.last_name(family);
+    }
+    if let Some(suffix) = suffix {
+        builder = builder.name_suffix(suffix);
+    }
+
+    // Extract nickname
+    if let Some(nickname) = extract_nickname(&vcard) {
+        builder = builder.nickname(nickname);
+    }
+
+    // Extract notes
+    if let Some(notes) = extract_notes(&vcard) {
+        builder = builder.notes(notes);
+    }
+
+    // Extract department
+    if let Some(department) = extract_department(&vcard) {
+        builder = builder.department(department);
+    }
+
     if let Some(email) = extract_email(&vcard) {
         builder = builder.email(email);
     }
@@ -200,7 +252,10 @@ fn parse_vcard(vcard: VCard) -> Result<Contact> {
 
     let custom_fields = extract_custom_fields(&vcard);
     for (key, value) in custom_fields {
-        builder = builder.custom_field(key, value);
+        // Skip NOTE and NICKNAME as they're now handled as dedicated fields
+        if key != "NOTE" && key != "NICKNAME" {
+            builder = builder.custom_field(key, value);
+        }
     }
 
     builder.build().context("Failed to build contact from vCard")
@@ -236,6 +291,92 @@ fn extract_name(vcard: &VCard) -> Result<String> {
     }
 
     Ok("Unknown Contact".to_string())
+}
+
+/// Extract structured name components from N property
+fn extract_structured_name(vcard: &VCard) -> (Option<String>, Option<String>, Option<String>, Option<String>, Option<String>) {
+    for prop in &vcard.properties {
+        if prop.name == "N" {
+            // N format: Family;Given;Additional;Prefix;Suffix
+            let parts: Vec<&str> = prop.value.split(';').collect();
+            
+            let family = if !parts.is_empty() && !parts[0].is_empty() {
+                Some(parts[0].to_string())
+            } else {
+                None
+            };
+            
+            let given = if parts.len() > 1 && !parts[1].is_empty() {
+                Some(parts[1].to_string())
+            } else {
+                None
+            };
+            
+            let additional = if parts.len() > 2 && !parts[2].is_empty() {
+                Some(parts[2].to_string())
+            } else {
+                None
+            };
+            
+            let prefix = if parts.len() > 3 && !parts[3].is_empty() {
+                Some(parts[3].to_string())
+            } else {
+                None
+            };
+            
+            let suffix = if parts.len() > 4 && !parts[4].is_empty() {
+                Some(parts[4].to_string())
+            } else {
+                None
+            };
+            
+            return (prefix, given, additional, family, suffix);
+        }
+    }
+    
+    (None, None, None, None, None)
+}
+
+/// Extract nickname from NICKNAME property
+fn extract_nickname(vcard: &VCard) -> Option<String> {
+    for prop in &vcard.properties {
+        if prop.name == "NICKNAME" && !prop.value.is_empty() {
+            return Some(prop.value.clone());
+        }
+    }
+    None
+}
+
+/// Extract notes from NOTE property
+fn extract_notes(vcard: &VCard) -> Option<String> {
+    for prop in &vcard.properties {
+        if prop.name == "NOTE" && !prop.value.is_empty() {
+            return Some(unescape_vcf_value(&prop.value));
+        }
+    }
+    None
+}
+
+/// Extract department from ORG property (second component) or X-DEPARTMENT
+fn extract_department(vcard: &VCard) -> Option<String> {
+    // Try X-DEPARTMENT first
+    for prop in &vcard.properties {
+        if prop.name == "X-DEPARTMENT" && !prop.value.is_empty() {
+            return Some(prop.value.clone());
+        }
+    }
+    
+    // Try second component of ORG property
+    for prop in &vcard.properties {
+        if prop.name == "ORG" {
+            let parts: Vec<&str> = prop.value.split(';').collect();
+            if parts.len() > 1 && !parts[1].is_empty() {
+                return Some(parts[1].to_string());
+            }
+        }
+    }
+    
+    None
 }
 
 /// Extract primary email
@@ -658,8 +799,25 @@ pub fn export_contact(contact: &Contact) -> Result<String> {
     
     lines.push(format!("FN:{}", contact.name));
 
-    if let Some((family, given)) = split_name(&contact.name) {
-        lines.push(format!("N:{};{};;;", family, given));
+    // Export structured name (N field: Family;Given;Additional;Prefix;Suffix)
+    let family = contact.last_name.as_deref().unwrap_or("");
+    let given = contact.first_name.as_deref().unwrap_or("");
+    let additional = contact.middle_name.as_deref().unwrap_or("");
+    let prefix = contact.name_prefix.as_deref().unwrap_or("");
+    let suffix = contact.name_suffix.as_deref().unwrap_or("");
+    
+    // Only export N field if we have at least family or given name
+    if !family.is_empty() || !given.is_empty() {
+        lines.push(format!("N:{};{};{};{};{}", family, given, additional, prefix, suffix));
+    } else if let Some((family_split, given_split)) = split_name(&contact.name) {
+        lines.push(format!("N:{};{};;;", family_split, given_split));
+    }
+
+    // Export nickname
+    if let Some(nickname) = &contact.nickname {
+        if !nickname.is_empty() {
+            lines.push(format!("NICKNAME:{}", nickname));
+        }
     }
 
     if let Some(email) = &contact.email {
@@ -671,11 +829,34 @@ pub fn export_contact(contact: &Contact) -> Result<String> {
     }
 
     if let Some(org) = &contact.organization {
-        lines.push(format!("ORG:{}", org));
+        // If department exists, include it as second component
+        if let Some(dept) = &contact.department {
+            if !dept.is_empty() {
+                lines.push(format!("ORG:{};{}", org, dept));
+            } else {
+                lines.push(format!("ORG:{}", org));
+            }
+        } else {
+            lines.push(format!("ORG:{}", org));
+        }
+    } else if let Some(dept) = &contact.department {
+        // Department without organization
+        if !dept.is_empty() {
+            lines.push(format!("X-DEPARTMENT:{}", dept));
+        }
     }
 
     if let Some(title) = &contact.title {
         lines.push(format!("TITLE:{}", title));
+    }
+
+    // Export notes
+    if let Some(notes) = &contact.notes {
+        if !notes.is_empty() {
+            // Escape newlines and special characters for VCF
+            let escaped_notes = notes.replace('\n', "\\n").replace('\r', "");
+            lines.push(format!("NOTE:{}", escaped_notes));
+        }
     }
 
     if let Some(photo_url) = &contact.photo_url {
@@ -798,9 +979,8 @@ pub fn export_contact(contact: &Contact) -> Result<String> {
     }
 
     for (key, value) in &contact.custom_fields {
-        if key == "NOTE" {
-            lines.push(format!("NOTE:{}", value));
-        } else {
+        // Skip NOTE, NICKNAME, and X-DEPARTMENT as they're now handled as dedicated fields
+        if key != "NOTE" && key != "NICKNAME" && key != "X-DEPARTMENT" {
             lines.push(format!("{}:{}", key, value));
         }
     }
@@ -1051,13 +1231,21 @@ END:VCARD"#;
         assert_eq!(work_urls.len(), 1, "Should have one Work URL");
         assert_eq!(work_urls[0].url, "https://work.com");
         
-        // Check custom fields contain NOTE
-        assert!(contact.custom_fields.contains_key("NOTE"));
-        assert_eq!(contact.custom_fields.get("NOTE").unwrap(), "Notes sample");
+        // Check structured name fields
+        assert_eq!(contact.name_prefix, Some("Prefix".to_string()));
+        assert_eq!(contact.first_name, Some("First name".to_string()));
+        assert_eq!(contact.middle_name, Some("Middle name".to_string()));
+        assert_eq!(contact.last_name, Some("Surname".to_string()));
+        assert_eq!(contact.name_suffix, Some("Suffix".to_string()));
         
-        // Check custom fields contain NICKNAME
-        assert!(contact.custom_fields.contains_key("NICKNAME"));
-        assert_eq!(contact.custom_fields.get("NICKNAME").unwrap(), "Nickname");
+        // Check nickname is in dedicated field (not custom_fields)
+        assert_eq!(contact.nickname, Some("Nickname".to_string()));
+        
+        // Check notes is in dedicated field (not custom_fields)
+        assert_eq!(contact.notes, Some("Notes sample".to_string()));
+        
+        // Check department
+        assert_eq!(contact.department, Some("Department".to_string()));
         
         // Check structured emails
         assert_eq!(contact.emails.len(), 3, "Should have extracted 3 emails");
@@ -1209,5 +1397,110 @@ END:VCARD"#;
         assert_eq!(imported.dates[0].label, "Birthday");
         assert_eq!(imported.urls.len(), 1);
         assert!(imported.urls[0].label.as_ref().unwrap().contains("GitHub"));
+    }
+
+    #[test]
+    fn test_structured_name_fields() {
+        // Test VCF with all structured name components
+        let vcf = r#"BEGIN:VCARD
+VERSION:4.0
+FN:Dr. Jane Marie Smith Jr.
+N:Smith;Jane;Marie;Dr.;Jr.
+NICKNAME:JJ
+NOTE:This is a test contact with all fields populated.
+ORG:Acme Corp;Engineering
+TITLE:Software Engineer
+EMAIL:jane@example.com
+TEL:+1234567890
+UID:test-uuid-123
+END:VCARD
+"#;
+
+        let contacts = import_from_string(vcf).unwrap();
+        assert_eq!(contacts.len(), 1);
+
+        let contact = &contacts[0];
+        
+        // Verify structured name fields
+        assert_eq!(contact.name_prefix, Some("Dr.".to_string()));
+        assert_eq!(contact.first_name, Some("Jane".to_string()));
+        assert_eq!(contact.middle_name, Some("Marie".to_string()));
+        assert_eq!(contact.last_name, Some("Smith".to_string()));
+        assert_eq!(contact.name_suffix, Some("Jr.".to_string()));
+        assert_eq!(contact.nickname, Some("JJ".to_string()));
+        assert_eq!(contact.notes, Some("This is a test contact with all fields populated.".to_string()));
+        assert_eq!(contact.organization, Some("Acme Corp".to_string()));
+        assert_eq!(contact.department, Some("Engineering".to_string()));
+        assert_eq!(contact.title, Some("Software Engineer".to_string()));
+    }
+
+    #[test]
+    fn test_export_structured_name_fields() {
+        use crate::core::contact::ContactBuilder;
+        
+        // Create a contact with all structured name fields
+        let contact = ContactBuilder::new()
+            .name("Dr. John Q. Public Sr.")
+            .name_prefix("Dr.")
+            .first_name("John")
+            .middle_name("Q.")
+            .last_name("Public")
+            .name_suffix("Sr.")
+            .nickname("Johnny")
+            .notes("Important contact with detailed information.")
+            .organization("Tech Corp")
+            .department("Research")
+            .title("Chief Scientist")
+            .email("john@example.com")
+            .build()
+            .unwrap();
+
+        let vcf = export_contact(&contact).unwrap();
+
+        // Verify the VCF contains all structured fields
+        assert!(vcf.contains("FN:Dr. John Q. Public Sr."));
+        assert!(vcf.contains("N:Public;John;Q.;Dr.;Sr."));
+        assert!(vcf.contains("NICKNAME:Johnny"));
+        assert!(vcf.contains("NOTE:Important contact with detailed information."));
+        assert!(vcf.contains("ORG:Tech Corp;Research"));
+        assert!(vcf.contains("TITLE:Chief Scientist"));
+
+        // Test round-trip
+        let contacts = import_from_string(&vcf).unwrap();
+        assert_eq!(contacts.len(), 1);
+        
+        let imported = &contacts[0];
+        assert_eq!(imported.name_prefix, Some("Dr.".to_string()));
+        assert_eq!(imported.first_name, Some("John".to_string()));
+        assert_eq!(imported.middle_name, Some("Q.".to_string()));
+        assert_eq!(imported.last_name, Some("Public".to_string()));
+        assert_eq!(imported.name_suffix, Some("Sr.".to_string()));
+        assert_eq!(imported.nickname, Some("Johnny".to_string()));
+        assert_eq!(imported.notes, Some("Important contact with detailed information.".to_string()));
+        assert_eq!(imported.organization, Some("Tech Corp".to_string()));
+        assert_eq!(imported.department, Some("Research".to_string()));
+        assert_eq!(imported.title, Some("Chief Scientist".to_string()));
+    }
+
+    #[test]
+    fn test_department_without_organization() {
+        use crate::core::contact::ContactBuilder;
+        
+        // Create a contact with department but no organization
+        let contact = ContactBuilder::new()
+            .name("Test User")
+            .department("Sales")
+            .build()
+            .unwrap();
+
+        let vcf = export_contact(&contact).unwrap();
+        
+        // Should use X-DEPARTMENT when no organization
+        assert!(vcf.contains("X-DEPARTMENT:Sales"));
+
+        // Test import
+        let contacts = import_from_string(&vcf).unwrap();
+        assert_eq!(contacts.len(), 1);
+        assert_eq!(contacts[0].department, Some("Sales".to_string()));
     }
 }

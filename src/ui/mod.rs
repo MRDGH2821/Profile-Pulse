@@ -8,7 +8,7 @@ use crate::core::contact::{
     SocialPlatform,
 };
 use crate::core::labels::{AddressLabel, DateLabel, EmailLabel, PhoneLabel};
-use crate::db::repository::ContactRepository;
+use crate::vcf::VcfRepository;
 use crate::workspace::{Workspace, WorkspaceManager};
 use chrono::NaiveDate;
 use iced::{
@@ -42,8 +42,8 @@ pub struct State {
     current_workspace: Option<Workspace>,
     /// List of all workspaces
     workspaces: Vec<Workspace>,
-    /// Contact repository for database operations (None if no workspace selected)
-    repository: Option<ContactRepository>,
+    /// Contact repository for VCF operations (None if no workspace selected)
+    repository: Option<VcfRepository>,
     /// Current view
     current_view: View,
     /// List of contacts
@@ -853,7 +853,7 @@ pub enum Message {
     LoadWorkspaces,
     WorkspacesLoaded(Result<Vec<Workspace>, String>),
     SelectWorkspace(Uuid),
-    WorkspaceSelected(Result<ContactRepository, String>),
+    WorkspaceSelected(Result<VcfRepository, String>),
     CreateNewWorkspace,
     NewWorkspaceNameChanged(String),
     CreateEmptyWorkspace,
@@ -896,7 +896,7 @@ fn new() -> (State, Task<Message>) {
 }
 
 /// Initialize with existing repository (legacy support)
-pub fn new_with_repository(repository: ContactRepository) -> (State, Task<Message>) {
+pub fn new_with_repository(repository: VcfRepository) -> (State, Task<Message>) {
     // Get workspace root directory
     let proj_dirs = directories::ProjectDirs::from("com", "profile-pulse", "Profile Pulse")
         .expect("Failed to determine project directories");
@@ -955,7 +955,7 @@ fn update(state: &mut State, message: Message) -> Task<Message> {
             let workspace = state.workspaces.iter().find(|w| w.id == workspace_id).cloned();
             if let Some(mut workspace) = workspace {
                 workspace.touch();
-                let db_path = workspace.db_path_str();
+                let vcf_path = workspace.vcf_path.clone();
                 
                 // Update workspace in manager
                 let manager = state.workspace_manager.clone();
@@ -964,23 +964,10 @@ fn update(state: &mut State, message: Message) -> Task<Message> {
                 state.current_workspace = Some(workspace);
                 state.is_loading = true;
                 
-                // Initialize database for this workspace
+                // Create VCF repository for this workspace
                 Task::perform(
                     async move {
-                        use crate::db::{init_pool, run_migrations, DatabaseConfig};
-                        
-                        let config = DatabaseConfig {
-                            path: db_path,
-                            max_connections: 10,
-                            min_connections: 1,
-                            connect_timeout: 30,
-                            enable_wal: true,
-                        };
-                        
-                        let pool = init_pool(&config).await.map_err(|e| e.to_string())?;
-                        run_migrations(&pool).await.map_err(|e| e.to_string())?;
-                        
-                        Ok(ContactRepository::new(pool))
+                        Ok(VcfRepository::new(vcf_path))
                     },
                     Message::WorkspaceSelected,
                 )
@@ -1068,19 +1055,22 @@ fn update(state: &mut State, message: Message) -> Task<Message> {
         }
 
         Message::LoadContacts => {
-            if let Some(ref repo) = state.repository {
+            if let Some(ref mut repo) = state.repository {
                 state.is_loading = true;
-                let repo = repo.clone();
-                // Remove the limit to load all contacts
-                Task::perform(
-                    async move {
-                        repo.list(None, None).await.map_err(|e| e.to_string())
-                    },
-                    Message::ContactsLoaded,
-                )
-            } else {
-                Task::none()
+                // Load all contacts synchronously
+                match repo.list_all() {
+                    Ok(contacts) => {
+                        state.contacts = contacts;
+                        state.is_loading = false;
+                        state.error_message = None;
+                    }
+                    Err(err) => {
+                        state.is_loading = false;
+                        state.error_message = Some(err.to_string());
+                    }
+                }
             }
+            Task::none()
         }
 
         Message::ContactsLoaded(result) => {
@@ -1509,44 +1499,35 @@ fn update(state: &mut State, message: Message) -> Task<Message> {
                 return Task::none();
             }
 
-
             let contact_result = state.form.to_contact(None);
             
             match contact_result {
                 Ok(contact) => {
-                    if let Some(ref repo) = state.repository {
-                        let repo = repo.clone();
-                        Task::perform(
-                            async move {
-                                repo.create(&contact).await.map_err(|e| format!("{:?}", e))?;
-                                Ok(contact)
-                            },
-                            Message::ContactSaved,
-                        )
+                    if let Some(ref mut repo) = state.repository {
+                        match repo.create(contact.clone()) {
+                            Ok(_) => {
+                                state.contacts.push(contact);
+                                state.form.clear();
+                                state.current_view = View::List { letter_filter: None };
+                                state.error_message = None;
+                            }
+                            Err(err) => {
+                                state.error_message = Some(format!("Failed to save contact: {}", err));
+                            }
+                        }
                     } else {
                         state.error_message = Some("No workspace selected".to_string());
-                        Task::none()
                     }
                 }
                 Err(e) => {
                     state.error_message = Some(format!("Failed to build contact: {}", e));
-                    Task::none()
                 }
             }
+            Task::none()
         }
 
-        Message::ContactSaved(result) => {
-            match result {
-                Ok(contact) => {
-                    state.contacts.push(contact);
-                    state.form.clear();
-                    state.current_view = View::List { letter_filter: None };
-                    state.error_message = None;
-                }
-                Err(err) => {
-                    state.error_message = Some(format!("Failed to save contact: {}", err));
-                }
-            }
+        Message::ContactSaved(_result) => {
+            // No longer used - keeping for compatibility
             Task::none()
         }
 
@@ -1556,80 +1537,62 @@ fn update(state: &mut State, message: Message) -> Task<Message> {
                 return Task::none();
             }
 
-
             let contact_result = state.form.to_contact(Some(contact_id));
             
             match contact_result {
                 Ok(contact) => {
-                    if let Some(ref repo) = state.repository {
-                        let repo = repo.clone();
-                        Task::perform(
-                            async move {
-                                repo.update(&contact).await.map_err(|e| format!("{:?}", e))?;
-                                Ok(contact)
-                            },
-                            Message::ContactUpdated,
-                        )
+                    if let Some(ref mut repo) = state.repository {
+                        match repo.update(contact.clone()) {
+                            Ok(_) => {
+                                if let Some(idx) = state.contacts.iter().position(|c| c.id == contact.id) {
+                                    state.contacts[idx] = contact;
+                                }
+                                state.form.clear();
+                                state.current_view = View::List { letter_filter: None };
+                                state.error_message = None;
+                            }
+                            Err(err) => {
+                                state.error_message = Some(format!("Failed to update contact: {}", err));
+                            }
+                        }
                     } else {
                         state.error_message = Some("No workspace selected".to_string());
-                        Task::none()
                     }
                 }
                 Err(e) => {
                     state.error_message = Some(format!("Failed to build contact: {}", e));
-                    Task::none()
-                }
-            }
-        }
-
-        Message::ContactUpdated(result) => {
-            match result {
-                Ok(contact) => {
-                    if let Some(idx) = state.contacts.iter().position(|c| c.id == contact.id) {
-                        state.contacts[idx] = contact;
-                    }
-                    state.form.clear();
-                    state.current_view = View::List { letter_filter: None };
-                    state.error_message = None;
-                }
-                Err(err) => {
-                    state.error_message = Some(format!("Failed to update contact: {}", err));
                 }
             }
             Task::none()
         }
 
-        Message::DeleteContact(contact_id) => {
-            if let Some(ref repo) = state.repository {
-                let repo = repo.clone();
-                Task::perform(
-                    async move {
-                        repo.delete(contact_id)
-                            .await
-                            .map(|_| contact_id)
-                            .map_err(|e| e.to_string())
-                    },
-                    Message::ContactDeleted,
-                )
-            } else {
-                state.error_message = Some("No workspace selected".to_string());
-                Task::none()
-            }
+        Message::ContactUpdated(_result) => {
+            // No longer used - keeping for compatibility
+            Task::none()
         }
 
-        Message::ContactDeleted(result) => {
-            match result {
-                Ok(contact_id) => {
-                    state.contacts.retain(|c| c.id != contact_id);
-                    state.error_message = None;
-                    if state.current_view == View::Detail(contact_id) {
-                        state.current_view = View::List { letter_filter: None };
+        Message::DeleteContact(contact_id) => {
+            if let Some(ref mut repo) = state.repository {
+                match repo.delete(contact_id) {
+                    Ok(_) => {
+                        state.contacts.retain(|c| c.id != contact_id);
+                        state.error_message = None;
+                        if state.current_view == View::Detail(contact_id) {
+                            state.current_view = View::List { letter_filter: None };
+                        }
+                    }
+                    Err(err) => {
+                        state.error_message = Some(format!("Failed to delete contact: {}", err));
                     }
                 }
-                Err(err) => {
-                    state.error_message = Some(format!("Failed to delete contact: {}", err));
-                }
+            } else {
+                state.error_message = Some("No workspace selected".to_string());
             }
+            Task::none()
+        }
+
+        Message::ContactDeleted(_result) => {
+            // No longer used - keeping for compatibility
             Task::none()
         }
 
@@ -1639,8 +1602,7 @@ fn update(state: &mut State, message: Message) -> Task<Message> {
         }
 
         Message::ImportVcf => {
-            if let Some(ref repo) = state.repository {
-                let repo = repo.clone();
+            if let Some(ref mut _repo) = state.repository {
                 Task::perform(
                     async move {
                         let file = rfd::AsyncFileDialog::new()
@@ -1649,16 +1611,9 @@ fn update(state: &mut State, message: Message) -> Task<Message> {
                             .await;
                         
                         if let Some(file) = file {
-                            let path = file.path();
-                            match crate::vcf::import_from_file(path) {
-                                Ok(contacts) => {
-                                    for contact in &contacts {
-                                        if let Err(e) = repo.create(contact).await {
-                                            return Err(format!("Failed to save contact: {:?}", e));
-                                        }
-                                    }
-                                    Ok(contacts)
-                                }
+                            let path = file.path().to_path_buf();
+                            match crate::vcf::import_from_file(&path) {
+                                Ok(contacts) => Ok(contacts),
                                 Err(e) => Err(format!("Failed to import VCF: {}", e)),
                             }
                         } else {
@@ -1676,17 +1631,27 @@ fn update(state: &mut State, message: Message) -> Task<Message> {
         Message::VcfImported(result) => {
             match result {
                 Ok(contacts) => {
-                    state.contacts.extend(contacts.clone());
-                    state.error_message = Some(format!("✅ Successfully imported {} contacts", contacts.len()));
-                    Task::perform(async {}, |_| Message::LoadContacts)
+                    if let Some(ref mut repo) = state.repository {
+                        let mut imported = 0;
+                        for contact in contacts {
+                            if let Ok(_) = repo.create(contact) {
+                                imported += 1;
+                            }
+                        }
+                        // Reload contacts from VCF
+                        if let Ok(all_contacts) = repo.list_all() {
+                            state.contacts = all_contacts;
+                        }
+                        state.error_message = Some(format!("✅ Successfully imported {} contacts", imported));
+                    }
                 }
                 Err(err) => {
                     if err != "No file selected" {
                         state.error_message = Some(err);
                     }
-                    Task::none()
                 }
             }
+            Task::none()
         }
 
         Message::ExportVcf => {
@@ -2763,7 +2728,7 @@ pub fn run() -> iced::Result {
 }
 
 /// Run with existing repository
-pub fn run_with_repository(repository: ContactRepository) -> iced::Result {
+pub fn run_with_repository(repository: VcfRepository) -> Result<(), iced::Error> {
     iced::application(
         move || new_with_repository(repository.clone()),
         update,

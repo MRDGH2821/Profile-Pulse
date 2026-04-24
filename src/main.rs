@@ -1,7 +1,6 @@
 //! Profile Pulse - Desktop contact management with social media integration
 //!
-//! This application helps manage contacts and automatically syncs profile
-//! pictures from various social media platforms.
+//! This application helps manage contacts stored in VCF files.
 
 use anyhow::{Context, Result};
 use directories::ProjectDirs;
@@ -10,7 +9,6 @@ use tracing::{error, info};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod core;
-mod db;
 mod discovery;
 mod social;
 mod ui;
@@ -18,13 +16,9 @@ mod utils;
 mod vcf;
 mod workspace;
 
-use db::{init_pool, run_migrations, repository::ContactRepository, DatabaseConfig};
-
 /// Application configuration
 #[derive(Debug, Clone)]
 pub struct AppConfig {
-    /// Database configuration
-    pub database: DatabaseConfig,
     /// Application data directory
     pub data_dir: PathBuf,
     /// Cache directory
@@ -47,17 +41,7 @@ impl AppConfig {
         std::fs::create_dir_all(&data_dir).context("Failed to create data directory")?;
         std::fs::create_dir_all(&cache_dir).context("Failed to create cache directory")?;
 
-        // Database path
-        let db_path = data_dir.join("profile-pulse.db");
-
         Ok(Self {
-            database: DatabaseConfig {
-                path: db_path.to_string_lossy().to_string(),
-                max_connections: 10,
-                min_connections: 1,
-                connect_timeout: 30,
-                enable_wal: true,
-            },
             data_dir,
             cache_dir,
             debug: std::env::var("DEBUG").is_ok(),
@@ -69,27 +53,14 @@ impl AppConfig {
         // Load .env file if it exists
         let _ = dotenvy::dotenv();
 
-        let mut config = Self::new()?;
-
-        // Override with environment variables if present
-        if let Ok(db_path) = std::env::var("DATABASE_PATH") {
-            config.database.path = db_path;
-        }
-
-        if let Ok(max_conn) = std::env::var("DB_MAX_CONNECTIONS") {
-            if let Ok(num) = max_conn.parse() {
-                config.database.max_connections = num;
-            }
-        }
-
-        Ok(config)
+        Self::new()
     }
 }
 
 /// Initialize logging
 fn init_logging(debug: bool) {
     let filter = if debug {
-        tracing_subscriber::EnvFilter::new("profile_pulse=debug,sqlx=info,info")
+        tracing_subscriber::EnvFilter::new("profile_pulse=debug,info")
     } else {
         tracing_subscriber::EnvFilter::new("profile_pulse=info,warn")
     };
@@ -98,42 +69,6 @@ fn init_logging(debug: bool) {
         .with(filter)
         .with(tracing_subscriber::fmt::layer())
         .init();
-}
-
-/// Initialize the application and return repository
-async fn init_app(config: &AppConfig) -> Result<ContactRepository> {
-    info!("Initializing Profile Pulse");
-    info!("Data directory: {}", config.data_dir.display());
-    info!("Cache directory: {}", config.cache_dir.display());
-    info!("Database path: {}", config.database.path);
-
-    // Initialize database
-    info!("Connecting to database...");
-    let pool = init_pool(&config.database)
-        .await
-        .context("Failed to initialize database")?;
-
-    // Run migrations
-    info!("Running database migrations...");
-    run_migrations(&pool)
-        .await
-        .context("Failed to run database migrations")?;
-
-    // Verify database health
-    db::health_check(&pool)
-        .await
-        .context("Database health check failed")?;
-
-    // Get initial statistics
-    let stats = db::get_stats(&pool).await?;
-    info!(
-        "Database ready - Contacts: {}, Profiles: {}, Cache entries: {}",
-        stats.contact_count, stats.profile_count, stats.cache_size
-    );
-
-    // Create repository
-    let repository = ContactRepository::new(pool);
-    Ok(repository)
 }
 
 /// Main application entry point
@@ -146,9 +81,9 @@ fn main() -> Result<()> {
 
     info!("Starting Profile Pulse v{}", env!("CARGO_PKG_VERSION"));
     info!("Data directory: {}", config.data_dir.display());
+    info!("Using VCF files directly (no database)");
 
     // Run the GUI application with workspace support
-    // No need to initialize database upfront - each workspace has its own
     info!("Launching GUI with workspace selector...");
     match ui::run() {
         Ok(_) => {
