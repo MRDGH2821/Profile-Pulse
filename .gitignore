@@ -1,14 +1,14 @@
 # Rust
-/target
 *.pdb
+/target
 
 # IDE
-.vscode/
-.idea/
-*.swp
 *.swo
+*.swp
 *~
 .DS_Store
+.idea/
+.vscode/
 
 # Environment
 .env
@@ -23,13 +23,13 @@
 profile-pulse.db*
 
 # Cache
-cache/
 *.cache
+cache/
 
 # Logs
 *.log
-logs/
 !.ai/logs
+logs/
 
 # Testing
 coverage/
@@ -38,10 +38,10 @@ coverage/
 megalinter-reports/
 
 # Build artifacts
-*.exe
 *.dll
-*.so
 *.dylib
+*.exe
+*.so
 
 # Backup files
 *.bak
@@ -61,15 +61,17 @@ node_modules/
 package-lock.json
 
 # macOS
-.DS_Store
 .AppleDouble
 .LSOverride
 
 # Windows
+Desktop.ini
 Thumbs.db
 ehthumbs.db
-Desktop.ini
 
 # Linux
-.directory
 .Trash-*
+.devenv
+.directory
+.direnv
+.venv/
