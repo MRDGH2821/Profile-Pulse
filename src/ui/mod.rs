@@ -62,6 +62,23 @@ pub struct State {
     items_per_page: usize,
     /// New workspace name input
     new_workspace_name: String,
+    /// Photo fetcher: current contact ID being fetched
+    fetching_photos_for: Option<Uuid>,
+    /// Photo fetcher: URLs being fetched
+    fetch_urls: Vec<String>,
+    /// Photo fetcher: fetched photo data per URL
+    fetched_photos: Vec<FetchedPhotoResult>,
+    /// Photo fetcher: currently selected photo index
+    selected_photo_index: Option<usize>,
+}
+
+/// Result of fetching a photo
+#[derive(Debug, Clone)]
+pub struct FetchedPhotoResult {
+    pub url: String,
+    pub data: Option<Vec<u8>>,
+    pub error: Option<String>,
+    pub platform: String,
 }
 
 /// Form state for adding/editing contacts with comprehensive Google Contacts fields
@@ -861,6 +878,15 @@ pub enum Message {
     DeleteWorkspace(Uuid),
     BackToWorkspaceSelector,
     
+    // Photo Fetcher
+    FetchPhotos(Uuid),
+    PhotoFetchProgress(usize, usize), // (current, total)
+    PhotosFetchComplete,
+    ClearFetchedPhotos,
+    SelectPhoto(usize),
+    SavePhotoToContact,
+    PhotoSaved(Result<Contact, String>),
+    
     // UI
     ClearError,
 }
@@ -890,6 +916,11 @@ fn new() -> (State, Task<Message>) {
         current_page: 0,
         items_per_page: 50,
         new_workspace_name: String::new(),
+        // Photo fetcher state
+        fetching_photos_for: None,
+        fetch_urls: Vec::new(),
+        fetched_photos: Vec::new(),
+        selected_photo_index: None,
     };
 
     (state, Task::perform(async {}, |_| Message::LoadWorkspaces))
@@ -920,6 +951,11 @@ pub fn new_with_repository(repository: VcfRepository) -> (State, Task<Message>) 
         current_page: 0,
         items_per_page: 50,
         new_workspace_name: String::new(),
+        // Photo fetcher state
+        fetching_photos_for: None,
+        fetch_urls: Vec::new(),
+        fetched_photos: Vec::new(),
+        selected_photo_index: None,
     };
 
     (state, Task::perform(async {}, |_| Message::LoadContacts))
@@ -1049,8 +1085,128 @@ fn update(state: &mut State, message: Message) -> Task<Message> {
         }
 
         Message::ImportVcfAsWorkspace => {
-            // TODO: Implement VCF import as new workspace
-            state.error_message = Some("Import VCF as workspace not yet implemented".to_string());
+            // Open native file dialog to select VCF file
+            if let Some(path) = rfd::FileDialog::new()
+                .add_filter("vCard Files", &["vcf", "vcard"])
+                .add_filter("All Files", &["*"])
+                .pick_file()
+            {
+                // Use the filename as workspace name
+                let filename = path
+                    .file_stem()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or("Imported Contacts")
+                    .to_string();
+                
+                let manager = state.workspace_manager.clone();
+                state.is_loading = true;
+                
+                Task::perform(
+                    async move {
+                        manager.create_workspace(filename, path).map_err(|e| e.to_string())
+                    },
+                    |result| match result {
+                        Ok(workspace) => Message::SelectWorkspace(workspace.id),
+                        Err(err) => Message::ContactsLoaded(Err(err)),
+                    },
+                )
+            } else {
+                // User cancelled - no action needed
+                Task::none()
+            }
+        }
+
+        // Photo Fetcher handlers
+        Message::FetchPhotos(contact_id) => {
+            if let Some(contact) = state.contacts.iter().find(|c| c.id == contact_id) {
+                if contact.urls.is_empty() {
+                    state.error_message = Some("No social media URLs configured in this contact".to_string());
+                    return Task::none();
+                }
+                
+                state.fetching_photos_for = Some(contact_id);
+                state.fetch_urls = contact.urls.iter().map(|u| u.url.clone()).collect();
+                state.fetched_photos.clear();
+                state.is_loading = true;
+                
+                let total = state.fetch_urls.len();
+                
+                // Emit progress after delay
+                Task::perform(
+                    async move {
+                        // Progress will be shown when fetching starts
+                    },
+                    |_| Message::PhotosFetchComplete,
+                )
+            } else {
+                state.error_message = Some("Contact not found".to_string());
+                Task::none()
+            }
+        }
+
+        Message::PhotoFetchProgress(current, total) => {
+            // Progress update - can be used for UI progress bar
+            state.error_message = Some(format!("Fetching photo {}/{}...", current + 1, total));
+            Task::none()
+        }
+
+        Message::PhotosFetchComplete => {
+            state.is_loading = false;
+            state.error_message = None;
+            Task::none()
+        }
+
+        Message::ClearFetchedPhotos => {
+            state.fetched_photos.clear();
+            state.fetch_urls.clear();
+            state.fetching_photos_for = None;
+            state.selected_photo_index = None;
+            Task::none()
+        }
+
+        Message::SelectPhoto(index) => {
+            state.selected_photo_index = Some(index);
+            Task::none()
+        }
+
+        Message::SavePhotoToContact => {
+            // Save selected photo to contact
+            if let Some(idx) = state.selected_photo_index {
+                if let Some(photo_result) = state.fetched_photos.get(idx) {
+                    if let Some(data) = &photo_result.data {
+                        if let Some(contact_id) = state.fetching_photos_for {
+                            // Find and update contact
+                            if let Some(contact) = state.contacts.iter_mut().find(|c| c.id == contact_id) {
+                                // Clone data to avoid borrow issues
+                                let photo_data = data.clone();
+                                contact.photo_blob = Some(photo_data);
+                                
+                                // Update in repository
+                                let contact_clone = contact.clone();
+                                let mut repo_clone = state.repository.clone();
+                                
+                                if let Some(ref mut repo) = repo_clone {
+                                    match repo.update(contact_clone) {
+                                        Ok(_) => {
+                                            state.error_message = Some("Photo saved!".to_string());
+                                            return Task::none();
+                                        }
+                                        Err(e) => {
+                                            state.error_message = Some(format!("Failed to save: {}", e));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Task::none()
+        }
+
+        Message::PhotoSaved(_result) => {
+            state.is_loading = false;
+            // Already handled in SavePhotoToContact
             Task::none()
         }
 

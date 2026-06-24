@@ -85,6 +85,18 @@ pub enum FetchError {
     #[error("Network error: {0}")]
     Network(#[from] reqwest::Error),
 
+    #[error("Invalid URL: {0}")]
+    InvalidUrl(String),
+
+    #[error("Request failed: {0}")]
+    Request(String),
+
+    #[error("Not found: {0}")]
+    NotFound(String),
+
+    #[error("Parse error: {0}")]
+    Parse(String),
+
     #[error("Profile not found: {platform} - {username}")]
     ProfileNotFound { platform: String, username: String },
 
