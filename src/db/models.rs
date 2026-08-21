@@ -1,15 +1,16 @@
 //! Database models for SQLite persistence
 //!
-//! These models represent the database structure and provide conversion
-//! to/from domain models.
-
+//! These models represent the database structure and provide conversion to/from
+//! domain models.
+use crate::core::contact::{
+    Contact, ContactAddress, ContactDate, ContactEmail, ContactPhone, ContactUrl, SocialPlatform,
+    SocialProfile,
+};
+use chrono::NaiveDate;
 use chrono::{DateTime, TimeZone, Utc};
 use sqlx::FromRow;
-use uuid::Uuid;
-
-use crate::core::contact::{Contact, ContactAddress, ContactDate, ContactEmail, ContactPhone, ContactUrl, SocialPlatform, SocialProfile};
-use chrono::NaiveDate;
 use std::collections::HashMap;
+use uuid::Uuid;
 
 /// Database representation of a Contact
 #[derive(Debug, Clone, FromRow)]
@@ -53,17 +54,22 @@ impl ContactRow {
             notes: self.notes,
             email: self.email,
             phone: self.phone,
-            emails: Vec::new(), // TODO: Load from database
-            phones: Vec::new(), // TODO: Load from database
-            addresses: Vec::new(), // TODO: Load from database
-            dates: Vec::new(), // TODO: Load from database
+            // TODO: Load from database
+            emails: Vec::new(),
+            // TODO: Load from database
+            phones: Vec::new(),
+            // TODO: Load from database
+            addresses: Vec::new(),
+            // TODO: Load from database
+            dates: Vec::new(),
             organization: self.organization,
             title: self.title,
             department: self.department,
             photo_url: self.photo_url,
             photo_blob: self.photo_blob,
             urls,
-            social_profiles: Vec::new(), // TODO: Load from database
+            // TODO: Load from database
+            social_profiles: Vec::new(),
             custom_fields,
             created_at: Utc.timestamp_opt(self.created_at, 0).unwrap(),
             updated_at: Utc.timestamp_opt(self.updated_at, 0).unwrap(),
@@ -273,7 +279,8 @@ impl ContactAddressRow {
 pub struct ContactDateRow {
     pub id: String,
     pub contact_id: String,
-    pub date: String, // ISO 8601 format (YYYY-MM-DD)
+    // ISO 8601 format (YYYY-MM-DD)
+    pub date: String,
     pub label: String,
     pub created_at: i64,
     pub updated_at: i64,
@@ -284,7 +291,6 @@ impl ContactDateRow {
     pub fn to_contact_date(self) -> Result<ContactDate, String> {
         let date = NaiveDate::parse_from_str(&self.date, "%Y-%m-%d")
             .map_err(|e| format!("Failed to parse date: {}", e))?;
-        
         Ok(ContactDate {
             id: Uuid::parse_str(&self.id).unwrap_or_else(|_| Uuid::new_v4()),
             date,
@@ -419,7 +425,6 @@ mod tests {
         let contact = Contact::new("Test User");
         let row = ContactRow::from_contact(&contact);
         let converted = row.to_contact(vec![], HashMap::new());
-
         assert_eq!(contact.id, converted.id);
         assert_eq!(contact.name, converted.name);
     }
@@ -430,7 +435,6 @@ mod tests {
         let contact_id = Uuid::new_v4();
         let row = ContactEmailRow::from_contact_email(&contact_email, &contact_id);
         let converted = row.to_contact_email();
-
         assert_eq!(contact_email.id, converted.id);
         assert_eq!(contact_email.email, converted.email);
         assert_eq!(contact_email.label, converted.label);
@@ -442,7 +446,6 @@ mod tests {
         let contact_id = Uuid::new_v4();
         let row = ContactPhoneRow::from_contact_phone(&contact_phone, &contact_id);
         let converted = row.to_contact_phone();
-
         assert_eq!(contact_phone.id, converted.id);
         assert_eq!(contact_phone.phone, converted.phone);
         assert_eq!(contact_phone.label, converted.label);
@@ -458,7 +461,6 @@ mod tests {
         let contact_id = Uuid::new_v4();
         let row = ContactAddressRow::from_contact_address(&contact_address, &contact_id);
         let converted = row.to_contact_address();
-
         assert_eq!(contact_address.id, converted.id);
         assert_eq!(contact_address.street, converted.street);
         assert_eq!(contact_address.city, converted.city);
@@ -472,7 +474,6 @@ mod tests {
         let contact_id = Uuid::new_v4();
         let row = ContactDateRow::from_contact_date(&contact_date, &contact_id);
         let converted = row.to_contact_date().unwrap();
-
         assert_eq!(contact_date.id, converted.id);
         assert_eq!(contact_date.date, converted.date);
         assert_eq!(contact_date.label, converted.label);
@@ -484,7 +485,6 @@ mod tests {
         let contact_id = Uuid::new_v4();
         let row = ContactUrlRow::from_contact_url(&contact_url, &contact_id);
         let converted = row.to_contact_url();
-
         assert_eq!(contact_url.id, converted.id);
         assert_eq!(contact_url.url, converted.url);
         assert_eq!(contact_url.label, converted.label);
@@ -500,7 +500,6 @@ mod tests {
         let contact_id = Uuid::new_v4();
         let row = SocialProfileRow::from_social_profile(&profile, &contact_id);
         let converted = row.to_social_profile();
-
         assert_eq!(profile.id, converted.id);
         assert_eq!(profile.username, converted.username);
         assert_eq!(profile.platform, converted.platform);

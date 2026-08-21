@@ -37,5 +37,6 @@ Profile Pulse currently supports VCF import. However, users cannot interactively
 ---
 
 **Related Specs**:
+
 - Contact fields: `contact-fields/spec.md`
 - VCF Import/Export: `vcf-import-export/spec.md`

@@ -64,5 +64,6 @@ The system SHALL show progress while fetching and clear error messages on failur
 ---
 
 **Related**:
+
 - Contact Fields: `../contact-fields/spec.md`
 - URL-based Social: `../url-based-social/spec.md`

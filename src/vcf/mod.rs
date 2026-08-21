@@ -1,27 +1,25 @@
 //! VCF (vCard) import and export functionality
 //!
-//! This module handles parsing vCard files, extracting contact information,
-//! and converting between Contact models and vCard format.
-
+//! This module handles parsing vCard files, extracting contact information, and
+//! converting between Contact models and vCard format.
 pub mod repository;
-
-pub use repository::VcfRepository;
 
 use crate::core::contact::{
     Contact, ContactAddress, ContactBuilder, ContactDate, ContactEmail, ContactPhone, ContactUrl,
     SocialPlatform, SocialProfile,
 };
 use crate::core::labels::{AddressLabel, DateLabel, EmailLabel, PhoneLabel};
-use chrono::NaiveDate;
 use anyhow::{Context, Result};
+use chrono::NaiveDate;
+pub use repository::VcfRepository;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
 /// Parse a VCF file and return a list of contacts
 pub fn import_from_file(path: &Path) -> Result<Vec<Contact>> {
-    let content = fs::read_to_string(path)
-        .context(format!("Failed to read VCF file: {}", path.display()))?;
+    let content =
+        fs::read_to_string(path).context(format!("Failed to read VCF file: {}", path.display()))?;
     import_from_string(&content)
 }
 
@@ -44,7 +42,6 @@ pub fn export_contacts_to_vcf(contacts: &[Contact]) -> Result<String> {
 pub fn import_from_string(content: &str) -> Result<Vec<Contact>> {
     let vcards = parse_vcards(content)?;
     let mut contacts = Vec::new();
-
     for vcard in vcards {
         match parse_vcard(vcard) {
             Ok(contact) => contacts.push(contact),
@@ -54,7 +51,6 @@ pub fn import_from_string(content: &str) -> Result<Vec<Contact>> {
             }
         }
     }
-
     Ok(contacts)
 }
 
@@ -78,14 +74,11 @@ struct VProperty {
 fn parse_vcards(content: &str) -> Result<Vec<VCard>> {
     let mut vcards = Vec::new();
     let mut current_properties = Vec::new();
-
     for line in content.lines() {
         let line = line.trim();
-        
         if line.is_empty() {
             continue;
         }
-
         if line == "BEGIN:VCARD" {
             current_properties.clear();
         } else if line == "END:VCARD" {
@@ -99,11 +92,9 @@ fn parse_vcards(content: &str) -> Result<Vec<VCard>> {
             current_properties.push(property);
         }
     }
-
     if vcards.is_empty() {
         anyhow::bail!("No valid vCards found in content");
     }
-
     Ok(vcards)
 }
 
@@ -129,7 +120,6 @@ fn parse_property(line: &str) -> Option<VProperty> {
 
     // Parse name and parameters
     let (name, params) = parse_name_and_params(actual_name_part);
-
     Some(VProperty {
         name,
         params,
@@ -142,14 +132,12 @@ fn parse_property(line: &str) -> Option<VProperty> {
 fn parse_name_and_params(name_part: &str) -> (String, HashMap<String, String>) {
     let mut params = HashMap::new();
     let parts: Vec<&str> = name_part.split(';').collect();
-    
     let name = parts[0].to_uppercase();
-    
     for param in &parts[1..] {
         if let Some(eq_pos) = param.find('=') {
             let key = param[..eq_pos].to_uppercase();
             let value = param[eq_pos + 1..].to_string();
-            
+
             // Handle multiple values for the same key (e.g., TYPE=HOME;TYPE=FAX)
             if let Some(existing) = params.get(&key) {
                 let combined = format!("{};{}", existing, value);
@@ -162,7 +150,6 @@ fn parse_name_and_params(name_part: &str) -> (String, HashMap<String, String>) {
             params.insert(param.to_uppercase(), String::new());
         }
     }
-
     (name, params)
 }
 
@@ -203,23 +190,18 @@ fn parse_vcard(vcard: VCard) -> Result<Contact> {
     if let Some(department) = extract_department(&vcard) {
         builder = builder.department(department);
     }
-
     if let Some(email) = extract_email(&vcard) {
         builder = builder.email(email);
     }
-
     if let Some(phone) = extract_phone(&vcard) {
         builder = builder.phone(phone);
     }
-
     if let Some(org) = extract_organization(&vcard) {
         builder = builder.organization(org);
     }
-
     if let Some(title) = extract_title(&vcard) {
         builder = builder.title(title);
     }
-
     if let Some(photo_url) = extract_photo_url(&vcard) {
         builder = builder.photo_url(photo_url);
     }
@@ -229,27 +211,22 @@ fn parse_vcard(vcard: VCard) -> Result<Contact> {
     for email in emails {
         builder = builder.email_entry(email);
     }
-
     let phones = extract_phones(&vcard);
     for phone in phones {
         builder = builder.phone_entry(phone);
     }
-
     let addresses = extract_addresses(&vcard);
     for address in addresses {
         builder = builder.address(address);
     }
-
     let dates = extract_dates(&vcard);
     for date in dates {
         builder = builder.date(date);
     }
-
     let urls = extract_urls(&vcard);
     for url in urls {
         builder = builder.url(url);
     }
-
     let custom_fields = extract_custom_fields(&vcard);
     for (key, value) in custom_fields {
         // Skip NOTE and NICKNAME as they're now handled as dedicated fields
@@ -257,8 +234,9 @@ fn parse_vcard(vcard: VCard) -> Result<Contact> {
             builder = builder.custom_field(key, value);
         }
     }
-
-    builder.build().context("Failed to build contact from vCard")
+    builder
+        .build()
+        .context("Failed to build contact from vCard")
 }
 
 /// Extract name from vCard
@@ -276,64 +254,64 @@ fn extract_name(vcard: &VCard) -> Result<String> {
             // N format: Family;Given;Additional;Prefix;Suffix
             let parts: Vec<&str> = prop.value.split(';').collect();
             let mut name_parts = Vec::new();
-            
             if parts.len() > 1 && !parts[1].is_empty() {
-                name_parts.push(parts[1]); // Given name
+                // Given name
+                name_parts.push(parts[1]);
             }
             if !parts.is_empty() && !parts[0].is_empty() {
-                name_parts.push(parts[0]); // Family name
+                // Family name
+                name_parts.push(parts[0]);
             }
-            
             if !name_parts.is_empty() {
                 return Ok(name_parts.join(" "));
             }
         }
     }
-
     Ok("Unknown Contact".to_string())
 }
 
 /// Extract structured name components from N property
-fn extract_structured_name(vcard: &VCard) -> (Option<String>, Option<String>, Option<String>, Option<String>, Option<String>) {
+fn extract_structured_name(
+    vcard: &VCard,
+) -> (
+    Option<String>,
+    Option<String>,
+    Option<String>,
+    Option<String>,
+    Option<String>,
+) {
     for prop in &vcard.properties {
         if prop.name == "N" {
             // N format: Family;Given;Additional;Prefix;Suffix
             let parts: Vec<&str> = prop.value.split(';').collect();
-            
             let family = if !parts.is_empty() && !parts[0].is_empty() {
                 Some(parts[0].to_string())
             } else {
                 None
             };
-            
             let given = if parts.len() > 1 && !parts[1].is_empty() {
                 Some(parts[1].to_string())
             } else {
                 None
             };
-            
             let additional = if parts.len() > 2 && !parts[2].is_empty() {
                 Some(parts[2].to_string())
             } else {
                 None
             };
-            
             let prefix = if parts.len() > 3 && !parts[3].is_empty() {
                 Some(parts[3].to_string())
             } else {
                 None
             };
-            
             let suffix = if parts.len() > 4 && !parts[4].is_empty() {
                 Some(parts[4].to_string())
             } else {
                 None
             };
-            
             return (prefix, given, additional, family, suffix);
         }
     }
-    
     (None, None, None, None, None)
 }
 
@@ -365,7 +343,7 @@ fn extract_department(vcard: &VCard) -> Option<String> {
             return Some(prop.value.clone());
         }
     }
-    
+
     // Try second component of ORG property
     for prop in &vcard.properties {
         if prop.name == "ORG" {
@@ -375,7 +353,6 @@ fn extract_department(vcard: &VCard) -> Option<String> {
             }
         }
     }
-    
     None
 }
 
@@ -466,15 +443,12 @@ fn extract_emails(vcard: &VCard) -> Vec<ContactEmail> {
                 // Try to get label from TYPE parameter
                 prop.params.get("TYPE").cloned()
             };
-
             let label_str = label
                 .map(|l| EmailLabel::from_str(&l).to_string_value())
                 .unwrap_or_else(|| EmailLabel::default().to_string_value());
-
             emails.push(ContactEmail::new(email_value.to_string(), label_str));
         }
     }
-
     emails
 }
 
@@ -507,15 +481,12 @@ fn extract_phones(vcard: &VCard) -> Vec<ContactPhone> {
                 // Get TYPE parameter (may contain multiple values separated by semicolons)
                 prop.params.get("TYPE").cloned()
             };
-
             let label_str = label
                 .map(|l| PhoneLabel::from_str(&l).to_string_value())
                 .unwrap_or_else(|| PhoneLabel::default().to_string_value());
-
             phones.push(ContactPhone::new(phone_value.to_string(), label_str));
         }
     }
-
     phones
 }
 
@@ -545,11 +516,9 @@ fn extract_addresses(vcard: &VCard) -> Vec<ContactAddress> {
             } else {
                 prop.params.get("TYPE").cloned()
             };
-
             let label_str = label
                 .map(|l| AddressLabel::from_str(&l).to_string_value())
                 .unwrap_or_else(|| AddressLabel::default().to_string_value());
-
             let mut address = ContactAddress::new(&label_str);
 
             // Parse address components
@@ -575,7 +544,6 @@ fn extract_addresses(vcard: &VCard) -> Vec<ContactAddress> {
             }
         }
     }
-
     addresses
 }
 
@@ -602,7 +570,6 @@ fn extract_dates(vcard: &VCard) -> Vec<ContactDate> {
         } else {
             continue;
         };
-
         if date_value.is_empty() {
             continue;
         }
@@ -615,7 +582,6 @@ fn extract_dates(vcard: &VCard) -> Vec<ContactDate> {
         } else {
             None
         };
-
         let label_str = label.unwrap_or_else(|| default_label.to_string());
 
         // Parse date (try YYYYMMDD format first, then ISO format)
@@ -625,7 +591,6 @@ fn extract_dates(vcard: &VCard) -> Vec<ContactDate> {
             dates.push(ContactDate::new(naive_date, label_str));
         }
     }
-
     dates
 }
 
@@ -659,11 +624,9 @@ fn extract_urls(vcard: &VCard) -> Vec<ContactUrl> {
                 // Try to get label from TYPE parameter
                 prop.params.get("TYPE").cloned()
             };
-
             urls.push(ContactUrl::new(url_value.to_string(), label));
         }
     }
-
     urls
 }
 
@@ -741,7 +704,6 @@ fn parse_social_url(url: &str) -> Option<SocialProfile> {
             ));
         }
     }
-
     None
 }
 
@@ -758,45 +720,32 @@ fn extract_path_segment(url: &str, after: &str) -> Option<String> {
 }
 
 /// Create a SocialProfile instance
-fn create_social_profile(
-    platform: SocialPlatform,
-    username: String,
-    url: String,
-) -> SocialProfile {
+fn create_social_profile(platform: SocialPlatform, username: String, url: String) -> SocialProfile {
     SocialProfile::new(platform, username, url)
 }
 
 /// Extract custom fields from vCard
 fn extract_custom_fields(vcard: &VCard) -> HashMap<String, String> {
     let mut custom_fields = HashMap::new();
-
     for prop in &vcard.properties {
         if prop.name == "NOTE" && !prop.value.is_empty() {
             custom_fields.insert("NOTE".to_string(), prop.value.clone());
         }
-        
         if prop.name == "NICKNAME" && !prop.value.is_empty() {
             custom_fields.insert("NICKNAME".to_string(), prop.value.clone());
         }
-        
-        if prop.name.starts_with("X-") 
-            && prop.name != "X-SOCIALPROFILE" 
-            && !prop.value.is_empty() 
-        {
+        if prop.name.starts_with("X-") && prop.name != "X-SOCIALPROFILE" && !prop.value.is_empty() {
             custom_fields.insert(prop.name.clone(), prop.value.clone());
         }
     }
-
     custom_fields
 }
 
 /// Export a contact to vCard format
 pub fn export_contact(contact: &Contact) -> Result<String> {
     let mut lines = Vec::new();
-
     lines.push("BEGIN:VCARD".to_string());
     lines.push("VERSION:4.0".to_string());
-    
     lines.push(format!("FN:{}", contact.name));
 
     // Export structured name (N field: Family;Given;Additional;Prefix;Suffix)
@@ -805,10 +754,13 @@ pub fn export_contact(contact: &Contact) -> Result<String> {
     let additional = contact.middle_name.as_deref().unwrap_or("");
     let prefix = contact.name_prefix.as_deref().unwrap_or("");
     let suffix = contact.name_suffix.as_deref().unwrap_or("");
-    
+
     // Only export N field if we have at least family or given name
     if !family.is_empty() || !given.is_empty() {
-        lines.push(format!("N:{};{};{};{};{}", family, given, additional, prefix, suffix));
+        lines.push(format!(
+            "N:{};{};{};{};{}",
+            family, given, additional, prefix, suffix
+        ));
     } else if let Some((family_split, given_split)) = split_name(&contact.name) {
         lines.push(format!("N:{};{};;;", family_split, given_split));
     }
@@ -819,15 +771,12 @@ pub fn export_contact(contact: &Contact) -> Result<String> {
             lines.push(format!("NICKNAME:{}", nickname));
         }
     }
-
     if let Some(email) = &contact.email {
         lines.push(format!("EMAIL:{}", email));
     }
-
     if let Some(phone) = &contact.phone {
         lines.push(format!("TEL:{}", phone));
     }
-
     if let Some(org) = &contact.organization {
         // If department exists, include it as second component
         if let Some(dept) = &contact.department {
@@ -845,7 +794,6 @@ pub fn export_contact(contact: &Contact) -> Result<String> {
             lines.push(format!("X-DEPARTMENT:{}", dept));
         }
     }
-
     if let Some(title) = &contact.title {
         lines.push(format!("TITLE:{}", title));
     }
@@ -858,7 +806,6 @@ pub fn export_contact(contact: &Contact) -> Result<String> {
             lines.push(format!("NOTE:{}", escaped_notes));
         }
     }
-
     if let Some(photo_url) = &contact.photo_url {
         lines.push(format!("PHOTO;VALUE=uri:{}", photo_url));
     }
@@ -869,19 +816,31 @@ pub fn export_contact(contact: &Contact) -> Result<String> {
         let email_label = EmailLabel::from_str(&contact_email.label);
         match email_label {
             EmailLabel::Home => {
-                lines.push(format!("EMAIL;TYPE=INTERNET;TYPE=HOME:{}", contact_email.email));
+                lines.push(format!(
+                    "EMAIL;TYPE=INTERNET;TYPE=HOME:{}",
+                    contact_email.email
+                ));
             }
             EmailLabel::Work => {
-                lines.push(format!("EMAIL;TYPE=INTERNET;TYPE=WORK:{}", contact_email.email));
+                lines.push(format!(
+                    "EMAIL;TYPE=INTERNET;TYPE=WORK:{}",
+                    contact_email.email
+                ));
             }
             EmailLabel::Other => {
-                lines.push(format!("EMAIL;TYPE=INTERNET;TYPE=OTHER:{}", contact_email.email));
+                lines.push(format!(
+                    "EMAIL;TYPE=INTERNET;TYPE=OTHER:{}",
+                    contact_email.email
+                ));
             }
             EmailLabel::Custom(_) => {
                 // Use itemN.X-ABLabel for custom labels
                 let item_name = format!("item{}", email_item_counter);
                 email_item_counter += 1;
-                lines.push(format!("{}.EMAIL;TYPE=INTERNET:{}", item_name, contact_email.email));
+                lines.push(format!(
+                    "{}.EMAIL;TYPE=INTERNET:{}",
+                    item_name, contact_email.email
+                ));
                 lines.push(format!("{}.X-ABLabel:{}", item_name, contact_email.label));
             }
         }
@@ -892,8 +851,14 @@ pub fn export_contact(contact: &Contact) -> Result<String> {
     for contact_phone in &contact.phones {
         let phone_label = PhoneLabel::from_str(&contact_phone.label);
         match phone_label {
-            PhoneLabel::Home | PhoneLabel::Work | PhoneLabel::Mobile | PhoneLabel::Main
-            | PhoneLabel::HomeFax | PhoneLabel::WorkFax | PhoneLabel::Pager | PhoneLabel::Other => {
+            PhoneLabel::Home
+            | PhoneLabel::Work
+            | PhoneLabel::Mobile
+            | PhoneLabel::Main
+            | PhoneLabel::HomeFax
+            | PhoneLabel::WorkFax
+            | PhoneLabel::Pager
+            | PhoneLabel::Other => {
                 let vcard_type = phone_label.to_vcard_type();
                 lines.push(format!("TEL;TYPE={}:{}", vcard_type, contact_phone.phone));
             }
@@ -911,7 +876,7 @@ pub fn export_contact(contact: &Contact) -> Result<String> {
     let mut address_item_counter = 3000;
     for contact_address in &contact.addresses {
         let address_label = AddressLabel::from_str(&contact_address.label);
-        
+
         // Format: PO Box;Extended;Street;City;State;Postal Code;Country
         let adr_value = format!(
             ";;{};{};{};{};{}",
@@ -921,7 +886,6 @@ pub fn export_contact(contact: &Contact) -> Result<String> {
             contact_address.postal_code.as_deref().unwrap_or(""),
             contact_address.country.as_deref().unwrap_or("")
         );
-
         match address_label {
             AddressLabel::Home => {
                 lines.push(format!("ADR;TYPE=HOME:{}", adr_value));
@@ -946,7 +910,6 @@ pub fn export_contact(contact: &Contact) -> Result<String> {
     for contact_date in &contact.dates {
         let date_label = DateLabel::from_str(&contact_date.label);
         let date_str = contact_date.to_yyyymmdd();
-
         match date_label {
             DateLabel::Birthday => {
                 lines.push(format!("BDAY:{}", date_str));
@@ -956,7 +919,11 @@ pub fn export_contact(contact: &Contact) -> Result<String> {
                 let item_name = format!("item{}", date_item_counter);
                 date_item_counter += 1;
                 lines.push(format!("{}.X-ABDATE:{}", item_name, date_str));
-                lines.push(format!("{}.X-ABLabel:{}", item_name, date_label.to_apple_format()));
+                lines.push(format!(
+                    "{}.X-ABLabel:{}",
+                    item_name,
+                    date_label.to_apple_format()
+                ));
             }
             DateLabel::Other | DateLabel::Custom(_) => {
                 let item_name = format!("item{}", date_item_counter);
@@ -970,43 +937,35 @@ pub fn export_contact(contact: &Contact) -> Result<String> {
     // Export URLs with labels using itemN format
     for (idx, contact_url) in contact.urls.iter().enumerate() {
         let item_name = format!("item{}", 5000 + idx);
-        
         lines.push(format!("{}.URL:{}", item_name, contact_url.url));
-        
         if let Some(ref label) = contact_url.label {
             lines.push(format!("{}.X-ABLabel:{}", item_name, label));
         }
     }
-
     for (key, value) in &contact.custom_fields {
         // Skip NOTE, NICKNAME, and X-DEPARTMENT as they're now handled as dedicated fields
         if key != "NOTE" && key != "NICKNAME" && key != "X-DEPARTMENT" {
             lines.push(format!("{}:{}", key, value));
         }
     }
-
     lines.push(format!("UID:{}", contact.id));
     lines.push("END:VCARD".to_string());
-
     Ok(lines.join("\r\n") + "\r\n")
 }
 
 /// Export multiple contacts to a VCF file
 pub fn export_to_file(contacts: &[Contact], path: &Path) -> Result<()> {
     let mut vcf_content = String::new();
-
     for contact in contacts {
         let vcard_str = export_contact(contact)?;
         vcf_content.push_str(&vcard_str);
     }
-
     fs::write(path, vcf_content)
         .context(format!("Failed to write VCF file: {}", path.display()))?;
-
     Ok(())
 }
 
-/// Unescape VCF value (handle \: \; \, \\ \n)
+/// Unescape VCF value (handle : ; , \ \n)
 fn unescape_vcf_value(value: &str) -> String {
     value
         .replace("\\:", ":")
@@ -1075,10 +1034,8 @@ ORG:Example Corp\r
 TITLE:Software Engineer\r
 URL:https://github.com/johndoe\r
 END:VCARD\r\n";
-
         let contacts = import_from_string(vcf).unwrap();
         assert_eq!(contacts.len(), 1);
-
         let contact = &contacts[0];
         assert_eq!(contact.name, "John Doe");
         assert_eq!(contact.email.as_ref().unwrap(), "john@example.com");
@@ -1095,9 +1052,7 @@ END:VCARD\r\n";
         contact.email = Some("jane@example.com".to_string());
         contact.phone = Some("+1-555-5678".to_string());
         contact.organization = Some("Tech Co".to_string());
-
         let vcf = export_contact(&contact).unwrap();
-
         assert!(vcf.contains("FN:Jane Smith"));
         assert!(vcf.contains("EMAIL:jane@example.com"));
         assert!(vcf.contains("TEL:+1-555-5678"));
@@ -1114,17 +1069,13 @@ item1.X-ABLabel:GitHub\r
 item2.URL:https://myblog.com\r
 item2.X-ABLabel:Blog\r
 END:VCARD\r\n";
-
         let contacts = import_from_string(vcf).unwrap();
         assert_eq!(contacts.len(), 1);
-
         let contact = &contacts[0];
         assert_eq!(contact.urls.len(), 2);
-
         let github_urls = contact.find_urls_by_label("GitHub");
         assert_eq!(github_urls.len(), 1);
         assert_eq!(github_urls[0].url, "https://github.com/johndoe");
-
         let blog_urls = contact.find_urls_by_label("Blog");
         assert_eq!(blog_urls.len(), 1);
         assert_eq!(blog_urls[0].url, "https://myblog.com");
@@ -1133,11 +1084,15 @@ END:VCARD\r\n";
     #[test]
     fn test_export_urls_with_labels() {
         let mut contact = Contact::new("John Doe");
-        contact.add_url(ContactUrl::new("https://github.com/johndoe", Some("GitHub".to_string())));
-        contact.add_url(ContactUrl::new("https://myblog.com", Some("Blog".to_string())));
-
+        contact.add_url(ContactUrl::new(
+            "https://github.com/johndoe",
+            Some("GitHub".to_string()),
+        ));
+        contact.add_url(ContactUrl::new(
+            "https://myblog.com",
+            Some("Blog".to_string()),
+        ));
         let vcf = export_contact(&contact).unwrap();
-
         assert!(vcf.contains("item5000.URL:https://github.com/johndoe"));
         assert!(vcf.contains("item5000.X-ABLabel:GitHub"));
         assert!(vcf.contains("item5001.URL:https://myblog.com"));
@@ -1190,98 +1145,161 @@ X-ABDATE:20100101
 NOTE:Notes sample
 CATEGORIES:myContacts
 END:VCARD"#;
-
         let contacts = import_from_string(vcf).unwrap();
         assert_eq!(contacts.len(), 1);
-
         let contact = &contacts[0];
-        
+
         // Check name
         assert_eq!(contact.name, "Prefix First name Middle name Surname Suffix");
-        
+
         // Check organization and title
         assert_eq!(contact.organization.as_ref().unwrap(), "Company");
         assert_eq!(contact.title.as_ref().unwrap(), "Job title");
-        
+
         // Check that we have URLs
         assert!(contact.urls.len() > 0, "Should have extracted URLs");
-        
+
         // Check for specific labeled URLs
         let github_urls = contact.find_urls_by_label("GitHub");
         assert_eq!(github_urls.len(), 1, "Should have one GitHub URL");
         assert_eq!(github_urls[0].url, "https://github.com");
-        
         let instagram_urls = contact.find_urls_by_label("Instagram");
         assert_eq!(instagram_urls.len(), 1, "Should have one Instagram URL");
         assert_eq!(instagram_urls[0].url, "https://instagram.com");
-        
         let blog_urls = contact.find_urls_by_label("BLOG");
         assert_eq!(blog_urls.len(), 1, "Should have one Blog URL");
         assert_eq!(blog_urls[0].url, "https://blog.com");
-        
         let profile_urls = contact.find_urls_by_label("PROFILE");
         assert_eq!(profile_urls.len(), 1, "Should have one Profile URL");
         assert_eq!(profile_urls[0].url, "https://profile.com");
-        
         let homepage_urls = contact.find_urls_by_label("_$!<HomePage>!$_");
         assert_eq!(homepage_urls.len(), 1, "Should have one HomePage URL");
         assert_eq!(homepage_urls[0].url, "https://homepage.com");
-        
         let work_urls = contact.find_urls_by_label("WORK");
         assert_eq!(work_urls.len(), 1, "Should have one Work URL");
         assert_eq!(work_urls[0].url, "https://work.com");
-        
+
         // Check structured name fields
         assert_eq!(contact.name_prefix, Some("Prefix".to_string()));
         assert_eq!(contact.first_name, Some("First name".to_string()));
         assert_eq!(contact.middle_name, Some("Middle name".to_string()));
         assert_eq!(contact.last_name, Some("Surname".to_string()));
         assert_eq!(contact.name_suffix, Some("Suffix".to_string()));
-        
+
         // Check nickname is in dedicated field (not custom_fields)
         assert_eq!(contact.nickname, Some("Nickname".to_string()));
-        
+
         // Check notes is in dedicated field (not custom_fields)
         assert_eq!(contact.notes, Some("Notes sample".to_string()));
-        
+
         // Check department
         assert_eq!(contact.department, Some("Department".to_string()));
-        
+
         // Check structured emails
         assert_eq!(contact.emails.len(), 3, "Should have extracted 3 emails");
-        assert!(contact.emails.iter().any(|e| e.email == "home@email.com" && e.label == "Home"));
-        assert!(contact.emails.iter().any(|e| e.email == "work@email.com" && e.label == "Work"));
-        assert!(contact.emails.iter().any(|e| e.email == "custom@email.com" && e.label == "Custom"));
-        
+        assert!(
+            contact
+                .emails
+                .iter()
+                .any(|e| e.email == "home@email.com" && e.label == "Home")
+        );
+        assert!(
+            contact
+                .emails
+                .iter()
+                .any(|e| e.email == "work@email.com" && e.label == "Work")
+        );
+        assert!(
+            contact
+                .emails
+                .iter()
+                .any(|e| e.email == "custom@email.com" && e.label == "Custom")
+        );
+
         // Check structured phones
         assert_eq!(contact.phones.len(), 9, "Should have extracted 9 phones");
-        assert!(contact.phones.iter().any(|p| p.phone == "+91 99999 99999" && p.label == "Home"));
-        assert!(contact.phones.iter().any(|p| p.phone == "+1 444-444-4444" && p.label == "Work"));
-        assert!(contact.phones.iter().any(|p| p.phone == "+54 11 2222-2222" && p.label == "Mobile"));
-        assert!(contact.phones.iter().any(|p| p.phone == "+1 555-555-5555" && p.label == "Main"));
-        // Note: The VCF has "TEL;TYPE=HOME;TYPE=FAX:+682 55 555" which parses to "HOME;FAX"
-        // PhoneLabel::from_str("HOME;FAX") returns HomeFax with label "Home Fax"
-        let has_home_fax = contact.phones.iter().any(|p| p.phone == "+682 55 555" && p.label == "Home Fax");
+        assert!(
+            contact
+                .phones
+                .iter()
+                .any(|p| p.phone == "+91 99999 99999" && p.label == "Home")
+        );
+        assert!(
+            contact
+                .phones
+                .iter()
+                .any(|p| p.phone == "+1 444-444-4444" && p.label == "Work")
+        );
+        assert!(
+            contact
+                .phones
+                .iter()
+                .any(|p| p.phone == "+54 11 2222-2222" && p.label == "Mobile")
+        );
+        assert!(
+            contact
+                .phones
+                .iter()
+                .any(|p| p.phone == "+1 555-555-5555" && p.label == "Main")
+        );
+
+        // Note: The VCF has "TEL;TYPE=HOME;TYPE=FAX:+682 55 555" which parses to
+        // "HOME;FAX" PhoneLabel::from_str("HOME;FAX") returns HomeFax with label "Home
+        // Fax"
+        let has_home_fax = contact
+            .phones
+            .iter()
+            .any(|p| p.phone == "+682 55 555" && p.label == "Home Fax");
         assert!(has_home_fax, "Should have home fax phone");
-        assert!(contact.phones.iter().any(|p| p.phone == "+679 555 5555" && p.label == "Work Fax"));
-        assert!(contact.phones.iter().any(|p| p.phone == "+6905999" && p.label == "Google Voice"));
-        assert!(contact.phones.iter().any(|p| p.phone == "+965 555 55555" && p.label == "Pager"));
-        
+        assert!(
+            contact
+                .phones
+                .iter()
+                .any(|p| p.phone == "+679 555 5555" && p.label == "Work Fax")
+        );
+        assert!(
+            contact
+                .phones
+                .iter()
+                .any(|p| p.phone == "+6905999" && p.label == "Google Voice")
+        );
+        assert!(
+            contact
+                .phones
+                .iter()
+                .any(|p| p.phone == "+965 555 55555" && p.label == "Pager")
+        );
+
         // Check structured dates (there are more X-ABDATE entries in the test VCF)
-        assert!(contact.dates.len() >= 2, "Should have extracted at least 2 dates");
-        assert!(contact.dates.iter().any(|d| d.label == "Birthday" && d.date.format("%Y%m%d").to_string() == "19700101"));
-        assert!(contact.dates.iter().any(|d| d.label == "Anniversary" && d.date.format("%Y%m%d").to_string() == "20000101"));
+        assert!(
+            contact.dates.len() >= 2,
+            "Should have extracted at least 2 dates"
+        );
+        assert!(
+            contact.dates.iter().any(|d| d.label == "Birthday" && d.date.format("%Y%m%d").to_string() == "19700101")
+        );
+        assert!(
+            contact
+                .dates
+                .iter()
+                .any(|d| d.label == "Anniversary"
+                    && d.date.format("%Y%m%d").to_string() == "20000101")
+        );
     }
 
     #[test]
     fn test_export_structured_emails() {
         let mut contact = Contact::new("Test User");
-        contact.emails.push(ContactEmail::new("home@example.com", "Home"));
-        contact.emails.push(ContactEmail::new("work@example.com", "Work"));
-        contact.emails.push(ContactEmail::new("custom@example.com", "Personal"));
-
+        contact
+            .emails
+            .push(ContactEmail::new("home@example.com", "Home"));
+        contact
+            .emails
+            .push(ContactEmail::new("work@example.com", "Work"));
+        contact
+            .emails
+            .push(ContactEmail::new("custom@example.com", "Personal"));
         let vcf = export_contact(&contact).unwrap();
-
         assert!(vcf.contains("EMAIL;TYPE=INTERNET;TYPE=HOME:home@example.com"));
         assert!(vcf.contains("EMAIL;TYPE=INTERNET;TYPE=WORK:work@example.com"));
         assert!(vcf.contains("item1000.EMAIL;TYPE=INTERNET:custom@example.com"));
@@ -1291,12 +1309,16 @@ END:VCARD"#;
     #[test]
     fn test_export_structured_phones() {
         let mut contact = Contact::new("Test User");
-        contact.phones.push(ContactPhone::new("+1234567890", "Mobile"));
-        contact.phones.push(ContactPhone::new("+9876543210", "Home"));
-        contact.phones.push(ContactPhone::new("+1111111111", "Google Voice"));
-
+        contact
+            .phones
+            .push(ContactPhone::new("+1234567890", "Mobile"));
+        contact
+            .phones
+            .push(ContactPhone::new("+9876543210", "Home"));
+        contact
+            .phones
+            .push(ContactPhone::new("+1111111111", "Google Voice"));
         let vcf = export_contact(&contact).unwrap();
-
         assert!(vcf.contains("TEL;TYPE=CELL:+1234567890"));
         assert!(vcf.contains("TEL;TYPE=HOME:+9876543210"));
         assert!(vcf.contains("item2000.TEL:+1111111111"));
@@ -1314,7 +1336,7 @@ END:VCARD"#;
                 .postal_code("62701")
                 .country("USA")
                 .label("Home")
-                .build()
+                .build(),
         );
         contact.addresses.push(
             ContactAddress::builder()
@@ -1324,11 +1346,9 @@ END:VCARD"#;
                 .postal_code("60601")
                 .country("USA")
                 .label("Work")
-                .build()
+                .build(),
         );
-
         let vcf = export_contact(&contact).unwrap();
-
         assert!(vcf.contains("ADR;TYPE=HOME:;;123 Main St;Springfield;IL;62701;USA"));
         assert!(vcf.contains("ADR;TYPE=WORK:;;456 Office Ave;Chicago;IL;60601;USA"));
     }
@@ -1336,19 +1356,17 @@ END:VCARD"#;
     #[test]
     fn test_export_structured_dates() {
         use chrono::NaiveDate;
-        
+
         let mut contact = Contact::new("Test User");
         contact.dates.push(ContactDate::new(
             NaiveDate::from_ymd_opt(1990, 5, 15).unwrap(),
-            "Birthday"
+            "Birthday",
         ));
         contact.dates.push(ContactDate::new(
             NaiveDate::from_ymd_opt(2010, 6, 20).unwrap(),
-            "Anniversary"
+            "Anniversary",
         ));
-
         let vcf = export_contact(&contact).unwrap();
-
         assert!(vcf.contains("BDAY:19900515"));
         assert!(vcf.contains("item4000.X-ABDATE:20100620"));
         assert!(vcf.contains("item4000.X-ABLabel:_$!<Anniversary>!$_"));
@@ -1358,23 +1376,30 @@ END:VCARD"#;
     fn test_import_export_roundtrip() {
         // Create a contact with all structured fields
         use chrono::NaiveDate;
-        
+
         let mut contact = Contact::new("Jane Smith");
-        contact.emails.push(ContactEmail::new("jane@home.com", "Home"));
-        contact.phones.push(ContactPhone::new("+1234567890", "Mobile"));
+        contact
+            .emails
+            .push(ContactEmail::new("jane@home.com", "Home"));
+        contact
+            .phones
+            .push(ContactPhone::new("+1234567890", "Mobile"));
         contact.addresses.push(
             ContactAddress::builder()
                 .street("789 Test St")
                 .city("Testville")
                 .state("TX")
                 .label("Home")
-                .build()
+                .build(),
         );
         contact.dates.push(ContactDate::new(
             NaiveDate::from_ymd_opt(1985, 3, 10).unwrap(),
-            "Birthday"
+            "Birthday",
         ));
-        contact.urls.push(ContactUrl::new("https://github.com/janesmith", Some("GitHub".to_string())));
+        contact.urls.push(ContactUrl::new(
+            "https://github.com/janesmith",
+            Some("GitHub".to_string()),
+        ));
 
         // Export to VCF
         let vcf = export_contact(&contact).unwrap();
@@ -1382,9 +1407,8 @@ END:VCARD"#;
         // Import back
         let contacts = import_from_string(&vcf).unwrap();
         assert_eq!(contacts.len(), 1);
-
         let imported = &contacts[0];
-        
+
         // Verify all fields survived the round trip
         assert_eq!(imported.name, "Jane Smith");
         assert_eq!(imported.emails.len(), 1);
@@ -1415,12 +1439,10 @@ TEL:+1234567890
 UID:test-uuid-123
 END:VCARD
 "#;
-
         let contacts = import_from_string(vcf).unwrap();
         assert_eq!(contacts.len(), 1);
-
         let contact = &contacts[0];
-        
+
         // Verify structured name fields
         assert_eq!(contact.name_prefix, Some("Dr.".to_string()));
         assert_eq!(contact.first_name, Some("Jane".to_string()));
@@ -1428,7 +1450,10 @@ END:VCARD
         assert_eq!(contact.last_name, Some("Smith".to_string()));
         assert_eq!(contact.name_suffix, Some("Jr.".to_string()));
         assert_eq!(contact.nickname, Some("JJ".to_string()));
-        assert_eq!(contact.notes, Some("This is a test contact with all fields populated.".to_string()));
+        assert_eq!(
+            contact.notes,
+            Some("This is a test contact with all fields populated.".to_string())
+        );
         assert_eq!(contact.organization, Some("Acme Corp".to_string()));
         assert_eq!(contact.department, Some("Engineering".to_string()));
         assert_eq!(contact.title, Some("Software Engineer".to_string()));
@@ -1437,7 +1462,7 @@ END:VCARD
     #[test]
     fn test_export_structured_name_fields() {
         use crate::core::contact::ContactBuilder;
-        
+
         // Create a contact with all structured name fields
         let contact = ContactBuilder::new()
             .name("Dr. John Q. Public Sr.")
@@ -1454,7 +1479,6 @@ END:VCARD
             .email("john@example.com")
             .build()
             .unwrap();
-
         let vcf = export_contact(&contact).unwrap();
 
         // Verify the VCF contains all structured fields
@@ -1468,7 +1492,6 @@ END:VCARD
         // Test round-trip
         let contacts = import_from_string(&vcf).unwrap();
         assert_eq!(contacts.len(), 1);
-        
         let imported = &contacts[0];
         assert_eq!(imported.name_prefix, Some("Dr.".to_string()));
         assert_eq!(imported.first_name, Some("John".to_string()));
@@ -1476,7 +1499,10 @@ END:VCARD
         assert_eq!(imported.last_name, Some("Public".to_string()));
         assert_eq!(imported.name_suffix, Some("Sr.".to_string()));
         assert_eq!(imported.nickname, Some("Johnny".to_string()));
-        assert_eq!(imported.notes, Some("Important contact with detailed information.".to_string()));
+        assert_eq!(
+            imported.notes,
+            Some("Important contact with detailed information.".to_string())
+        );
         assert_eq!(imported.organization, Some("Tech Corp".to_string()));
         assert_eq!(imported.department, Some("Research".to_string()));
         assert_eq!(imported.title, Some("Chief Scientist".to_string()));
@@ -1485,16 +1511,15 @@ END:VCARD
     #[test]
     fn test_department_without_organization() {
         use crate::core::contact::ContactBuilder;
-        
+
         // Create a contact with department but no organization
         let contact = ContactBuilder::new()
             .name("Test User")
             .department("Sales")
             .build()
             .unwrap();
-
         let vcf = export_contact(&contact).unwrap();
-        
+
         // Should use X-DEPARTMENT when no organization
         assert!(vcf.contains("X-DEPARTMENT:Sales"));
 

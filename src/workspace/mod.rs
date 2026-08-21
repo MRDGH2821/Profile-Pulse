@@ -1,8 +1,7 @@
 //! Workspace management for multiple VCF files
 //!
-//! Each workspace represents a VCF file (single source of truth).
-//! This allows users to manage multiple address books independently.
-
+//! Each workspace represents a VCF file (single source of truth). This allows
+//! users to manage multiple address books independently.
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
@@ -32,7 +31,6 @@ impl Workspace {
     pub fn new(name: String, vcf_path: PathBuf, workspace_dir: PathBuf) -> Self {
         let id = Uuid::new_v4();
         let now = chrono::Utc::now();
-
         Self {
             id,
             name,
@@ -73,11 +71,8 @@ impl WorkspaceManager {
     /// Create a new workspace manager
     pub fn new(root_dir: PathBuf) -> Result<Self> {
         // Create root directory if it doesn't exist
-        std::fs::create_dir_all(&root_dir)
-            .context("Failed to create workspaces directory")?;
-
+        std::fs::create_dir_all(&root_dir).context("Failed to create workspaces directory")?;
         let index_path = root_dir.join("workspaces.json");
-
         Ok(Self {
             root_dir,
             index_path,
@@ -89,33 +84,23 @@ impl WorkspaceManager {
         if !self.index_path.exists() {
             return Ok(Vec::new());
         }
-
-        let content = std::fs::read_to_string(&self.index_path)
-            .context("Failed to read workspaces index")?;
-
-        let workspaces: Vec<Workspace> = serde_json::from_str(&content)
-            .context("Failed to parse workspaces index")?;
-
+        let content =
+            std::fs::read_to_string(&self.index_path).context("Failed to read workspaces index")?;
+        let workspaces: Vec<Workspace> =
+            serde_json::from_str(&content).context("Failed to parse workspaces index")?;
         Ok(workspaces)
     }
 
     /// Save workspaces to the index file
     pub fn save_workspaces(&self, workspaces: &[Workspace]) -> Result<()> {
-        let content = serde_json::to_string_pretty(workspaces)
-            .context("Failed to serialize workspaces")?;
-
-        std::fs::write(&self.index_path, content)
-            .context("Failed to write workspaces index")?;
-
+        let content =
+            serde_json::to_string_pretty(workspaces).context("Failed to serialize workspaces")?;
+        std::fs::write(&self.index_path, content).context("Failed to write workspaces index")?;
         Ok(())
     }
 
     /// Create a new workspace from a VCF file
-    pub fn create_workspace(
-        &self,
-        name: String,
-        vcf_path: PathBuf,
-    ) -> Result<Workspace> {
+    pub fn create_workspace(&self, name: String, vcf_path: PathBuf) -> Result<Workspace> {
         // Validate VCF file exists
         if !vcf_path.exists() {
             anyhow::bail!("VCF file does not exist: {}", vcf_path.display());
@@ -124,13 +109,11 @@ impl WorkspaceManager {
         // Create workspace directory
         let workspace_id = Uuid::new_v4();
         let workspace_dir = self.root_dir.join(workspace_id.to_string());
-        std::fs::create_dir_all(&workspace_dir)
-            .context("Failed to create workspace directory")?;
+        std::fs::create_dir_all(&workspace_dir).context("Failed to create workspace directory")?;
 
         // Copy VCF file to workspace directory as backup
         let vcf_copy = workspace_dir.join("contacts.vcf");
-        std::fs::copy(&vcf_path, &vcf_copy)
-            .context("Failed to copy VCF file to workspace")?;
+        std::fs::copy(&vcf_path, &vcf_copy).context("Failed to copy VCF file to workspace")?;
 
         // Create workspace
         let workspace = Workspace::new(name, vcf_path, workspace_dir);
@@ -139,7 +122,6 @@ impl WorkspaceManager {
         let mut workspaces = self.load_workspaces()?;
         workspaces.push(workspace.clone());
         self.save_workspaces(&workspaces)?;
-
         Ok(workspace)
     }
 
@@ -148,8 +130,7 @@ impl WorkspaceManager {
         // Create workspace directory
         let workspace_id = Uuid::new_v4();
         let workspace_dir = self.root_dir.join(workspace_id.to_string());
-        std::fs::create_dir_all(&workspace_dir)
-            .context("Failed to create workspace directory")?;
+        std::fs::create_dir_all(&workspace_dir).context("Failed to create workspace directory")?;
 
         // Create empty VCF file
         let vcf_path = workspace_dir.join("contacts.vcf");
@@ -163,7 +144,6 @@ impl WorkspaceManager {
         let mut workspaces = self.load_workspaces()?;
         workspaces.push(workspace.clone());
         self.save_workspaces(&workspaces)?;
-
         Ok(workspace)
     }
 
@@ -177,7 +157,6 @@ impl WorkspaceManager {
             .find(|w| w.id == workspace_id)
             .context("Workspace not found")?
             .clone();
-
         workspaces.retain(|w| w.id != workspace_id);
         self.save_workspaces(&workspaces)?;
 
@@ -186,7 +165,6 @@ impl WorkspaceManager {
             std::fs::remove_dir_all(&workspace.workspace_dir)
                 .context("Failed to delete workspace directory")?;
         }
-
         Ok(())
     }
 
@@ -199,10 +177,8 @@ impl WorkspaceManager {
             .iter()
             .position(|w| w.id == workspace.id)
             .context("Workspace not found")?;
-
         workspaces[idx] = workspace.clone();
         self.save_workspaces(&workspaces)?;
-
         Ok(())
     }
 
@@ -223,17 +199,13 @@ impl WorkspaceManager {
             .context("Workspace not found")?;
 
         // Copy VCF file
-        std::fs::copy(vcf_path, &workspace.vcf_path)
-            .context("Failed to copy VCF file")?;
+        std::fs::copy(vcf_path, &workspace.vcf_path).context("Failed to copy VCF file")?;
 
         // Also update the backup copy
         let vcf_backup = workspace.workspace_dir.join("contacts.vcf");
-        std::fs::copy(vcf_path, &vcf_backup)
-            .context("Failed to update VCF backup")?;
-
+        std::fs::copy(vcf_path, &vcf_backup).context("Failed to update VCF backup")?;
         workspace.touch();
         self.save_workspaces(&workspaces)?;
-
         Ok(())
     }
 
@@ -244,16 +216,13 @@ impl WorkspaceManager {
             .context("Workspace not found")?;
 
         // Copy VCF file to destination
-        std::fs::copy(&workspace.vcf_path, dest_path)
-            .context("Failed to export VCF file")?;
-
+        std::fs::copy(&workspace.vcf_path, dest_path).context("Failed to export VCF file")?;
         Ok(())
     }
 
     /// Get the default workspace (create if none exists)
     pub fn get_or_create_default_workspace(&self) -> Result<Workspace> {
         let workspaces = self.load_workspaces()?;
-
         if let Some(workspace) = workspaces.first() {
             return Ok(workspace.clone());
         }
@@ -273,9 +242,7 @@ mod tests {
         let name = "Test Workspace".to_string();
         let vcf_path = PathBuf::from("/tmp/test.vcf");
         let workspace_dir = PathBuf::from("/tmp/workspace");
-
         let workspace = Workspace::new(name.clone(), vcf_path.clone(), workspace_dir.clone());
-
         assert_eq!(workspace.name, name);
         assert_eq!(workspace.vcf_path, vcf_path);
         assert_eq!(workspace.workspace_dir, workspace_dir);
@@ -293,10 +260,8 @@ mod tests {
     fn test_create_empty_workspace() {
         let temp_dir = TempDir::new().unwrap();
         let manager = WorkspaceManager::new(temp_dir.path().to_path_buf()).unwrap();
-
         let workspace = manager.create_empty_workspace("Test".to_string());
         assert!(workspace.is_ok());
-
         let workspace = workspace.unwrap();
         assert_eq!(workspace.name, "Test");
         assert!(workspace.vcf_path.exists());

@@ -1,7 +1,6 @@
 //! Error types and utilities for Profile Pulse
 //!
 //! Provides common error types used throughout the application.
-
 use thiserror::Error;
 
 /// Main application error type
@@ -10,50 +9,39 @@ pub enum AppError {
     /// I/O operation failed
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
-
     /// HTTP request failed
     #[error("HTTP error: {0}")]
     Http(#[from] reqwest::Error),
-
     /// JSON serialization/deserialization failed
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
-
     /// VCF parsing failed
     #[error("VCF parse error: {0}")]
     VcfParse(String),
-
     /// Contact not found
     #[error("Contact not found: {0}")]
     ContactNotFound(String),
-
     /// Social profile not found
     #[error("Social profile not found: {platform} - {username}")]
     ProfileNotFound { platform: String, username: String },
-
     /// Rate limit exceeded
     #[error("Rate limit exceeded for {platform}. Retry after {retry_after:?}")]
     RateLimitExceeded {
         platform: String,
         retry_after: std::time::Duration,
     },
-
     /// Authentication required
     #[error("Authentication required for {platform}")]
     AuthenticationRequired { platform: String },
-
     /// Invalid input
     #[error("Invalid input: {0}")]
     InvalidInput(String),
-
     /// Configuration error
     #[error("Configuration error: {0}")]
     Config(String),
-
     /// Image processing error
     #[error("Image processing error: {0}")]
     ImageProcessing(String),
-
     /// Generic error with context
     #[error("{0}")]
     Other(#[from] anyhow::Error),
@@ -84,37 +72,27 @@ impl AppError {
 pub enum FetchError {
     #[error("Network error: {0}")]
     Network(#[from] reqwest::Error),
-
     #[error("Invalid URL: {0}")]
     InvalidUrl(String),
-
     #[error("Request failed: {0}")]
     Request(String),
-
     #[error("Not found: {0}")]
     NotFound(String),
-
     #[error("Parse error: {0}")]
     Parse(String),
-
     #[error("Profile not found: {platform} - {username}")]
     ProfileNotFound { platform: String, username: String },
-
     #[error("Rate limit exceeded for {platform}")]
     RateLimitExceeded {
         platform: String,
         retry_after: std::time::Duration,
     },
-
     #[error("Parse error: {0}")]
     ParseError(String),
-
     #[error("Platform unavailable: {0}")]
     PlatformUnavailable(String),
-
     #[error("Invalid response: {0}")]
     InvalidResponse(String),
-
     #[error("Authentication required")]
     AuthRequired,
 }
@@ -145,7 +123,6 @@ mod tests {
             retry_after: std::time::Duration::from_secs(60),
         };
         assert!(err.is_retryable());
-
         let err = AppError::ContactNotFound("123".to_string());
         assert!(!err.is_retryable());
     }
@@ -163,7 +140,6 @@ mod tests {
     fn test_fetch_error_retryable() {
         let err = FetchError::PlatformUnavailable("github".to_string());
         assert!(err.is_retryable());
-
         let err = FetchError::ParseError("invalid json".to_string());
         assert!(!err.is_retryable());
     }

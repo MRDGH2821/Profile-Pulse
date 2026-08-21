@@ -1,7 +1,6 @@
 //! Profile Pulse - Desktop contact management with social media integration
 //!
 //! This application helps manage contacts stored in VCF files.
-
 use anyhow::{Context, Result};
 use directories::ProjectDirs;
 use std::path::PathBuf;
@@ -33,14 +32,12 @@ impl AppConfig {
         // Get project directories
         let proj_dirs = ProjectDirs::from("com", "profile-pulse", "Profile Pulse")
             .context("Failed to determine project directories")?;
-
         let data_dir = proj_dirs.data_dir().to_path_buf();
         let cache_dir = proj_dirs.cache_dir().to_path_buf();
 
         // Create directories if they don't exist
         std::fs::create_dir_all(&data_dir).context("Failed to create data directory")?;
         std::fs::create_dir_all(&cache_dir).context("Failed to create cache directory")?;
-
         Ok(Self {
             data_dir,
             cache_dir,
@@ -52,7 +49,6 @@ impl AppConfig {
     pub fn from_env() -> Result<Self> {
         // Load .env file if it exists
         let _ = dotenvy::dotenv();
-
         Self::new()
     }
 }
@@ -64,7 +60,6 @@ fn init_logging(debug: bool) {
     } else {
         tracing_subscriber::EnvFilter::new("profile_pulse=info,warn")
     };
-
     tracing_subscriber::registry()
         .with(filter)
         .with(tracing_subscriber::fmt::layer())
@@ -78,7 +73,6 @@ fn main() -> Result<()> {
 
     // Initialize logging
     init_logging(config.debug);
-
     info!("Starting Profile Pulse v{}", env!("CARGO_PKG_VERSION"));
     info!("Data directory: {}", config.data_dir.display());
     info!("Using VCF files directly (no database)");

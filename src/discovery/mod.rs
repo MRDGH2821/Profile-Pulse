@@ -1,14 +1,10 @@
 //! Profile discovery module for Profile Pulse
 //!
-//! Contains functionality for discovering social media profiles based on
-//! contact information using search engines and matching algorithms.
-
-// TODO: Implement profile search functionality
-// TODO: Implement matching algorithms (Jaro-Winkler, etc.)
-// TODO: Implement confidence scoring
-// TODO: Implement Google Custom Search API integration
-// TODO: Implement profile matcher
-
+//! Contains functionality for discovering social media profiles based on contact
+//! information using search engines and matching algorithms.
+// TODO: Implement profile search functionality TODO: Implement matching
+// algorithms (Jaro-Winkler, etc.) TODO: Implement confidence scoring TODO:
+// Implement Google Custom Search API integration TODO: Implement profile matcher
 use crate::core::contact::{Contact, SocialPlatform};
 use crate::utils::Result;
 

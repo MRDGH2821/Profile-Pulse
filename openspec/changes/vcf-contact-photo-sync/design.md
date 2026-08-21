@@ -7,6 +7,7 @@ Profile Pulse is a desktop contact management app built with Rust and Iced GUI. 
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Add main window with tabbed interface (Import, Contacts, Photo Fetcher)
 - Implement VCF file picker via native dialog
 - Display imported contacts in selectable list
@@ -15,6 +16,7 @@ Profile Pulse is a desktop contact management app built with Rust and Iced GUI. 
 - Allow saving selected photo to contact
 
 **Non-Goals:**
+
 - Real-time sync with cloud services (manual fetch only)
 - Batch photo fetching for all contacts
 - Photo cropping/editing within app

@@ -1,16 +1,14 @@
 //! VCF-based repository for contact management
 //!
-//! This module provides a repository that reads and writes contacts directly
-//! to VCF files, without any database caching layer.
-
+//! This module provides a repository that reads and writes contacts directly to
+//! VCF files, without any database caching layer.
+use crate::core::contact::Contact;
+use crate::vcf::{export_contacts_to_vcf, import_contacts_from_vcf};
 use anyhow::{Context, Result};
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use uuid::Uuid;
-
-use crate::core::contact::Contact;
-use crate::vcf::{export_contacts_to_vcf, import_contacts_from_vcf};
 
 /// Repository for managing contacts stored in VCF files
 #[derive(Debug, Clone)]
@@ -49,13 +47,10 @@ impl VcfRepository {
         // Load contacts from VCF file
         let vcf_content = fs::read_to_string(&self.vcf_path)
             .with_context(|| format!("Failed to read VCF file: {:?}", self.vcf_path))?;
-
-        let contacts = import_contacts_from_vcf(&vcf_content)
-            .context("Failed to parse VCF file")?;
-
+        let contacts =
+            import_contacts_from_vcf(&vcf_content).context("Failed to parse VCF file")?;
         self.contacts = contacts.into_iter().map(|c| (c.id, c)).collect();
         self.loaded = true;
-
         Ok(())
     }
 
@@ -72,24 +67,21 @@ impl VcfRepository {
         contacts.sort_by(|a, b| a.name.cmp(&b.name));
 
         // Export to VCF
-        let vcf_content = export_contacts_to_vcf(&contacts)
-            .context("Failed to export contacts to VCF")?;
+        let vcf_content =
+            export_contacts_to_vcf(&contacts).context("Failed to export contacts to VCF")?;
 
         // Write to file
         fs::write(&self.vcf_path, vcf_content)
             .with_context(|| format!("Failed to write VCF file: {:?}", self.vcf_path))?;
-
         Ok(())
     }
 
     /// Create a new contact
     pub fn create(&mut self, contact: Contact) -> Result<()> {
         self.ensure_loaded()?;
-
         let id = contact.id;
         self.contacts.insert(id, contact);
         self.save()?;
-
         Ok(())
     }
 
@@ -102,26 +94,21 @@ impl VcfRepository {
     /// Update an existing contact
     pub fn update(&mut self, contact: Contact) -> Result<()> {
         self.ensure_loaded()?;
-
         let id = contact.id;
         if !self.contacts.contains_key(&id) {
             anyhow::bail!("Contact not found: {}", id);
         }
-
         self.contacts.insert(id, contact);
         self.save()?;
-
         Ok(())
     }
 
     /// Delete a contact by ID
     pub fn delete(&mut self, id: Uuid) -> Result<()> {
         self.ensure_loaded()?;
-
         if self.contacts.remove(&id).is_none() {
             anyhow::bail!("Contact not found: {}", id);
         }
-
         self.save()?;
         Ok(())
     }
@@ -129,17 +116,14 @@ impl VcfRepository {
     /// List all contacts with pagination
     pub fn list(&mut self, limit: usize, offset: usize) -> Result<Vec<Contact>> {
         self.ensure_loaded()?;
-
         let mut contacts: Vec<_> = self.contacts.values().cloned().collect();
         contacts.sort_by(|a, b| a.name.cmp(&b.name));
-
         Ok(contacts.into_iter().skip(offset).take(limit).collect())
     }
 
     /// Search contacts by name, email, or phone
     pub fn search(&mut self, query: &str) -> Result<Vec<Contact>> {
         self.ensure_loaded()?;
-
         let query_lower = query.to_lowercase();
         let mut contacts: Vec<_> = self
             .contacts
@@ -155,7 +139,6 @@ impl VcfRepository {
             })
             .cloned()
             .collect();
-
         contacts.sort_by(|a, b| a.name.cmp(&b.name));
         Ok(contacts)
     }
@@ -169,10 +152,8 @@ impl VcfRepository {
     /// List all contacts (no pagination)
     pub fn list_all(&mut self) -> Result<Vec<Contact>> {
         self.ensure_loaded()?;
-
         let mut contacts: Vec<_> = self.contacts.values().cloned().collect();
         contacts.sort_by(|a, b| a.name.cmp(&b.name));
-
         Ok(contacts)
     }
 
@@ -205,7 +186,6 @@ mod tests {
         let dir = tempdir().unwrap();
         let vcf_path = dir.path().join("contacts.vcf");
         let mut repo = VcfRepository::new(&vcf_path);
-
         let contact = ContactBuilder::new()
             .name("John Doe")
             .first_name("John")
@@ -213,7 +193,6 @@ mod tests {
             .email("john@example.com")
             .build()
             .unwrap();
-
         let id = contact.id;
 
         // Create contact
@@ -233,14 +212,12 @@ mod tests {
         let dir = tempdir().unwrap();
         let vcf_path = dir.path().join("contacts.vcf");
         let mut repo = VcfRepository::new(&vcf_path);
-
         let mut contact = ContactBuilder::new()
             .name("Jane Doe")
             .first_name("Jane")
             .last_name("Doe")
             .build()
             .unwrap();
-
         let id = contact.id;
         repo.create(contact.clone()).unwrap();
 
@@ -258,14 +235,12 @@ mod tests {
         let dir = tempdir().unwrap();
         let vcf_path = dir.path().join("contacts.vcf");
         let mut repo = VcfRepository::new(&vcf_path);
-
         let contact = ContactBuilder::new()
             .name("Delete Me")
             .first_name("Delete")
             .last_name("Me")
             .build()
             .unwrap();
-
         let id = contact.id;
         repo.create(contact).unwrap();
 
@@ -296,7 +271,6 @@ mod tests {
         // List with pagination
         let page1 = repo.list(2, 0).unwrap();
         assert_eq!(page1.len(), 2);
-
         let page2 = repo.list(2, 2).unwrap();
         assert_eq!(page2.len(), 2);
 
@@ -309,7 +283,6 @@ mod tests {
         let dir = tempdir().unwrap();
         let vcf_path = dir.path().join("contacts.vcf");
         let mut repo = VcfRepository::new(&vcf_path);
-
         let contact1 = ContactBuilder::new()
             .name("Alice Smith")
             .first_name("Alice")
@@ -317,7 +290,6 @@ mod tests {
             .email("alice@example.com")
             .build()
             .unwrap();
-
         let contact2 = ContactBuilder::new()
             .name("Bob Jones")
             .first_name("Bob")
@@ -325,7 +297,6 @@ mod tests {
             .email("bob@example.com")
             .build()
             .unwrap();
-
         repo.create(contact1).unwrap();
         repo.create(contact2).unwrap();
 

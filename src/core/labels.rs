@@ -1,9 +1,8 @@
 //! Label types and utilities for contact fields
 //!
-//! This module defines common label types for various contact fields
-//! (emails, phones, addresses, dates, URLs) based on vCard/VCF standards
-//! and common practices from contact management systems.
-
+//! This module defines common label types for various contact fields (emails,
+//! phones, addresses, dates, URLs) based on vCard/VCF standards and common
+//! practices from contact management systems.
 use serde::{Deserialize, Serialize};
 
 /// Common email labels
@@ -84,14 +83,7 @@ impl PhoneLabel {
     /// Get common phone label options for dropdowns
     pub fn common_options() -> Vec<&'static str> {
         vec![
-            "Mobile",
-            "Home",
-            "Work",
-            "Main",
-            "Home Fax",
-            "Work Fax",
-            "Pager",
-            "Other",
+            "Mobile", "Home", "Work", "Main", "Home Fax", "Work Fax", "Pager", "Other",
         ]
     }
 
@@ -224,15 +216,14 @@ impl DateLabel {
         vec!["Birthday", "Anniversary", "Other"]
     }
 
-    /// Parse from string (case-insensitive)
-    /// Handles Apple's special format: _$!<Anniversary>!$_
+    /// Parse from string (case-insensitive) Handles Apple's special format:
+    /// _$!`<Anniversary>`!$_
     pub fn from_str(s: &str) -> Self {
         // Strip Apple's special label wrapper
         let cleaned = s
             .trim_start_matches("_$!<")
             .trim_end_matches(">!$_")
             .to_lowercase();
-
         match cleaned.as_str() {
             "birthday" | "bday" => Self::Birthday,
             "anniversary" => Self::Anniversary,
@@ -319,15 +310,14 @@ impl UrlLabel {
         ]
     }
 
-    /// Parse from string (case-insensitive)
-    /// Handles Apple's special format: _$!<HomePage>!$_
+    /// Parse from string (case-insensitive) Handles Apple's special format:
+    /// _$!`<HomePage>`!$_
     pub fn from_str(s: &str) -> Self {
         // Strip Apple's special label wrapper
         let cleaned = s
             .trim_start_matches("_$!<")
             .trim_end_matches(">!$_")
             .to_lowercase();
-
         match cleaned.as_str() {
             "homepage" | "home page" => Self::HomePage,
             "work" => Self::Work,
@@ -432,8 +422,14 @@ mod tests {
 
     #[test]
     fn test_date_label_apple_format() {
-        assert_eq!(DateLabel::from_str("_$!<Anniversary>!$_"), DateLabel::Anniversary);
-        assert_eq!(DateLabel::Anniversary.to_apple_format(), "_$!<Anniversary>!$_");
+        assert_eq!(
+            DateLabel::from_str("_$!<Anniversary>!$_"),
+            DateLabel::Anniversary
+        );
+        assert_eq!(
+            DateLabel::Anniversary.to_apple_format(),
+            "_$!<Anniversary>!$_"
+        );
     }
 
     #[test]

@@ -1,11 +1,10 @@
 //! Database module for Profile Pulse
 //!
-//! Handles SQLite database connections, migrations, and provides
-//! repositories for data access.
-
+//! Handles SQLite database connections, migrations, and provides repositories for
+//! data access.
 use anyhow::{Context, Result};
-use sqlx::sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, SqliteSynchronous};
 use sqlx::SqlitePool;
+use sqlx::sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, SqliteSynchronous};
 use std::path::Path;
 use std::str::FromStr;
 use tracing::info;
@@ -73,9 +72,7 @@ pub async fn init_pool(config: &DatabaseConfig) -> Result<SqlitePool> {
         .connect_with(options)
         .await
         .context("Failed to create database connection pool")?;
-
     info!("Database connection pool initialized");
-
     Ok(pool)
 }
 
@@ -85,7 +82,6 @@ pub async fn run_migrations(pool: &SqlitePool) -> Result<()> {
 
     // Read and execute the initial migration
     let migration_sql_1 = include_str!("migrations/20250113_001_initial_schema.sql");
-
     sqlx::query(migration_sql_1)
         .execute(pool)
         .await
@@ -93,7 +89,6 @@ pub async fn run_migrations(pool: &SqlitePool) -> Result<()> {
 
     // Read and execute the URLs table migration
     let migration_sql_2 = include_str!("migrations/20250114_002_add_urls_table.sql");
-
     sqlx::query(migration_sql_2)
         .execute(pool)
         .await
@@ -101,12 +96,10 @@ pub async fn run_migrations(pool: &SqlitePool) -> Result<()> {
 
     // Read and execute the structured fields migration
     let migration_sql_3 = include_str!("migrations/20250115_001_add_structured_fields.sql");
-
     sqlx::query(migration_sql_3)
         .execute(pool)
         .await
         .context("Failed to run migration 3")?;
-
     info!("Database migrations completed");
     Ok(())
 }
@@ -125,15 +118,12 @@ pub async fn get_stats(pool: &SqlitePool) -> Result<DatabaseStats> {
     let contact_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM contacts")
         .fetch_one(pool)
         .await?;
-
     let profile_count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM contact_urls")
         .fetch_one(pool)
         .await?;
-
     let cache_size: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM fetch_cache")
         .fetch_one(pool)
         .await?;
-
     Ok(DatabaseStats {
         contact_count,
         profile_count,
@@ -163,17 +153,14 @@ pub async fn vacuum(pool: &SqlitePool) -> Result<()> {
 /// Clean expired cache entries
 pub async fn clean_expired_cache(pool: &SqlitePool) -> Result<u64> {
     let now = chrono::Utc::now().timestamp();
-
     let result = sqlx::query("DELETE FROM fetch_cache WHERE expires_at < ?")
         .bind(now)
         .execute(pool)
         .await?;
-
     let deleted = result.rows_affected();
     if deleted > 0 {
         info!("Cleaned {} expired cache entries", deleted);
     }
-
     Ok(deleted)
 }
 
@@ -187,7 +174,6 @@ mod tests {
             path: ":memory:".to_string(),
             ..Default::default()
         };
-
         let pool = init_pool(&config).await.unwrap();
         assert!(health_check(&pool).await.is_ok());
     }
@@ -198,7 +184,6 @@ mod tests {
             path: ":memory:".to_string(),
             ..Default::default()
         };
-
         let pool = init_pool(&config).await.unwrap();
         run_migrations(&pool).await.unwrap();
 
@@ -209,7 +194,6 @@ mod tests {
         .fetch_one(&pool)
         .await
         .unwrap();
-
         assert_eq!(result, 1);
     }
 
@@ -219,10 +203,8 @@ mod tests {
             path: ":memory:".to_string(),
             ..Default::default()
         };
-
         let pool = init_pool(&config).await.unwrap();
         run_migrations(&pool).await.unwrap();
-
         let stats = get_stats(&pool).await.unwrap();
         assert_eq!(stats.contact_count, 0);
         assert_eq!(stats.profile_count, 0);

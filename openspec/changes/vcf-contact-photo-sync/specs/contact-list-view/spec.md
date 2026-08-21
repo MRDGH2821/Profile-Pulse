@@ -40,4 +40,5 @@ The user SHALL be able to select a contact from the list to view details.
 ---
 
 **Related**:
+
 - Contact Fields: `../contact-fields/spec.md`

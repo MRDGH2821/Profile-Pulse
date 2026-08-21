@@ -2,13 +2,11 @@
 //!
 //! This module defines the primary Contact type and related structures for
 //! managing contact information in Profile Pulse.
-
+use super::labels::{AddressLabel, DateLabel, EmailLabel, PhoneLabel};
 use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
-
-use super::labels::{AddressLabel, DateLabel, EmailLabel, PhoneLabel};
 
 /// Represents an email address with label
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -228,7 +226,8 @@ impl SocialPlatform {
             Self::Facebook => Some("https://www.facebook.com/"),
             Self::Instagram => Some("https://www.instagram.com/"),
             Self::GitHub => Some("https://github.com/"),
-            Self::Mastodon => None, // Instance-specific
+            // Instance-specific
+            Self::Mastodon => None,
             Self::Other => None,
         }
     }
@@ -410,16 +409,20 @@ impl ContactDate {
     pub fn from_yyyymmdd(yyyymmdd: &str, label: impl Into<String>) -> Result<Self, String> {
         // Parse YYYYMMDD format
         let date = if yyyymmdd.len() == 8 {
-            let year = yyyymmdd[0..4].parse::<i32>().map_err(|_| "Invalid year".to_string())?;
-            let month = yyyymmdd[4..6].parse::<u32>().map_err(|_| "Invalid month".to_string())?;
-            let day = yyyymmdd[6..8].parse::<u32>().map_err(|_| "Invalid day".to_string())?;
-            NaiveDate::from_ymd_opt(year, month, day)
-                .ok_or_else(|| "Invalid date".to_string())?
+            let year = yyyymmdd[0..4]
+                .parse::<i32>()
+                .map_err(|_| "Invalid year".to_string())?;
+            let month = yyyymmdd[4..6]
+                .parse::<u32>()
+                .map_err(|_| "Invalid month".to_string())?;
+            let day = yyyymmdd[6..8]
+                .parse::<u32>()
+                .map_err(|_| "Invalid day".to_string())?;
+            NaiveDate::from_ymd_opt(year, month, day).ok_or_else(|| "Invalid date".to_string())?
         } else {
             NaiveDate::parse_from_str(yyyymmdd, "%Y%m%d")
                 .map_err(|e| format!("Parse error: {}", e))?
         };
-        
         Ok(Self::new(date, label))
     }
 
@@ -592,9 +595,7 @@ impl ContactBuilder {
         if self.name.trim().is_empty() {
             return Err(ContactBuilderError::EmptyName);
         }
-
         let now = Utc::now();
-
         Ok(Contact {
             id: Uuid::new_v4(),
             name: self.name.clone(),
@@ -798,8 +799,6 @@ impl ContactUrl {
     }
 }
 
-
-
 impl SocialProfile {
     /// Create a new social profile
     pub fn new(
@@ -865,7 +864,6 @@ mod tests {
             .title("Software Engineer")
             .build()
             .unwrap();
-
         assert_eq!(contact.name, "Jane Smith");
         assert_eq!(contact.email, Some("jane@example.com".to_string()));
         assert_eq!(contact.phone, Some("+1234567890".to_string()));
@@ -876,7 +874,6 @@ mod tests {
     #[test]
     fn test_contact_builder_missing_name() {
         let result = Contact::builder().email("test@example.com").build();
-
         assert!(result.is_err());
         assert!(matches!(result, Err(ContactBuilderError::EmptyName)));
     }
@@ -884,7 +881,6 @@ mod tests {
     #[test]
     fn test_contact_builder_empty_name() {
         let result = Contact::builder().name("   ").build();
-
         assert!(result.is_err());
         assert!(matches!(result, Err(ContactBuilderError::EmptyName)));
     }
@@ -896,7 +892,6 @@ mod tests {
             "octocat",
             "https://github.com/octocat",
         );
-
         assert_eq!(profile.platform, SocialPlatform::GitHub);
         assert_eq!(profile.username, "octocat");
         assert_eq!(profile.url, "https://github.com/octocat");
@@ -910,7 +905,6 @@ mod tests {
             "octocat",
             "https://github.com/octocat",
         );
-
         assert!(!profile.verified);
         profile.verify();
         assert!(profile.verified);
@@ -923,7 +917,6 @@ mod tests {
             "john-doe",
             "https://linkedin.com/in/john-doe",
         );
-
         profile.set_confidence(0.95);
         assert_eq!(profile.confidence_score, Some(0.95));
         assert!(profile.is_high_confidence());
@@ -955,7 +948,6 @@ mod tests {
             "johndoe",
             "https://github.com/johndoe",
         );
-
         assert!(!contact.has_platform(SocialPlatform::GitHub));
         contact.add_social_profile(profile);
         assert!(contact.has_platform(SocialPlatform::GitHub));
@@ -969,13 +961,10 @@ mod tests {
             "johndoe",
             "https://github.com/johndoe",
         );
-
         contact.add_social_profile(profile.clone());
-
         let found = contact.find_profile(SocialPlatform::GitHub);
         assert!(found.is_some());
         assert_eq!(found.unwrap().username, "johndoe");
-
         let not_found = contact.find_profile(SocialPlatform::LinkedIn);
         assert!(not_found.is_none());
     }
