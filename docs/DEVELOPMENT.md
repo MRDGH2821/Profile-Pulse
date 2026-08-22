@@ -46,6 +46,7 @@ crates/
   storage/                   # profile-pulse-storage — vdir + SQLite index
   pic-source-plugin-api/     # profile pic source plugin trait + types (Phase 2+)
   pic-source-plugin-host/    # built-in plugins + registry (Phase 2+)
+  sync/                      # profile-pulse-sync — cloud adapters (Phase 5+)
   app/                       # profile-pulse-app — Dioxus UI (Phase 1+)
 pic-source-plugins/          # WASM plugins (Phase 3+)
 legacy/
@@ -91,6 +92,16 @@ cd crates/app && dx serve --platform desktop
 
 Profile bundles use extension `.pp-profile` (zip containing `profile.toml` + `aggregate.vcf`).
 Scheduled backups run once on each app start when enabled for a profile.
+
+### Phase 5+ (Cloud sync)
+
+Set a Google OAuth desktop client ID (People API / Contacts scope):
+
+```bash
+export PROFILE_PULSE_GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com"
+```
+
+Link targets under **Sync** in the app header. Push is default — use **Sync contact** on a contact's Details tab. CardDAV uses server URL + username/app password stored locally under `{data_dir}/secrets/`.
 
 ### Phase 7+ (Dioxus web)
 

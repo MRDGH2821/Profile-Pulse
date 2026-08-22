@@ -36,6 +36,7 @@ fn App() -> Element {
                 nav { class: "header-nav",
                     Link { to: Route::Profiles {}, "Profiles" }
                     Link { to: Route::PicSourcesSettings {}, "Pic sources" }
+                    Link { to: Route::SyncSettings {}, "Sync" }
                     Link { to: Route::BackupsSettings {}, "Backups" }
                 }
                 if let Some(profile_id) = active_profile.id() {

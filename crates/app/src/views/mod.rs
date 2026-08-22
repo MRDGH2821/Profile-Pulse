@@ -5,6 +5,7 @@ mod contact_list;
 mod pic_selector;
 mod pic_sources_settings;
 mod profiles;
+mod sync_settings;
 
 pub use backups_settings::BackupsSettings;
 pub use contact_detail::ContactDetail;
@@ -13,3 +14,4 @@ pub use contact_list::ContactList;
 pub use pic_selector::PicSelector;
 pub use pic_sources_settings::PicSourcesSettings;
 pub use profiles::Profiles;
+pub use sync_settings::SyncSettings;

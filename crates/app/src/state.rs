@@ -1,9 +1,10 @@
 use dioxus::prelude::*;
-use profile_pulse_core::{Profile, ProfileId, ProfileSettings};
+use profile_pulse_core::{Profile, ProfileId, ProfileSettings, SyncTargetConfig};
 use profile_pulse_pic_source_plugin_host::PicSourcePluginRegistry;
 use profile_pulse_storage::{
     ContactService, FsVdirBackend, SqliteContactIndex, StorageBackend,
 };
+use profile_pulse_sync::SyncService;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 
@@ -26,6 +27,7 @@ pub struct AppState {
     pub index: Arc<SqliteContactIndex>,
     pub contact_service: Arc<ContactService<FsVdirBackend, SqliteContactIndex>>,
     pub plugin_registry: Arc<RwLock<PicSourcePluginRegistry>>,
+    pub sync_service: Arc<SyncService>,
     data_root: PathBuf,
 }
 
@@ -44,12 +46,16 @@ impl AppState {
             data_root.clone(),
         ));
         let plugin_registry = PicSourcePluginRegistry::with_builtins(&data_root);
+        let sync_service = Arc::new(
+            SyncService::new(data_root.clone()).expect("initialize sync service"),
+        );
 
         Self {
             storage,
             index,
             contact_service,
             plugin_registry,
+            sync_service,
             data_root,
         }
     }
@@ -65,7 +71,11 @@ impl AppState {
             .map_err(|e| e.to_string())
     }
 
-    pub async fn create_profile(&self, name: &str) -> Result<Profile, String> {
+    pub async fn create_profile(
+        &self,
+        name: &str,
+        sync_targets: Vec<SyncTargetConfig>,
+    ) -> Result<Profile, String> {
         let slug = slugify(name);
         if slug.is_empty() {
             return Err("Profile name must contain at least one letter or number".into());
@@ -81,7 +91,7 @@ impl AppState {
                 scheduled_backup_dir: None,
                 scheduled_backup_last_run: None,
             },
-            sync_targets: vec![],
+            sync_targets,
             created_at: now,
             updated_at: now,
         };

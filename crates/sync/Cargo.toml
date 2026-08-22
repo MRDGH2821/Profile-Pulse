@@ -1,0 +1,27 @@
+[package]
+name = "profile-pulse-sync"
+version = "0.1.0"
+edition = "2024"
+description = "Profile Pulse cloud sync adapters"
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+async-trait.workspace = true
+base64.workspace = true
+chrono.workspace = true
+oauth2.workspace = true
+profile-pulse-core = { path = "../core" }
+reqwest = { workspace = true, features = ["json"] }
+rusqlite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["net", "io-util"] }
+url = "2.5"
+uuid.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

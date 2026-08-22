@@ -15,6 +15,7 @@ enum ContactTab {
 #[component]
 pub fn ContactDetail(profile_id: String, contact_id: String) -> Element {
     let state = use_context::<AppState>();
+    let app_state = state.clone();
     let nav = navigator();
     let mut tab = use_signal(|| {
         if contact_id == "new" {
@@ -25,6 +26,7 @@ pub fn ContactDetail(profile_id: String, contact_id: String) -> Element {
     });
     let mut contact = use_signal(|| None::<profile_pulse_core::Contact>);
     let mut error = use_signal(|| None::<String>);
+    let mut sync_status = use_signal(|| None::<String>);
 
     let profile_uuid = match uuid::Uuid::parse_str(&profile_id) {
         Ok(id) => ProfileId(id),
@@ -45,7 +47,9 @@ pub fn ContactDetail(profile_id: String, contact_id: String) -> Element {
         }
     };
 
-    use_effect(move || {
+    use_effect({
+        let state = app_state.clone();
+        move || {
         if is_new {
             return;
         }
@@ -63,6 +67,7 @@ pub fn ContactDetail(profile_id: String, contact_id: String) -> Element {
                 Err(err) => error.set(Some(err.to_string())),
             }
         });
+    }
     });
 
     rsx! {
@@ -111,6 +116,9 @@ pub fn ContactDetail(profile_id: String, contact_id: String) -> Element {
             if let Some(message) = error() {
                 p { class: "error", "{message}" }
             }
+            if let Some(message) = sync_status() {
+                p { class: "hint", "{message}" }
+            }
 
             match tab() {
                 ContactTab::Details => rsx! {
@@ -153,6 +161,36 @@ pub fn ContactDetail(profile_id: String, contact_id: String) -> Element {
                                         }
                                     }
                                 }
+                            }
+                        }
+                        div { class: "toolbar",
+                            button {
+                                onclick: {
+                                    let state = app_state.clone();
+                                    let c = c.clone();
+                                    move |_| {
+                                        let state = app_state.clone();
+                                        let c = c.clone();
+                                        spawn(async move {
+                                            match state.storage.load_profile(profile_uuid).await {
+                                                Ok(profile) => {
+                                                    match state.sync_service.push_contact(&profile, &c).await {
+                                                        Ok(results) => {
+                                                            sync_status.set(Some(format!(
+                                                                "Pushed to {} sync target(s)",
+                                                                results.len()
+                                                            )));
+                                                            error.set(None);
+                                                        }
+                                                        Err(err) => error.set(Some(err.to_string())),
+                                                    }
+                                                }
+                                                Err(err) => error.set(Some(err.to_string())),
+                                            }
+                                        });
+                                    }
+                                },
+                                "Sync contact"
                             }
                         }
                     } else if !is_new {

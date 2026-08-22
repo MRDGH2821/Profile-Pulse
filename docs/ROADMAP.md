@@ -1,6 +1,6 @@
 # Profile Pulse Rewrite — Roadmap
 
-**Status:** Phase 4 in progress on `mrdgh2821/feat/phase-4-backup-import-export`  
+**Status:** Phase 5 in progress on `mrdgh2821/feat/phase-5-cloud-sync`  
 **Architecture:** [2026-08-22-rewrite-architecture-design.md](superpowers/specs/2026-08-22-rewrite-architecture-design.md)  
 **Implementation spec:** [2026-08-22-rewrite-implementation-spec.md](superpowers/specs/2026-08-22-rewrite-implementation-spec.md)  
 **Human plan:** [profile-pulse-app.md](human-plans/profile-pulse-app.md)
@@ -17,8 +17,8 @@ Cross-platform **desktop + web PWA** app that keeps device/cloud contacts update
 | 1 | Desktop UI shell | Dioxus desktop: profiles, contact search/list, details (read-only) | TBD |
 | 2 | Built-in pic sources | Pic source plugin API/host + Gravatar, GitHub, GitLab | Done |
 | 3 | WASM pic sources | WASM loader, sample `.pp-pic-source-plugin`, manager UI | Done |
-| 4 | Backup & import/export | Pre-write backup UI, aggregate VCF, profile bundle | In progress |
-| 5 | Cloud sync | Google + CardDAV push/pull, per-contact sync button | TBD |
+| 4 | Backup & import/export | Pre-write backup UI, aggregate VCF, profile bundle | Done |
+| 5 | Cloud sync | Google + CardDAV push/pull, per-contact sync button | In progress |
 | 6 | OS sync (desktop) | Linux OS contacts adapter | TBD |
 | 7 | Web PWA | Dioxus web, OPFS storage backend | TBD |
 | 8 | Background sync | Remote-change polling, pull prompts, conflict UI | TBD |
@@ -73,12 +73,12 @@ Cross-platform **desktop + web PWA** app that keeps device/cloud contacts update
 
 ## Phase 5 — Cloud sync
 
-- [ ] `profile-pulse-sync` crate
-- [ ] OAuth PKCE for Google Contacts
-- [ ] CardDAV adapter (app password / token)
-- [ ] Push-only default; explicit pull action
-- [ ] Per-contact Sync button
-- [ ] Multi-target link on profile create
+- [x] `profile-pulse-sync` crate
+- [x] OAuth PKCE for Google Contacts
+- [x] CardDAV adapter (app password / token)
+- [x] Push-only default; explicit pull action
+- [x] Per-contact Sync button
+- [x] Multi-target link on profile create
 
 ## Phase 6 — OS sync (desktop)
 

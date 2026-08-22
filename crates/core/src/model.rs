@@ -114,6 +114,28 @@ pub enum PullConflictResolution {
     Review,
 }
 
+impl SyncTargetConfig {
+    pub fn is_enabled(&self) -> bool {
+        match self {
+            SyncTargetConfig::Google { enabled }
+            | SyncTargetConfig::Outlook { enabled }
+            | SyncTargetConfig::CardDav { enabled, .. }
+            | SyncTargetConfig::AppleIcloud { enabled }
+            | SyncTargetConfig::OsContacts { enabled } => *enabled,
+        }
+    }
+
+    pub fn kind_label(&self) -> &'static str {
+        match self {
+            SyncTargetConfig::Google { .. } => "google",
+            SyncTargetConfig::Outlook { .. } => "outlook",
+            SyncTargetConfig::CardDav { .. } => "carddav",
+            SyncTargetConfig::AppleIcloud { .. } => "apple_icloud",
+            SyncTargetConfig::OsContacts { .. } => "os_contacts",
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
