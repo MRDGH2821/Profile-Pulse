@@ -1,6 +1,6 @@
 use crate::routes::Route;
 use crate::state::AppState;
-use crate::views::PicSelector;
+use crate::views::{ContactEditor, PicSelector};
 use dioxus::prelude::*;
 use profile_pulse_core::{ContactId, ProfileId};
 use profile_pulse_storage::StorageBackend;
@@ -16,7 +16,13 @@ enum ContactTab {
 pub fn ContactDetail(profile_id: String, contact_id: String) -> Element {
     let state = use_context::<AppState>();
     let nav = navigator();
-    let mut tab = use_signal(|| ContactTab::Details);
+    let mut tab = use_signal(|| {
+        if contact_id == "new" {
+            ContactTab::Editor
+        } else {
+            ContactTab::Details
+        }
+    });
     let mut contact = use_signal(|| None::<profile_pulse_core::Contact>);
     let mut error = use_signal(|| None::<String>);
 
@@ -26,14 +32,23 @@ pub fn ContactDetail(profile_id: String, contact_id: String) -> Element {
             return rsx! { p { class: "error", "Invalid profile id" } };
         }
     };
-    let contact_uuid = match uuid::Uuid::parse_str(&contact_id) {
-        Ok(id) => ContactId(id),
-        Err(_) => {
-            return rsx! { p { class: "error", "Invalid contact id" } };
+
+    let is_new = contact_id == "new";
+    let contact_uuid = if is_new {
+        ContactId(uuid::Uuid::new_v4())
+    } else {
+        match uuid::Uuid::parse_str(&contact_id) {
+            Ok(id) => ContactId(id),
+            Err(_) => {
+                return rsx! { p { class: "error", "Invalid contact id" } };
+            }
         }
     };
 
     use_effect(move || {
+        if is_new {
+            return;
+        }
         let state = state.clone();
         spawn(async move {
             match state
@@ -63,7 +78,9 @@ pub fn ContactDetail(profile_id: String, contact_id: String) -> Element {
                     "← Contacts"
                 }
                 h2 {
-                    if let Some(c) = contact() {
+                    if is_new {
+                        "New contact"
+                    } else if let Some(c) = contact() {
                         "{c.display_name}"
                     } else {
                         "Contact"
@@ -71,21 +88,23 @@ pub fn ContactDetail(profile_id: String, contact_id: String) -> Element {
                 }
             }
 
-            nav { class: "tabs",
-                button {
-                    class: if tab() == ContactTab::Details { "tab active" } else { "tab" },
-                    onclick: move |_| tab.set(ContactTab::Details),
-                    "Details"
-                }
-                button {
-                    class: if tab() == ContactTab::Editor { "tab active" } else { "tab" },
-                    onclick: move |_| tab.set(ContactTab::Editor),
-                    "Editor"
-                }
-                button {
-                    class: if tab() == ContactTab::PicSelector { "tab active" } else { "tab" },
-                    onclick: move |_| tab.set(ContactTab::PicSelector),
-                    "Profile pic selector"
+            if !is_new {
+                nav { class: "tabs",
+                    button {
+                        class: if tab() == ContactTab::Details { "tab active" } else { "tab" },
+                        onclick: move |_| tab.set(ContactTab::Details),
+                        "Details"
+                    }
+                    button {
+                        class: if tab() == ContactTab::Editor { "tab active" } else { "tab" },
+                        onclick: move |_| tab.set(ContactTab::Editor),
+                        "Editor"
+                    }
+                    button {
+                        class: if tab() == ContactTab::PicSelector { "tab active" } else { "tab" },
+                        onclick: move |_| tab.set(ContactTab::PicSelector),
+                        "Profile pic selector"
+                    }
                 }
             }
 
@@ -136,12 +155,35 @@ pub fn ContactDetail(profile_id: String, contact_id: String) -> Element {
                                 }
                             }
                         }
-                    } else {
+                    } else if !is_new {
                         p { class: "hint", "Loading contact…" }
                     }
                 },
                 ContactTab::Editor => rsx! {
-                    p { class: "placeholder", "Contact editor — Phase 4" }
+                    ContactEditor {
+                        profile_id: profile_uuid,
+                        contact_id: contact_uuid,
+                        initial: contact(),
+                        on_saved: {
+                            let profile_id_for_save = profile_id.clone();
+                            move |saved: profile_pulse_core::Contact| {
+                            contact.set(Some(saved.clone()));
+                            error.set(None);
+                            if is_new {
+                                let _ = nav.push(Route::ContactDetail {
+                                    profile_id: profile_id_for_save.clone(),
+                                    contact_id: saved.id.0.to_string(),
+                                });
+                            }
+                        }},
+                        on_deleted: {
+                            let profile_id_for_delete = profile_id.clone();
+                            move |_| {
+                            let _ = nav.push(Route::ContactList {
+                                profile_id: profile_id_for_delete.clone(),
+                            });
+                        }},
+                    }
                 },
                 ContactTab::PicSelector => rsx! {
                     if let Some(c) = contact() {

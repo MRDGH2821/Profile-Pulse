@@ -67,6 +67,7 @@ pub fn contact_from_vcard_bytes(
     let mut phones = Vec::new();
     let mut websites = Vec::new();
     let mut photo_content_hash = None;
+    let mut uid_from_vcard = None;
 
     for raw_line in text.lines() {
         let line = raw_line.trim();
@@ -99,6 +100,11 @@ pub fn contact_from_vcard_bytes(
                 url: unescape_text(value),
             }),
             PHOTO_HASH_PROP => photo_content_hash = Some(unescape_text(value)),
+            "UID" => {
+                if let Ok(uuid) = uuid::Uuid::parse_str(value.trim()) {
+                    uid_from_vcard = Some(ContactId(uuid));
+                }
+            }
             _ => {}
         }
     }
@@ -108,7 +114,7 @@ pub fn contact_from_vcard_bytes(
     }
 
     Ok(Contact {
-        id: contact_id,
+        id: uid_from_vcard.unwrap_or(contact_id),
         profile_id,
         display_name,
         given_name,
@@ -119,6 +125,61 @@ pub fn contact_from_vcard_bytes(
         photo_content_hash,
         updated_at: Utc::now(),
     })
+}
+
+/// Split a VCF file or string into individual vCard byte blocks.
+pub fn split_vcard_blocks(bytes: &[u8]) -> Result<Vec<Vec<u8>>, CoreError> {
+    let text = std::str::from_utf8(bytes)
+        .map_err(|e| CoreError::Validation(format!("vcf is not utf-8: {e}")))?;
+
+    let mut blocks = Vec::new();
+    let mut current = Vec::new();
+    let mut in_card = false;
+
+    for raw_line in text.lines() {
+        let line = raw_line.trim();
+        if line.eq_ignore_ascii_case("BEGIN:VCARD") {
+            in_card = true;
+            current.clear();
+            current.push("BEGIN:VCARD".to_string());
+        } else if line.eq_ignore_ascii_case("END:VCARD") {
+            if in_card {
+                current.push("END:VCARD".to_string());
+                blocks.push(current.join("\r\n").into_bytes());
+                current.clear();
+                in_card = false;
+            }
+        } else if in_card && !line.is_empty() {
+            current.push(raw_line.to_string());
+        }
+    }
+
+    if blocks.is_empty() {
+        return Err(CoreError::Validation("no vCards found in import".into()));
+    }
+    Ok(blocks)
+}
+
+/// Parse all contacts from a multi-contact VCF payload.
+pub fn import_contacts_from_vcf(
+    profile_id: ProfileId,
+    bytes: &[u8],
+) -> Result<Vec<Contact>, CoreError> {
+    let blocks = split_vcard_blocks(bytes)?;
+    let mut contacts = Vec::new();
+    for block in blocks {
+        let fallback_id = ContactId(uuid::Uuid::new_v4());
+        match contact_from_vcard_bytes(profile_id, fallback_id, &block) {
+            Ok(contact) => contacts.push(contact),
+            Err(_) => continue,
+        }
+    }
+    if contacts.is_empty() {
+        return Err(CoreError::Validation(
+            "no valid contacts found in vcf import".into(),
+        ));
+    }
+    Ok(contacts)
 }
 
 fn parse_line(line: &str) -> Result<(&str, std::collections::HashMap<String, String>, &str), CoreError> {

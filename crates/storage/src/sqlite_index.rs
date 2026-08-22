@@ -136,4 +136,19 @@ impl ContactIndex for SqliteContactIndex {
         .await
         .map_err(|e| StorageError::Database(e.to_string()))?
     }
+
+    async fn clear_profile(&self, profile_id: ProfileId) -> Result<(), StorageError> {
+        let this = self.clone();
+        tokio::task::spawn_blocking(move || {
+            this.with_conn(|conn| {
+                conn.execute(
+                    "DELETE FROM contacts WHERE profile_id = ?1",
+                    params![profile_id.0.to_string()],
+                )?;
+                Ok(())
+            })
+        })
+        .await
+        .map_err(|e| StorageError::Database(e.to_string()))?
+    }
 }

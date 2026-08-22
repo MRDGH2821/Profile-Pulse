@@ -62,6 +62,23 @@ pub fn ContactList(profile_id: String) -> Element {
                     "← Profiles"
                 }
                 h2 { "Contacts — {profile_name}" }
+                button {
+                    onclick: {
+                        let profile_id = profile_id.clone();
+                        move |_| {
+                            let _ = nav.push(Route::ContactDetail {
+                                profile_id: profile_id.clone(),
+                                contact_id: "new".into(),
+                            });
+                        }
+                    },
+                    "Add contact"
+                }
+                Link {
+                    to: Route::BackupsSettings {},
+                    class: "link-button",
+                    "Import/export"
+                }
             }
 
             input {
@@ -77,7 +94,7 @@ pub fn ContactList(profile_id: String) -> Element {
             }
 
             if contacts.read().is_empty() {
-                p { class: "hint", "No contacts yet. Import and editing arrive in later phases." }
+                p { class: "hint", "No contacts yet. Use Add contact or Import/export." }
             }
 
             ul { class: "contact-list",

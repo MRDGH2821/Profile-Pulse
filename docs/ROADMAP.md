@@ -1,6 +1,6 @@
 # Profile Pulse Rewrite — Roadmap
 
-**Status:** Phase 3 complete on `mrdgh2821/feat/phase-3-wasm-pic-sources`  
+**Status:** Phase 4 in progress on `mrdgh2821/feat/phase-4-backup-import-export`  
 **Architecture:** [2026-08-22-rewrite-architecture-design.md](superpowers/specs/2026-08-22-rewrite-architecture-design.md)  
 **Implementation spec:** [2026-08-22-rewrite-implementation-spec.md](superpowers/specs/2026-08-22-rewrite-implementation-spec.md)  
 **Human plan:** [profile-pulse-app.md](human-plans/profile-pulse-app.md)
@@ -17,7 +17,7 @@ Cross-platform **desktop + web PWA** app that keeps device/cloud contacts update
 | 1 | Desktop UI shell | Dioxus desktop: profiles, contact search/list, details (read-only) | TBD |
 | 2 | Built-in pic sources | Pic source plugin API/host + Gravatar, GitHub, GitLab | Done |
 | 3 | WASM pic sources | WASM loader, sample `.pp-pic-source-plugin`, manager UI | Done |
-| 4 | Backup & import/export | Pre-write backup UI, aggregate VCF, profile bundle | TBD |
+| 4 | Backup & import/export | Pre-write backup UI, aggregate VCF, profile bundle | In progress |
 | 5 | Cloud sync | Google + CardDAV push/pull, per-contact sync button | TBD |
 | 6 | OS sync (desktop) | Linux OS contacts adapter | TBD |
 | 7 | Web PWA | Dioxus web, OPFS storage backend | TBD |
@@ -64,12 +64,12 @@ Cross-platform **desktop + web PWA** app that keeps device/cloud contacts update
 
 ## Phase 4 — Backup & import/export
 
-- [ ] Contact editor tab (full CRUD)
-- [ ] VCF file import
-- [ ] Aggregate VCF export
-- [ ] Profile import/export bundle
-- [ ] Scheduled backup settings (desktop)
-- [ ] Backup browser UI
+- [x] Contact editor tab (full CRUD)
+- [x] VCF file import
+- [x] Aggregate VCF export
+- [x] Profile import/export bundle
+- [x] Scheduled backup settings (desktop)
+- [x] Backup browser UI
 
 ## Phase 5 — Cloud sync
 

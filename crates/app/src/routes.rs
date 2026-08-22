@@ -1,4 +1,4 @@
-use crate::views::{ContactDetail, ContactList, PicSourcesSettings, Profiles};
+use crate::views::{BackupsSettings, ContactDetail, ContactList, PicSourcesSettings, Profiles};
 use dioxus::prelude::*;
 
 #[derive(Routable, Clone, Debug, PartialEq)]
@@ -14,4 +14,6 @@ pub enum Route {
     },
     #[route("/settings/pic-sources")]
     PicSourcesSettings {},
+    #[route("/settings/backups")]
+    BackupsSettings {},
 }

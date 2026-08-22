@@ -89,6 +89,9 @@ cargo run -p profile-pulse-app
 cd crates/app && dx serve --platform desktop
 ```
 
+Profile bundles use extension `.pp-profile` (zip containing `profile.toml` + `aggregate.vcf`).
+Scheduled backups run once on each app start when enabled for a profile.
+
 ### Phase 7+ (Dioxus web)
 
 ```bash

@@ -65,6 +65,8 @@ pub struct Contact {
 pub struct ProfileSettings {
     pub scheduled_backup_enabled: bool,
     pub scheduled_backup_dir: Option<String>,
+    #[serde(default)]
+    pub scheduled_backup_last_run: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

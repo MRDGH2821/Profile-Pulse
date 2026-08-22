@@ -79,6 +79,7 @@ impl AppState {
             settings: ProfileSettings {
                 scheduled_backup_enabled: false,
                 scheduled_backup_dir: None,
+                scheduled_backup_last_run: None,
             },
             sync_targets: vec![],
             created_at: now,

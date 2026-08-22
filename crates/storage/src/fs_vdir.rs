@@ -169,4 +169,23 @@ impl StorageBackend for FsVdirBackend {
         }
         Ok(out)
     }
+
+    async fn import_vcf_into_profile(
+        &self,
+        profile_id: ProfileId,
+        vcf_bytes: &[u8],
+    ) -> Result<Vec<ContactId>, StorageError> {
+        use profile_pulse_core::import_contacts_from_vcf;
+
+        let contacts = import_contacts_from_vcf(profile_id, vcf_bytes)?;
+        let mut ids = Vec::with_capacity(contacts.len());
+        for contact in contacts {
+            let vcard_bytes =
+                profile_pulse_core::contact_to_vcard_bytes(&contact)
+                    .map_err(|e| StorageError::Vcard(e.to_string()))?;
+            self.save_contact(&contact, &vcard_bytes).await?;
+            ids.push(contact.id);
+        }
+        Ok(ids)
+    }
 }

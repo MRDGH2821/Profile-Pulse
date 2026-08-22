@@ -4,6 +4,7 @@ pub mod contact_service;
 pub mod error;
 pub mod fs_vdir;
 pub mod photo_cache;
+pub mod profile_bundle;
 pub mod sqlite_index;
 pub mod traits;
 
