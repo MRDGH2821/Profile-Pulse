@@ -52,40 +52,6 @@
     };
     prettier = {
       enable = true;
-      excludes = [
-        # keep-sorted start
-        "*.*ignore"
-        "*.aac"
-        "*.csv"
-        "*.docx"
-        "*.envrc"
-        "*.gitkeep"
-        "*.jinja"
-        "*.jpg"
-        "*.lock"
-        "*.md"
-        "*.mp4"
-        "*.nix"
-        "*.pdf"
-        "*.png"
-        "*.pptx"
-        "*.py"
-        "*.rs"
-        "*.sample"
-        "*.sh"
-        "*.sql"
-        "*.toml"
-        "*.txt"
-        "*.typ"
-        "*.vcf"
-        ".envrc"
-        "LICENCE"
-        "LICENSE"
-        "docs/**"
-        "justfile"
-        # keep-sorted end
-      ];
-      includes = ["*"];
       priority = 100;
     };
     ruff-check = {
@@ -104,13 +70,6 @@
     shfmt.enable = true;
     sort-markdown-tables = {
       enable = true;
-      excludes = [
-        "**/docs/**"
-        "**/openspec/**"
-        "docs/superpowers/**"
-        "openspec/**"
-        "tests/fixtures/**"
-      ];
       priority = 3;
     };
     sqlfluff.enable = true;
