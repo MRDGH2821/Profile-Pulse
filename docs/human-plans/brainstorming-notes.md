@@ -17,10 +17,11 @@
 | Sync semantics             | **C+** — push-only by default; separate explicit pull. **Background remote-change check**: if any linked target has edits, prompt user to pull. |
 | Pull conflicts             | **C** — per-contact: Keep local / Take remote / Review                                                                                          |
 | On-disk format             | **D** — **vdir** live (one `.vcf` per contact); maintain/export aggregated single VCF for backups                                               |
-| Profile-pic sources        | **Plugin architecture** — ship API-first built-ins (GitHub, GitLab, Gravatar); other platforms as optional/experimental plugins |
-| User plugin format (v1)    | **WASM `.pp-plugin` only** — works on desktop and web                                                                                       |
-| Native user plugins        | Desktop only; **deferred to v1.1** (C ABI escape hatch)                                                                                     |
-| Sync adapters              | **First-party only** — not user plugins (OAuth / contact writes)                                                                            |
+| Profile pic sources        | **Profile pic source plugin** architecture — built-ins: GitHub, GitLab, Gravatar; other platforms as optional/experimental pic source plugins |
+| Pic source plugin naming   | See design spec: `ProfilePicSourcePlugin`, `.pp-pic-source-plugin`, `pic-source-plugins/`, manifest `kind = "profile-pic-source"` |
+| User pic source format (v1) | **WASM `.pp-pic-source-plugin` only** — works on desktop and web                                                                               |
+| Native user pic source plugins | Desktop only; **deferred to v1.1** (C ABI escape hatch)                                                                                     |
+| Sync adapters              | **First-party only** — not profile pic source plugins (OAuth / contact writes)                                                                  |
 | Web deployment             | Static **PWA**, local-first; no required backend for v1                                                                                     |
 | Desktop storage            | Filesystem vdir + SQLite index                                                                                                              |
 | Web storage                | OPFS vdir layout + IDB/SQLite index; encrypted secret vault                                                                                 |
@@ -33,7 +34,7 @@
 | Remote-check UX details | Poll interval; per-target vs any-target prompt |
 | SQLite role             | Index/search/pic cache only vs more            |
 | Web secret storage      | Passphrase-encrypted IDB v1 vs WebAuthn later  |
-| CORS / scraping on web  | Public-API-only plugins vs desktop proxy       |
+| CORS / scraping on web  | Public-API-only pic source plugins vs desktop proxy       |
 
 ## Human plan summary
 
@@ -50,7 +51,7 @@
 
 ## Explicitly deferred
 
-- Native desktop plugin runtime (v1.1)
-- Plugin marketplace / signing
+- Native desktop pic source plugin runtime (v1.1)
+- Profile pic source plugin marketplace / signing
 - Mobile apps
 - Treating old OpenSpec as gospel (human plan is the rewrite source)

@@ -9,17 +9,17 @@ Source: [profile-pulse-app.md](../../human-plans/profile-pulse-app.md), [brainst
 Profile Pulse is being rewritten from scratch. The product syncs profile pictures from social and web platforms into a user-owned contact book, with import/export and multi-target sync. The rewrite needs:
 
 - A UI framework and deployment model that scales to multiple surfaces
-- Dynamic plugin loading so few fetchers ship built-in while users can add more
+- Dynamic loading of **profile pic source plugins** so few fetchers ship built-in while users can add more
 - A local-first data model with vdir semantics, backups, and conflict handling
-- Clear boundaries between core app logic, sync adapters, and third-party plugins
+- Clear boundaries between core app logic, sync adapters, and third-party **pic source** plugins
 
 Earlier brainstorming assumed **desktop + mobile** with web later. **Mobile is dropped.** v1 targets are **desktop (native)** and **website (browser PWA)** only.
 
 ## Goals
 
 1. **One codebase** for UI and domain logic on desktop and web (Dioxus 0.7)
-2. **Few built-in profile-pic plugins** (Gravatar, GitHub, GitLab); community adds the rest
-3. **User plugins load without rebuilding the app** where platform policy allows
+2. **Few built-in profile pic source plugins** (Gravatar, GitHub, GitLab); community adds the rest
+3. **User pic source plugins load without rebuilding the app** where platform policy allows
 4. **App-owned contact store** with OS / Google / Apple / Outlook / CardDAV as sync adapters
 5. **vdir live storage** (one `.vcf` per contact) with aggregated VCF for backup/export
 6. **Privacy-first**: contact data stays local; cloud sync is explicit and adapter-mediated
@@ -27,8 +27,9 @@ Earlier brainstorming assumed **desktop + mobile** with web later. **Mobile is d
 ## Non-goals (v1)
 
 - Native mobile apps (iOS / Android)
-- User-installable sync plugins (OAuth and contact writes stay first-party)
-- Plugin marketplace or code signing (defer to v2)
+- User-installable sync plugins (OAuth and contact writes stay first-party; not pic source plugins)
+- Profile pic source plugin marketplace or code signing (defer to v2)
+- Generic or multi-purpose plugin types (v1 plugins are **profile pic sources only**)
 - Server-side backend required to use the web app (static PWA for v1)
 - Treating legacy OpenSpec (Iced + SQLite-centric plan) as authoritative
 
@@ -36,8 +37,8 @@ Earlier brainstorming assumed **desktop + mobile** with web later. **Mobile is d
 
 | Surface | Technology | Role |
 | --- | --- | --- |
-| **Desktop** | Dioxus native + Rust | Primary power-user surface: filesystem vdir, OS contacts, native plugins, scheduled backups |
-| **Website** | Dioxus WASM PWA | No-install access; cloud sync only (no OS address book); WASM plugins only |
+| **Desktop** | Dioxus native + Rust | Primary power-user surface: filesystem vdir, OS contacts, native pic source plugins, scheduled backups |
+| **Website** | Dioxus WASM PWA | No-install access; cloud sync only (no OS address book); WASM pic source plugins only |
 
 Both surfaces share the same Dioxus UI and Rust core, compiled to native and `wasm32` respectively.
 
@@ -51,20 +52,20 @@ flowchart TB
   subgraph shared [Shared Rust]
     UI[dioxus-ui]
     Core[profile-pulse-core]
-    API[plugin-api]
-    Host[plugin-host]
+    API[pic-source-plugin-api]
+    Host[pic-source-plugin-host]
   end
 
   subgraph desktop_only [Desktop only]
     VdirFS[vdir on disk]
     OSSync[OS contact adapters]
-    NativeRT[native plugin runtime]
+    NativeRT[native pic source plugin runtime]
   end
 
   subgraph web_only [Web only]
     OPFS[OPFS / IndexedDB]
     CloudOnly[Google / Outlook / CardDAV]
-    WasmOnly[WASM plugins only]
+    WasmOnly[WASM pic source plugins only]
   end
 
   D --> UI
@@ -86,15 +87,35 @@ flowchart TB
 
 | Layer | Responsibility |
 | --- | --- |
-| **UI** (`profile-pulse-app`) | Dioxus views: contact search, details/editor/pic-selector tabs, settings, plugin manager |
-| **Core** (`profile-pulse-core`) | Domain model, profiles, backup rules, conflict resolution, orchestration — no UI, no plugin loading |
+| **UI** (`profile-pulse-app`) | Dioxus views: contact search, details/editor/pic-selector tabs, settings, **profile pic source plugin** manager |
+| **Core** (`profile-pulse-core`) | Domain model, profiles, backup rules, conflict resolution, orchestration — no UI, no pic source plugin loading |
 | **Storage** (`profile-pulse-storage`) | Pluggable backends: filesystem vdir (desktop), OPFS/IDB (web) |
 | **Sync** (`profile-pulse-sync`) | First-party adapters: Google, Outlook, CardDAV, iCloud (where feasible); OS contacts **desktop only** |
-| **Plugin API** (`profile-pulse-plugin-api`) | Stable host ↔ plugin contract, versioned |
-| **Plugin host** (`profile-pulse-plugin-host`) | Registry, discovery, enable/disable, capabilities, runtimes |
-| **Built-in plugins** (`plugins/builtin-*`) | Gravatar, GitHub, GitLab — compile-time, embedded in both binaries |
+| **Pic source plugin API** (`profile-pulse-pic-source-plugin-api`) | Stable host ↔ **profile pic source plugin** contract, versioned |
+| **Pic source plugin host** (`profile-pulse-pic-source-plugin-host`) | Registry, discovery, enable/disable, capabilities, runtimes |
+| **Built-in pic source plugins** (`pic-source-plugins/builtin-*`) | Gravatar, GitHub, GitLab — compile-time, embedded in both binaries |
 
-The UI and core talk to the **plugin host registry**, not to individual plugin implementations.
+The UI and core talk to the **pic source plugin host registry**, not to individual plugin implementations.
+
+### Naming conventions (profile pic source plugins)
+
+In docs, UI copy, and code, **“plugin” always means profile pic source plugin** unless another kind is explicitly named (e.g. sync adapter).
+
+| Kind | Convention | Example |
+| --- | --- | --- |
+| User-facing label | Profile pic source plugin | Settings → “Profile pic sources” |
+| Short code name | `pic_source_plugin`, `PicSourcePlugin` | trait and module names |
+| Crate: API | `profile-pulse-pic-source-plugin-api` | stable contract |
+| Crate: host | `profile-pulse-pic-source-plugin-host` | loader + registry |
+| Built-in crate dir | `pic-source-plugins/builtin-<platform>/` | `pic-source-plugins/builtin-gravatar/` |
+| Package extension | `.pp-pic-source-plugin` | zip bundle installed by user |
+| Manifest `kind` | `"profile-pic-source"` (required) | rejects wrong plugin types |
+| Plugin id | reverse-DNS + `-pic-source` suffix | `community.whatsapp-pic-source` |
+| User install dir | `pic-source-plugins/` | under app data / OPFS |
+| WASM artifact | `pic_source_plugin.wasm` | inside package |
+| Native artifact (desktop) | `pic_source_plugin.so` / `.dylib` / `.dll` | v1.1+ only |
+
+Do **not** use generic names like `plugin-api`, `plugins/`, or `.pp-plugin` in new code or docs — they are ambiguous now that sync stays first-party.
 
 ### Crate layout (proposed)
 
@@ -103,10 +124,10 @@ crates/
   core/                 # domain, profiles, backup/conflict logic
   storage/              # StorageBackend trait; fs + opfs implementations
   sync/                 # cloud + OS (cfg-gated) adapters
-  plugin-api/           # stable contract + host callback types
-  plugin-host/          # registry, lifecycle, runtimes
-  app/                  # Dioxus shell; features = ["desktop", "web"]
-plugins/
+  pic-source-plugin-api/   # ProfilePicSourcePlugin trait + host callbacks
+  pic-source-plugin-host/  # registry, lifecycle, runtimes
+  app/                     # Dioxus shell; features = ["desktop", "web"]
+pic-source-plugins/
   builtin-gravatar/
   builtin-github/
   builtin-gitlab/
@@ -156,62 +177,67 @@ Implement a **`StorageBackend`** trait in core; vdir-on-disk and OPFS are interc
 | Apple / iCloud | Yes | Limited | Platform-dependent; document constraints |
 | OS address book | Yes | **No** | Windows / macOS / Linux native APIs |
 
-**Sync adapters are first-party only** — not user plugins. They handle OAuth, rate limits, and contact writes. Plugins only fetch profile pictures.
+**Sync adapters are first-party only** — not profile pic source plugins. They handle OAuth, rate limits, and contact writes. **Profile pic source plugins** only discover and fetch candidate profile pictures.
 
 ### Profile creation flow
 
 When a user creates a profile, they may link **multiple outbound targets** (Google, Apple, Outlook, CardDAV, OS on desktop). The app-owned store remains source of truth; adapters are projections.
 
-## Plugin architecture
+## Profile pic source plugin architecture
 
-### Design pattern: Plugin Host with multiple runtimes
+Plugins in Profile Pulse are **profile pic source plugins** only: they take contact context (emails, website URLs) and return candidate profile pictures. They do not sync contacts, edit vCards directly, or replace sync adapters.
 
-One logical **`PicFetcherPlugin`** contract; three load mechanisms:
+Future plugin kinds (if any) would use separate traits, package kinds, and install paths — not overloaded “plugin” APIs.
+
+### Design pattern: pic source plugin host with multiple runtimes
+
+One logical **`ProfilePicSourcePlugin`** contract; three load mechanisms:
 
 | Runtime | Desktop | Website | Use case |
 | --- | --- | --- | --- |
-| **BuiltinRuntime** | Yes | Yes | First-party plugins compiled into the app |
-| **WasmRuntime** | Yes | Yes | **Primary** format for user/community plugins |
-| **NativeRuntime** | Yes | No | Desktop escape hatch (heavy scraping, platform libs) — **defer to v1.1** |
+| **BuiltinRuntime** | Yes | Yes | First-party pic source plugins compiled into the app |
+| **WasmRuntime** | Yes | Yes | **Primary** format for user/community pic source plugins |
+| **NativeRuntime** | Yes | No | Desktop escape hatch for pic source plugins — **defer to v1.1** |
 
-Rust has no stable ABI between compiler versions. User native plugins require a **C ABI** and documented toolchain pins. WASM provides one artifact format for desktop and web with sandboxing.
+Rust has no stable ABI between compiler versions. User native pic source plugins require a **C ABI** and documented toolchain pins. WASM provides one artifact format for desktop and web with sandboxing.
 
-### Plugin contract (conceptual)
+### Pic source plugin contract (conceptual)
 
 ```rust
 // Stable logical API — exposed via Rust (builtin), WASM exports, or C ABI (native)
 
-trait PicFetcherPlugin {
-    fn metadata(&self) -> PluginMetadata;       // id, name, version, min_host_version
-    fn capabilities(&self) -> Capabilities;     // network, read_secrets, etc.
+trait ProfilePicSourcePlugin {
+    fn metadata(&self) -> PicSourcePluginMetadata; // id, name, version, min_host_version
+    fn capabilities(&self) -> PicSourceCapabilities; // network, read_secrets, etc.
 
-    /// Given contact context, return candidate avatar sources
-    fn discover_sources(&self, ctx: &ContactContext) -> Vec<AvatarSource>;
+    /// Given contact context, return candidate profile pic sources
+    fn discover_sources(&self, ctx: &ContactContext) -> Vec<ProfilePicCandidate>;
 
-    fn fetch_avatar(&self, source: &AvatarSource) -> Result<AvatarBytes, PluginError>;
+    fn fetch_pic(&self, source: &ProfilePicCandidate) -> Result<ProfilePicBytes, PicSourcePluginError>;
 }
 ```
 
 `ContactContext` includes: emails, all website URLs and labels, existing cached pic hash.
 
-### Plugin package: `.pp-plugin`
+### Pic source plugin package: `.pp-pic-source-plugin`
 
 Zip archive with fixed layout:
 
 ```text
-fetcher-example.pp-plugin/
-  manifest.toml       # required
-  plugin.wasm         # required for web; sufficient for desktop user plugins
-  plugin.so           # optional desktop-only native payload (v1.1+)
-  icon.png            # optional
-  LICENSE             # required for third-party plugins
+whatsapp-pic-source.pp-pic-source-plugin/
+  manifest.toml              # required; kind = "profile-pic-source"
+  pic_source_plugin.wasm     # required for web; sufficient for desktop user plugins
+  pic_source_plugin.so       # optional desktop-only native payload (v1.1+)
+  icon.png                   # optional
+  LICENSE                    # required for third-party plugins
 ```
 
 **manifest.toml** example:
 
 ```toml
-id = "community.whatsapp-avatar"
-name = "WhatsApp Avatar"
+kind = "profile-pic-source"         # required — host rejects other kinds
+id = "community.whatsapp-pic-source"
+name = "WhatsApp profile pic source"
 version = "0.1.0"
 min_host_version = "1.0.0"
 runtime = "wasm"                    # wasm | native
@@ -224,14 +250,14 @@ website_match = ["whatsapp.com"]    # powers pic-selector convenience UI
 | Source | Desktop | Website |
 | --- | --- | --- |
 | Built-in | embedded at compile time | same |
-| User directory | `~/.local/share/profile-pulse/plugins/` | origin storage / OPFS `plugins/` |
-| Install UI | “Install from file…” | upload `.pp-plugin` or install from HTTPS URL |
+| User directory | `~/.local/share/profile-pulse/pic-source-plugins/` | origin storage / OPFS `pic-source-plugins/` |
+| Install UI | “Install profile pic source…” | upload `.pp-pic-source-plugin` or install from HTTPS URL |
 
-Host merges plugins by `id`. User plugin overriding a built-in requires explicit user consent in settings.
+Host merges pic source plugins by `id`. User plugin overriding a built-in requires explicit user consent in settings.
 
-### Host services (plugins never touch vdir or raw OS)
+### Host services (pic source plugins never touch vdir or raw OS)
 
-Plugins call **host functions** only:
+Pic source plugins call **host functions** only:
 
 | Host API | Purpose |
 | --- | --- |
@@ -244,33 +270,33 @@ Plugins call **host functions** only:
 ### Pic-selector UX flow
 
 1. User opens **Profile pic selector** tab for a contact.
-2. Host runs `discover_sources()` on all **enabled** plugins (bounded parallelism).
-3. UI lists candidates with plugin name and preview.
+2. Pic source plugin host runs `discover_sources()` on all **enabled** profile pic source plugins (bounded parallelism).
+3. UI lists candidates with pic source name and preview.
 4. User selects → core writes `PHOTO` to contact vdir + updates search index.
-5. Convenience actions (“Add GitHub link”) update contact via **core**, not plugin; `website_match` in manifest drives shortcuts.
+5. Convenience actions (“Add GitHub link”) update contact via **core**, not pic source plugin; `website_match` in manifest drives shortcuts.
 
-### Built-in vs user plugins
+### Built-in vs user pic source plugins
 
 | Tier | Examples | v1 |
 | --- | --- | --- |
 | **Built-in (always on)** | Gravatar, GitHub, GitLab | Ship in app |
 | **Built-in (toggle)** | LinkedIn, Twitter (API/scrape) | Optional, off by default if risky |
-| **User WASM** | WhatsApp-inspired fetchers, Discord, Twitch | Primary community path |
-| **User native** | Platform-specific bridges | v1.1 desktop only |
+| **User WASM pic source** | WhatsApp-inspired fetchers, Discord, Twitch | Primary community path |
+| **User native pic source** | Platform-specific bridges | v1.1 desktop only |
 
 ### Security model
 
 - **Capability declarations** in manifest; user approves on install.
-- **No sync/export plugins** in v1 — avatar fetch only.
-- **Sandbox**: WASM default; native desktop plugins get reduced host API (never full disk).
-- **GPL**: third-party `.pp-plugin` is a separate work; document boundary in user-facing install flow.
-- **Signing**: optional v1; required for curated directory in v2.
+- **No sync/export pic source plugins** — v1 pic source plugins fetch profile pictures only.
+- **Sandbox**: WASM default; native desktop pic source plugins get reduced host API (never full disk).
+- **GPL**: third-party `.pp-pic-source-plugin` is a separate work; document boundary in user-facing install flow.
+- **Signing**: optional v1; required for curated pic source directory in v2.
 
-### Web-specific plugin constraints
+### Web-specific pic source plugin constraints
 
 - Only **WASM** runtime; no `dlopen`.
-- Scraping-heavy plugins (Facebook, Instagram) may hit **CORS** — document as “public API plugins on web”; scraping plugins may be desktop-oriented or require host proxy (future).
-- Installed plugins persist in origin storage; respect storage quotas.
+- Scraping-heavy pic source plugins (Facebook, Instagram) may hit **CORS** — document as “public API pic sources on web”; scraping pic sources may be desktop-oriented or require host proxy (future).
+- Installed pic source plugins persist in origin storage; respect storage quotas.
 
 ## v1 implementation scope
 
@@ -278,17 +304,17 @@ Plugins call **host functions** only:
 
 1. Core + storage (`StorageBackend`: desktop vdir + web OPFS)
 2. Dioxus UI on desktop and web PWA
-3. Built-in plugins: Gravatar, GitHub, GitLab
-4. WASM plugin host on **both** surfaces + sample community plugin
+3. Built-in profile pic source plugins: Gravatar, GitHub, GitLab
+4. WASM pic source plugin host on **both** surfaces + sample community pic source plugin
 5. Cloud sync: Google + one of Outlook or CardDAV
 6. Desktop-only: OS contact adapter for one OS first (pick based on author platform)
-7. Plugin manager UI (list, enable/disable, install file, capability approval)
+7. Profile pic source plugin manager UI (list, enable/disable, install file, capability approval)
 
 ### Defer
 
-- Native desktop plugin runtime (v1.1 unless WhatsApp is hard v1)
-- Plugin marketplace and code signing
-- Full social scrape plugins on web
+- Native desktop pic source plugin runtime (v1.1 unless WhatsApp is hard v1)
+- Profile pic source plugin marketplace and code signing
+- Full social scrape pic source plugins on web
 - Apple/iCloud sync if blocked by platform APIs on web
 - Server-side backend for web
 
@@ -300,7 +326,7 @@ Plugins call **host functions** only:
 | Remote-check UX | Poll interval; per-target vs any-target prompt |
 | SQLite role | Index/search/pic metadata only vs richer query layer |
 | Web secret storage | Passphrase-encrypted IDB v1 vs WebAuthn wrap later |
-| CORS / scraping on web | Public-API-only plugins vs desktop proxy helper |
+| CORS / scraping on web | Public-API-only pic source plugins vs desktop proxy helper |
 
 ## Locked decisions summary
 
@@ -313,10 +339,10 @@ Plugins call **host functions** only:
 | Sync semantics | Push default; explicit pull; background remote-change prompt |
 | Pull conflicts | Per-contact: Keep local / Take remote / Review |
 | On-disk format | vdir live + aggregated VCF for backups |
-| Profile-pic sources | Plugin host; few built-in; user WASM plugins |
-| User plugin format (v1) | **WASM `.pp-plugin` only** on both surfaces |
-| Native user plugins | Desktop only; **defer to v1.1** |
-| Sync adapters | First-party only, not user plugins |
+| Profile pic sources | **Profile pic source plugin** host; few built-in; user WASM pic source plugins |
+| User pic source plugin format (v1) | **WASM `.pp-pic-source-plugin` only** on both surfaces |
+| Native user pic source plugins | Desktop only; **defer to v1.1** |
+| Sync adapters | First-party only, not profile pic source plugins |
 | Web deployment | Static PWA, local-first, no required backend |
 
 ## References
