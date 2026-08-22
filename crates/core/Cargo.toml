@@ -7,3 +7,15 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+anyhow.workspace = true
+chrono.workspace = true
+serde.workspace = true
+serde_json = { workspace = true, optional = true }
+thiserror.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[features]
+default = ["serde_json"]

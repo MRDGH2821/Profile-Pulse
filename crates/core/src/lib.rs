@@ -1,1 +1,7 @@
-//! Profile Pulse core domain crate (Phase 0 stub — expanded in Task 2).
+//! Profile Pulse core — domain model and orchestration.
+
+pub mod error;
+pub mod model;
+
+pub use error::CoreError;
+pub use model::*;
