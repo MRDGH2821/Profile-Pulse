@@ -1,0 +1,118 @@
+# Profile Pulse Rewrite — Roadmap
+
+**Status:** Phase 0 ready to start  
+**Architecture:** [2026-08-22-rewrite-architecture-design.md](superpowers/specs/2026-08-22-rewrite-architecture-design.md)  
+**Implementation spec:** [2026-08-22-rewrite-implementation-spec.md](superpowers/specs/2026-08-22-rewrite-implementation-spec.md)  
+**Human plan:** [profile-pulse-app.md](human-plans/profile-pulse-app.md)
+
+## Vision
+
+Cross-platform **desktop + web PWA** app that keeps device/cloud contacts updated with profile pictures from social and web platforms. App-owned **vdir** contact store; Google / Outlook / CardDAV / OS are **sync adapters**. Profile pictures come from **built-in** and user **profile pic source plugins** (WASM).
+
+## Phase overview
+
+| Phase | Name | Outcome | Plan |
+| --- | --- | --- | --- |
+| 0 | Foundation | Workspace, core types, desktop vdir + SQLite index | [phase-0](superpowers/plans/2026-08-22-rewrite-phase-0-foundation.md) |
+| 1 | Desktop UI shell | Dioxus desktop: profiles, contact search/list, details (read-only) | TBD |
+| 2 | Built-in pic sources | Pic source plugin API/host + Gravatar, GitHub, GitLab | TBD |
+| 3 | WASM pic sources | WASM loader, sample `.pp-pic-source-plugin`, manager UI | TBD |
+| 4 | Backup & import/export | Pre-write backup UI, aggregate VCF, profile bundle | TBD |
+| 5 | Cloud sync | Google + CardDAV push/pull, per-contact sync button | TBD |
+| 6 | OS sync (desktop) | Linux OS contacts adapter | TBD |
+| 7 | Web PWA | Dioxus web, OPFS storage backend | TBD |
+| 8 | Background sync | Remote-change polling, pull prompts, conflict UI | TBD |
+
+## Phase 0 — Foundation
+
+- [ ] Cargo workspace with `profile-pulse-core`, `profile-pulse-storage`
+- [ ] Legacy Iced app moved to `legacy/iced-app` (no new features)
+- [ ] Domain model: `Contact`, `Profile`, IDs, sync enums
+- [ ] vCard read/write via `vobject`
+- [ ] Desktop vdir: `profiles/<slug>/contacts/<uuid>.vcf`
+- [ ] SQLite contact search index
+- [ ] Pre-write profile snapshot backup
+- [ ] `ContactService::update_contact` orchestration
+- [ ] Workspace tests + clippy clean
+
+## Phase 1 — Desktop UI shell
+
+- [ ] `profile-pulse-app` crate with Dioxus 0.7 desktop feature
+- [ ] Profile picker and create-profile flow
+- [ ] Contact search bar wired to `ContactIndex::search`
+- [ ] Contact list view
+- [ ] Contact details tab (read-only)
+- [ ] Placeholder tabs for editor and pic selector
+
+## Phase 2 — Built-in profile pic sources
+
+- [ ] `profile-pulse-pic-source-plugin-api` crate
+- [ ] `profile-pulse-pic-source-plugin-host` with `BuiltinRuntime`
+- [ ] Built-in: `profile-pulse.builtin.gravatar-pic-source`
+- [ ] Built-in: `profile-pulse.builtin.github-pic-source`
+- [ ] Built-in: `profile-pulse.builtin.gitlab-pic-source`
+- [ ] Pic selector tab: discover + preview + apply via `ContactService::apply_profile_pic`
+- [ ] Website link convenience actions in pic selector
+
+## Phase 3 — WASM profile pic sources
+
+- [ ] `.pp-pic-source-plugin` manifest parser (`kind = "profile-pic-source"`)
+- [ ] Desktop `WasmRuntime` (wasmtime)
+- [ ] Sample plugin `sample-hello-pic-source`
+- [ ] Settings → Profile pic sources: list, enable/disable, install from file
+- [ ] Capability approval on install
+
+## Phase 4 — Backup & import/export
+
+- [ ] Contact editor tab (full CRUD)
+- [ ] VCF file import
+- [ ] Aggregate VCF export
+- [ ] Profile import/export bundle
+- [ ] Scheduled backup settings (desktop)
+- [ ] Backup browser UI
+
+## Phase 5 — Cloud sync
+
+- [ ] `profile-pulse-sync` crate
+- [ ] OAuth PKCE for Google Contacts
+- [ ] CardDAV adapter (app password / token)
+- [ ] Push-only default; explicit pull action
+- [ ] Per-contact Sync button
+- [ ] Multi-target link on profile create
+
+## Phase 6 — OS sync (desktop)
+
+- [ ] Linux OS contacts adapter spike
+- [ ] Push contact to OS address book
+- [ ] Document Windows/macOS follow-ups
+
+## Phase 7 — Web PWA
+
+- [ ] Dioxus web target build
+- [ ] `OpfsVdirBackend` + web contact index
+- [ ] Passphrase-encrypted secret vault
+- [ ] Static deploy docs (GitHub Pages or similar)
+- [ ] WASM pic source plugins in browser
+
+## Phase 8 — Background sync & conflicts
+
+- [ ] 15-minute remote-change poll while app active
+- [ ] Pull prompt listing changed targets
+- [ ] Per-contact conflict resolution: Keep local / Take remote / Review
+
+## Explicitly out of scope (v1)
+
+- Mobile native apps
+- Native desktop user pic source plugins (v1.1)
+- Profile pic source marketplace / signing
+- User-installable sync plugins
+- Server-side backend for web
+
+## Legacy code
+
+The pre-rewrite **Iced** application lives in `legacy/iced-app/`. It is frozen — all new work uses the workspace crates under `crates/`.
+
+## Related docs
+
+- [DEVELOPMENT.md](DEVELOPMENT.md) — setup and commands
+- [Brainstorming notes](human-plans/brainstorming-notes.md) — decision log

@@ -1,8 +1,11 @@
 # Profile Pulse rewrite — brainstorming notes
 
-**Branch / worktree:** `mrdgh2821/docs/rewrite-planning`  
+**Branch / worktree:** `main` (merged from `mrdgh2821/docs/rewrite-planning`)  
 **Human plan:** [profile-pulse-app.md](./profile-pulse-app.md)  
-**Design spec:** [2026-08-22-rewrite-architecture-design.md](../superpowers/specs/2026-08-22-rewrite-architecture-design.md)  
+**Architecture:** [2026-08-22-rewrite-architecture-design.md](../superpowers/specs/2026-08-22-rewrite-architecture-design.md)  
+**Implementation spec:** [2026-08-22-rewrite-implementation-spec.md](../superpowers/specs/2026-08-22-rewrite-implementation-spec.md)  
+**Phase 0 plan:** [2026-08-22-rewrite-phase-0-foundation.md](../superpowers/plans/2026-08-22-rewrite-phase-0-foundation.md)  
+**Roadmap:** [ROADMAP.md](../ROADMAP.md)  
 **Updated:** 2026-08-22
 
 ## Locked decisions
@@ -55,3 +58,10 @@
 - Profile pic source plugin marketplace / signing
 - Mobile apps
 - Treating old OpenSpec as gospel (human plan is the rewrite source)
+
+## Implementation docs (ready)
+
+- [Implementation spec](../superpowers/specs/2026-08-22-rewrite-implementation-spec.md) — types, traits, phases
+- [Phase 0 plan](../superpowers/plans/2026-08-22-rewrite-phase-0-foundation.md) — workspace + core + storage
+- [ROADMAP.md](../ROADMAP.md) — milestone checklist
+- [DEVELOPMENT.md](../DEVELOPMENT.md) — dev setup and commands

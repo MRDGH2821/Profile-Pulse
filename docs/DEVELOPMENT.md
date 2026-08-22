@@ -1,0 +1,140 @@
+# Development Guide — Profile Pulse Rewrite
+
+This guide covers the **Dioxus rewrite** (desktop + web PWA). For the frozen legacy Iced app, see `legacy/iced-app/`.
+
+## Documentation map
+
+| Doc | Purpose |
+| --- | --- |
+| [ROADMAP.md](ROADMAP.md) | Phased milestones and checklists |
+| [Implementation spec](superpowers/specs/2026-08-22-rewrite-implementation-spec.md) | Types, traits, on-disk layout |
+| [Architecture design](superpowers/specs/2026-08-22-rewrite-architecture-design.md) | High-level decisions |
+| [Phase 0 plan](superpowers/plans/2026-08-22-rewrite-phase-0-foundation.md) | First implementation tasks |
+| [Human plan](human-plans/profile-pulse-app.md) | Product requirements |
+
+## Prerequisites
+
+- **Rust** 1.85+ (edition 2024)
+- **Nix** + **direnv** (recommended) — `use flake` from repo root
+- **Dioxus CLI** (`dx`) — required from Phase 1 onward
+
+```bash
+# Optional: install Dioxus CLI when starting Phase 1
+cargo install dioxus-cli --version 0.7
+```
+
+## Environment setup
+
+```bash
+cd /path/to/Profile-Pulse
+direnv allow   # or: nix develop
+```
+
+Verify tooling:
+
+```bash
+rustc --version
+cargo --version
+nix flake check   # formatting + flake checks
+```
+
+## Repository layout (rewrite)
+
+```text
+crates/
+  core/           # profile-pulse-core — domain + services
+  storage/        # profile-pulse-storage — vdir + SQLite index
+  app/            # profile-pulse-app — Dioxus UI (Phase 1+)
+pic-source-plugins/
+  builtin-*/      # built-in profile pic source plugins (Phase 2+)
+legacy/
+  iced-app/       # frozen pre-rewrite app
+```
+
+Data directory (desktop): `~/.local/share/profile-pulse/`
+
+## Common commands
+
+### Phase 0 (core + storage)
+
+```bash
+# Run all workspace tests
+cargo test --workspace
+
+# Lint
+cargo clippy --workspace -- -D warnings
+cargo fmt --all
+
+# Check specific crates
+cargo test -p profile-pulse-core
+cargo test -p profile-pulse-storage
+```
+
+### Phase 1+ (Dioxus desktop)
+
+```bash
+cd crates/app
+dx serve --platform desktop
+```
+
+### Phase 7+ (Dioxus web)
+
+```bash
+cd crates/app
+dx build --platform web
+dx serve --platform web
+```
+
+### Pre-commit
+
+```bash
+prek --all-files
+# or after Phase 0 workspace exists:
+prek run --all-files
+```
+
+### Formatting (Nix)
+
+```bash
+nix fmt
+nix flake check
+```
+
+## Branch naming
+
+Use: `<first-name>/<type>/<work-name>` — e.g. `mrdgh2821/feat/phase-0-core`.
+
+## Implementation workflow
+
+1. Read the **phase plan** in `docs/superpowers/plans/`.
+2. Implement tasks in order; each task ends with tests + commit.
+3. Update checkboxes in [ROADMAP.md](ROADMAP.md) when a phase item completes.
+4. Log AI-assisted work in `.agents/logs/YYYY-MM-DD.md`.
+5. Include `Co-authored-by: Composer via Cursor <cursoragent@cursor.com>` on AI-assisted commits.
+
+## Profile pic source plugin development (Phase 2+)
+
+- Built-in plugins live in `pic-source-plugins/builtin-<name>/`.
+- User packages use extension **`.pp-pic-source-plugin`** with `kind = "profile-pic-source"`.
+- Implement `ProfilePicSourcePlugin` from `profile-pulse-pic-source-plugin-api`.
+- Plugins must not access the filesystem or network directly — use `PicSourceHostApi`.
+
+## Testing conventions
+
+- Unit tests: in-module `#[cfg(test)]`
+- Integration tests: `crates/<crate>/tests/`
+- Use `tempfile` for vdir backend tests
+- Use `mockito` for HTTP in pic source plugin tests (Phase 2+)
+
+## Troubleshooting
+
+| Issue | Action |
+| --- | --- |
+| Pre-commit cspell fail | Add terms to `.cspell.json` `words` |
+| Cocogitto scope rejected | Use types without scope or valid scope from `cog.toml` |
+| `edition 2024` errors | Update Rust: `rustup update stable` |
+| Legacy Iced build breaks after workspace move | `cargo check -p profile-pulse-legacy` |
+
+## AI transparency
+
+All AI-assisted sessions require an entry in `.agents/logs/YYYY-MM-DD.md` per [AGENTS.md](../AGENTS.md).

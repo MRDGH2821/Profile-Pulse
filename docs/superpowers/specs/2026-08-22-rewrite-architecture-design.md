@@ -1,7 +1,8 @@
 # Design: Profile Pulse Rewrite — Desktop + Web Architecture
 
 Date: 2026-08-22  
-Status: Draft (brainstorming)  
+Status: **Approved**  
+Implementation: [2026-08-22-rewrite-implementation-spec.md](./2026-08-22-rewrite-implementation-spec.md)  
 Source: [profile-pulse-app.md](../../human-plans/profile-pulse-app.md), [brainstorming-notes.md](../../human-plans/brainstorming-notes.md)
 
 ## Problem
