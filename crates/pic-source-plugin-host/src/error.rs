@@ -10,4 +10,10 @@ pub enum HostError {
     Io(#[from] std::io::Error),
     #[error("http error: {0}")]
     Http(String),
+    #[error("manifest error: {0}")]
+    Manifest(String),
+    #[error("invalid package: {0}")]
+    InvalidPackage(String),
+    #[error("wasm error: {0}")]
+    Wasm(String),
 }

@@ -11,7 +11,7 @@ pub struct PicSourcePluginMetadata {
     pub website_match: Vec<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContactContext {
     pub emails: Vec<String>,
     pub websites: Vec<WebsiteLink>,
@@ -28,7 +28,7 @@ impl ContactContext {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ProfilePicCandidate {
     pub source_key: String,
     pub label: String,
@@ -36,7 +36,7 @@ pub struct ProfilePicCandidate {
     pub fetch_token: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProfilePicBytes {
     pub content_type: String,
     pub bytes: Vec<u8>,

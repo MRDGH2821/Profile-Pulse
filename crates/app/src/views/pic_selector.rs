@@ -34,7 +34,7 @@ pub fn PicSelector(
         let contact = contact_for_effect.clone();
         spawn(async move {
             let ctx = ContactContext::from_contact(&contact);
-            match state.pic_registry.discover_all(&ctx).await {
+            match state.plugin_registry.read().unwrap().discover_all(&ctx).await {
                 Ok(list) => {
                     error.set(None);
                     candidates.set(
@@ -181,7 +181,9 @@ pub fn PicSelector(
                                     let state = state.clone();
                                     spawn(async move {
                                         let fetch_result = state
-                                            .pic_registry
+                                            .plugin_registry
+                                            .read()
+                                            .unwrap()
                                             .fetch(&plugin_id, &candidate)
                                             .await;
                                         match fetch_result {

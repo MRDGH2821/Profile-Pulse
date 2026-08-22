@@ -12,4 +12,5 @@ log.workspace = true
 profile-pulse-core = { path = "../core" }
 semver.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 thiserror.workspace = true

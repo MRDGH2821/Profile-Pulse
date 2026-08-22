@@ -6,6 +6,7 @@ members = [
   "crates/pic-source-plugin-api",
   "crates/pic-source-plugin-host",
   "crates/app",
+  "pic-source-plugins/sample-hello-pic-source",
   "legacy/iced-app",
 ]
 
@@ -33,6 +34,8 @@ sha2 = "0.10"
 semver = { version = "1.0", features = ["serde"] }
 log = "0.4"
 md5 = "0.7"
+wasmtime = "31.0"
+zip = "2.2"
 
 [profile.dev]
 opt-level = 0

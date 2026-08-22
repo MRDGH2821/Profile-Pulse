@@ -76,6 +76,7 @@ megalinter-reports/
 *.dylib
 *.exe
 *.so
+pic-source-plugins/**/pic_source_plugin.wasm
 
 # Backup files
 *.bak

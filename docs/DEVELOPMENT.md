@@ -126,9 +126,16 @@ Use: `<first-name>/<type>/<work-name>` — e.g. `mrdgh2821/feat/phase-0-core`.
 
 ## Profile pic source plugin development (Phase 2+)
 
-- Built-in plugins live in `pic-source-plugins/builtin-<name>/`.
-- User packages use extension **`.pp-pic-source-plugin`** with `kind = "profile-pic-source"`.
+- Built-in plugins live in `crates/pic-source-plugin-host/src/builtins/`.
+- User WASM packages use extension **`.pp-pic-source-plugin`** with `kind = "profile-pic-source"`.
+- Sample plugin: `pic-source-plugins/sample-hello-pic-source/` — build with:
+
+```bash
+./scripts/build-sample-pic-source.sh
+```
+
 - Implement `ProfilePicSourcePlugin` from `profile-pulse-pic-source-plugin-api`.
+- WASM plugins use JSON exports (`discover`, `fetch_pic`) and host imports (`env.http_get`).
 - Plugins must not access the filesystem or network directly — use `PicSourceHostApi`.
 
 ## Testing conventions

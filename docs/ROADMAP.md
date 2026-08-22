@@ -1,6 +1,6 @@
 # Profile Pulse Rewrite — Roadmap
 
-**Status:** Phase 2 complete on `mrdgh2821/feat/phase-2-pic-sources`  
+**Status:** Phase 3 complete on `mrdgh2821/feat/phase-3-wasm-pic-sources`  
 **Architecture:** [2026-08-22-rewrite-architecture-design.md](superpowers/specs/2026-08-22-rewrite-architecture-design.md)  
 **Implementation spec:** [2026-08-22-rewrite-implementation-spec.md](superpowers/specs/2026-08-22-rewrite-implementation-spec.md)  
 **Human plan:** [profile-pulse-app.md](human-plans/profile-pulse-app.md)
@@ -16,7 +16,7 @@ Cross-platform **desktop + web PWA** app that keeps device/cloud contacts update
 | 0 | Foundation | Workspace, core types, desktop vdir + SQLite index | [phase-0](superpowers/plans/2026-08-22-rewrite-phase-0-foundation.md) |
 | 1 | Desktop UI shell | Dioxus desktop: profiles, contact search/list, details (read-only) | TBD |
 | 2 | Built-in pic sources | Pic source plugin API/host + Gravatar, GitHub, GitLab | Done |
-| 3 | WASM pic sources | WASM loader, sample `.pp-pic-source-plugin`, manager UI | TBD |
+| 3 | WASM pic sources | WASM loader, sample `.pp-pic-source-plugin`, manager UI | Done |
 | 4 | Backup & import/export | Pre-write backup UI, aggregate VCF, profile bundle | TBD |
 | 5 | Cloud sync | Google + CardDAV push/pull, per-contact sync button | TBD |
 | 6 | OS sync (desktop) | Linux OS contacts adapter | TBD |
@@ -56,11 +56,11 @@ Cross-platform **desktop + web PWA** app that keeps device/cloud contacts update
 
 ## Phase 3 — WASM profile pic sources
 
-- [ ] `.pp-pic-source-plugin` manifest parser (`kind = "profile-pic-source"`)
-- [ ] Desktop `WasmRuntime` (wasmtime)
-- [ ] Sample plugin `sample-hello-pic-source`
-- [ ] Settings → Profile pic sources: list, enable/disable, install from file
-- [ ] Capability approval on install
+- [x] `.pp-pic-source-plugin` manifest parser (`kind = "profile-pic-source"`)
+- [x] Desktop `WasmRuntime` (wasmtime)
+- [x] Sample plugin `sample-hello-pic-source`
+- [x] Settings → Profile pic sources: list, enable/disable, install from file
+- [x] Capability approval on install
 
 ## Phase 4 — Backup & import/export
 

@@ -4,12 +4,19 @@
   ...
 }: let
   pre-commit-check = import ./checks/pre-commit-check.nix {inherit inputs pkgs;};
+  wasmRuntimeLibs = pkgs.lib.makeLibraryPath [
+    pkgs.xz
+    pkgs.bzip2
+  ];
 in
   pkgs.mkShell {
-    inherit (pre-commit-check) shellHook;
+    shellHook = pre-commit-check.shellHook + ''
+      export LD_LIBRARY_PATH="${wasmRuntimeLibs}:''${LD_LIBRARY_PATH:-}"
+    '';
     packages = with pkgs; [
       # keep-sorted start
       bun
+      bzip2
       cocogitto
       copier
       git
@@ -27,6 +34,7 @@ in
       uv
       webkitgtk_4_1
       xdotool
+      xz
       # keep-sorted end
     ];
   }

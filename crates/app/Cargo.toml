@@ -19,4 +19,5 @@ profile-pulse-core = { path = "../core" }
 profile-pulse-pic-source-plugin-api = { path = "../pic-source-plugin-api" }
 profile-pulse-pic-source-plugin-host = { path = "../pic-source-plugin-host" }
 profile-pulse-storage = { path = "../storage" }
+rfd = "0.17.2"
 uuid.workspace = true

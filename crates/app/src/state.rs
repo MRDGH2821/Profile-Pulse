@@ -5,7 +5,7 @@ use profile_pulse_storage::{
     ContactService, FsVdirBackend, SqliteContactIndex, StorageBackend,
 };
 use std::path::PathBuf;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
 #[derive(Clone, Copy)]
 pub struct ActiveProfile(pub Signal<Option<ProfileId>>);
@@ -25,7 +25,7 @@ pub struct AppState {
     pub storage: Arc<FsVdirBackend>,
     pub index: Arc<SqliteContactIndex>,
     pub contact_service: Arc<ContactService<FsVdirBackend, SqliteContactIndex>>,
-    pub pic_registry: Arc<PicSourcePluginRegistry>,
+    pub plugin_registry: Arc<RwLock<PicSourcePluginRegistry>>,
     data_root: PathBuf,
 }
 
@@ -43,13 +43,13 @@ impl AppState {
             index.clone(),
             data_root.clone(),
         ));
-        let pic_registry = PicSourcePluginRegistry::with_builtins(&data_root);
+        let plugin_registry = PicSourcePluginRegistry::with_builtins(&data_root);
 
         Self {
             storage,
             index,
             contact_service,
-            pic_registry,
+            plugin_registry,
             data_root,
         }
     }

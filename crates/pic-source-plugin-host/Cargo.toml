@@ -15,8 +15,14 @@ profile-pulse-pic-source-plugin-api = { path = "../pic-source-plugin-api" }
 reqwest.workspace = true
 semver.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["fs", "rt-multi-thread"] }
+toml.workspace = true
+tempfile.workspace = true
+wasmtime.workspace = true
+zip.workspace = true
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+tempfile.workspace = true
