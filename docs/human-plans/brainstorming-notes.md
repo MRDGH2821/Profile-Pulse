@@ -7,34 +7,34 @@
 
 ## Locked decisions
 
-| Topic                      | Choice                                                                                                                                      |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| UI framework               | Dioxus 0.7 (not Iced)                                                                                                                       |
-| v1 platforms               | **Desktop + website (PWA)** — mobile dropped                                                                                                |
-| Live contact book          | **A** — app-owned store; OS / Google / Apple / Outlook / CardDAV are adapters                                                               |
-| Product focus (human plan) | Sync profile pics from social platforms into contacts; import/export/sync adapters                                                          |
-| **Profile**                | Named local contact book. After create, user can sync contacts **to Google, Apple, Outlook, CardDAV, and OS all at once** (multi-target). |
-| Sync semantics             | **C+** — push-only by default; separate explicit pull. **Background remote-change check**: if any linked target has edits, prompt user to pull. |
-| Pull conflicts             | **C** — per-contact: Keep local / Take remote / Review                                                                                          |
-| On-disk format             | **D** — **vdir** live (one `.vcf` per contact); maintain/export aggregated single VCF for backups                                               |
-| Profile pic sources        | **Profile pic source plugin** architecture — built-ins: GitHub, GitLab, Gravatar; other platforms as optional/experimental pic source plugins |
-| Pic source plugin naming   | See design spec: `ProfilePicSourcePlugin`, `.pp-pic-source-plugin`, `pic-source-plugins/`, manifest `kind = "profile-pic-source"` |
-| User pic source format (v1) | **WASM `.pp-pic-source-plugin` only** — works on desktop and web                                                                               |
-| Native user pic source plugins | Desktop only; **deferred to v1.1** (C ABI escape hatch)                                                                                     |
-| Sync adapters              | **First-party only** — not profile pic source plugins (OAuth / contact writes)                                                                  |
-| Web deployment             | Static **PWA**, local-first; no required backend for v1                                                                                     |
-| Desktop storage            | Filesystem vdir + SQLite index                                                                                                              |
-| Web storage                | OPFS vdir layout + IDB/SQLite index; encrypted secret vault                                                                                 |
+| Topic                          | Choice                                                                                                                                          |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| UI framework                   | Dioxus 0.7 (not Iced)                                                                                                                           |
+| v1 platforms                   | **Desktop + website (PWA)** — mobile dropped                                                                                                    |
+| Live contact book              | **A** — app-owned store; OS / Google / Apple / Outlook / CardDAV are adapters                                                                   |
+| Product focus (human plan)     | Sync profile pics from social platforms into contacts; import/export/sync adapters                                                              |
+| **Profile**                    | Named local contact book. After create, user can sync contacts **to Google, Apple, Outlook, CardDAV, and OS all at once** (multi-target).       |
+| Sync semantics                 | **C+** — push-only by default; separate explicit pull. **Background remote-change check**: if any linked target has edits, prompt user to pull. |
+| Pull conflicts                 | **C** — per-contact: Keep local / Take remote / Review                                                                                          |
+| On-disk format                 | **D** — **vdir** live (one `.vcf` per contact); maintain/export aggregated single VCF for backups                                               |
+| Profile pic sources            | **Profile pic source plugin** architecture — built-ins: GitHub, GitLab, Gravatar; other platforms as optional/experimental pic source plugins   |
+| Pic source plugin naming       | See design spec: `ProfilePicSourcePlugin`, `.pp-pic-source-plugin`, `pic-source-plugins/`, manifest `kind = "profile-pic-source"`               |
+| User pic source format (v1)    | **WASM `.pp-pic-source-plugin` only** — works on desktop and web                                                                                |
+| Native user pic source plugins | Desktop only; **deferred to v1.1** (C ABI escape hatch)                                                                                         |
+| Sync adapters                  | **First-party only** — not profile pic source plugins (OAuth / contact writes)                                                                  |
+| Web deployment                 | Static **PWA**, local-first; no required backend for v1                                                                                         |
+| Desktop storage                | Filesystem vdir + SQLite index                                                                                                                  |
+| Web storage                    | OPFS vdir layout + IDB/SQLite index; encrypted secret vault                                                                                     |
 
 ## Open (next question)
 
-| Topic                   | Options discussed                              |
-| ----------------------- | ---------------------------------------------- |
-| Auth for cloud targets  | OAuth PKCE / app passwords / OS Contacts APIs  |
-| Remote-check UX details | Poll interval; per-target vs any-target prompt |
-| SQLite role             | Index/search/pic cache only vs more            |
-| Web secret storage      | Passphrase-encrypted IDB v1 vs WebAuthn later  |
-| CORS / scraping on web  | Public-API-only pic source plugins vs desktop proxy       |
+| Topic                   | Options discussed                                   |
+| ----------------------- | --------------------------------------------------- |
+| Auth for cloud targets  | OAuth PKCE / app passwords / OS Contacts APIs       |
+| Remote-check UX details | Poll interval; per-target vs any-target prompt      |
+| SQLite role             | Index/search/pic cache only vs more                 |
+| Web secret storage      | Passphrase-encrypted IDB v1 vs WebAuthn later       |
+| CORS / scraping on web  | Public-API-only pic source plugins vs desktop proxy |
 
 ## Human plan summary
 
