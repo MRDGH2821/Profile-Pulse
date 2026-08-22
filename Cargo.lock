@@ -3653,7 +3653,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "profile-pulse"
+name = "profile-pulse-core"
+version = "0.1.0"
+
+[[package]]
+name = "profile-pulse-legacy"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -3684,6 +3688,13 @@ dependencies = [
  "tracing-subscriber",
  "uuid",
  "vobject",
+]
+
+[[package]]
+name = "profile-pulse-storage"
+version = "0.1.0"
+dependencies = [
+ "profile-pulse-core",
 ]
 
 [[package]]
