@@ -27,20 +27,22 @@
 
 ## File Structure
 
-| File | Responsibility |
-| --- | --- |
-| [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | GitHub Actions CI: permissions, checkout hardening, pins, no cargo caches, nix job |
-| [`nix/modules/tools/treefmt.nix`](../../nix/modules/tools/treefmt.nix) | Formatter enablement, priorities, excludes |
-| [`docs/superpowers/specs/2026-08-22-ci-harden-treefmt-design.md`](../specs/2026-08-22-ci-harden-treefmt-design.md) | Short design record (written in Task 0) |
+| File                                                                                                               | Responsibility                                                                     |
+| ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)                                                       | GitHub Actions CI: permissions, checkout hardening, pins, no cargo caches, nix job |
+| [`nix/modules/tools/treefmt.nix`](../../nix/modules/tools/treefmt.nix)                                             | Formatter enablement, priorities, excludes                                         |
+| [`docs/superpowers/specs/2026-08-22-ci-harden-treefmt-design.md`](../specs/2026-08-22-ci-harden-treefmt-design.md) | Short design record (written in Task 0)                                            |
 
 ---
 
 ### Task 0: Write design spec
 
 **Files:**
+
 - Create: `docs/superpowers/specs/2026-08-22-ci-harden-treefmt-design.md`
 
 **Interfaces:**
+
 - Consumes: Approved approach 1 from brainstorming (harden CI + treefmt; no Codecov; no release/targets)
 - Produces: Spec document that Tasks 1–3 implement
 
@@ -95,10 +97,12 @@ Expected: commit succeeds (hooks may reformat; if hooks modify the file, stage a
 ### Task 1: Harden CI workflow (permissions, pins, drop caches, nix job)
 
 **Files:**
+
 - Modify: `.github/workflows/ci.yml` (replace entire contents)
 - Reference: `/home/mr-fw16/Projects/Source-Codes/Sort-Markdown-Tables/.github/workflows/ci.yml` (nix job shape)
 
 **Interfaces:**
+
 - Consumes: Action SHAs from Global Constraints; design from Task 0
 - Produces: Hardened CI workflow used by GitHub Actions on push/PR to `main`/`develop`
 
@@ -285,6 +289,7 @@ rg -n '^(  )?[a-z].*:$' .github/workflows/ci.yml | head -40
 ```
 
 Expected:
+
 - No `@stable`, `@master`, or `actions/cache`
 - Top-level `permissions: contents: read`
 - Nine checkout blocks each followed by `persist-credentials: false`
@@ -321,10 +326,12 @@ EOF
 ### Task 2: Align treefmt priorities and excludes
 
 **Files:**
+
 - Modify: `nix/modules/tools/treefmt.nix`
 - Reference: `/home/mr-fw16/Projects/Source-Codes/Sort-Markdown-Tables/nix/treefmt.nix`
 
 **Interfaces:**
+
 - Consumes: Design from Task 0; SMT treefmt patterns
 - Produces: Formatter config with `rustfmt.priority = 10` and aligned excludes
 
@@ -523,10 +530,12 @@ EOF
 ### Task 3: Format and verify
 
 **Files:**
+
 - Modify: any files auto-touched by `nix fmt` / hooks (only if formatters change them)
 - Verify: `.github/workflows/ci.yml`, `nix/modules/tools/treefmt.nix`
 
 **Interfaces:**
+
 - Consumes: Tasks 1–2 outputs
 - Produces: Confirmed local formatting/evaluation; ready for PR/push
 
@@ -591,20 +600,20 @@ Expected: commits for design, CI, treefmt, and optional style; working tree clea
 
 ## Spec Coverage Checklist
 
-| Requirement | Task |
-| --- | --- |
-| Top-level `permissions: contents: read` | Task 1 |
-| `persist-credentials: false` on every checkout | Task 1 |
-| Pin `dtolnay/rust-toolchain` to SMT SHA | Task 1 |
-| Pin `crate-ci/typos` (no `@master`) | Task 1 |
-| Remove cargo `actions/cache` steps | Task 1 |
-| Add `nix flake check` job with DeterminateSystems actions | Task 1 |
-| Keep multi-OS build/test matrix | Task 1 (preserved) |
-| Do not add Codecov / release / targets | Global Constraints |
-| Leave MegaLinter workflow alone | Global Constraints |
-| `rustfmt.priority = 10` | Task 2 |
-| Prettier includes/excludes from SMT | Task 2 |
-| sort-markdown-tables excludes + keep priority 3 | Task 2 |
-| typos + global openspec/agents excludes | Task 2 |
-| Verify with `nix fmt` / `nix flake check` | Task 3 |
-| Design doc recorded | Task 0 |
+| Requirement                                               | Task               |
+| --------------------------------------------------------- | ------------------ |
+| Top-level `permissions: contents: read`                   | Task 1             |
+| `persist-credentials: false` on every checkout            | Task 1             |
+| Pin `dtolnay/rust-toolchain` to SMT SHA                   | Task 1             |
+| Pin `crate-ci/typos` (no `@master`)                       | Task 1             |
+| Remove cargo `actions/cache` steps                        | Task 1             |
+| Add `nix flake check` job with DeterminateSystems actions | Task 1             |
+| Keep multi-OS build/test matrix                           | Task 1 (preserved) |
+| Do not add Codecov / release / targets                    | Global Constraints |
+| Leave MegaLinter workflow alone                           | Global Constraints |
+| `rustfmt.priority = 10`                                   | Task 2             |
+| Prettier includes/excludes from SMT                       | Task 2             |
+| sort-markdown-tables excludes + keep priority 3           | Task 2             |
+| typos + global openspec/agents excludes                   | Task 2             |
+| Verify with `nix fmt` / `nix flake check`                 | Task 3             |
+| Design doc recorded                                       | Task 0             |

@@ -15,7 +15,14 @@
     djlint.enable = true;
     dockerfmt.enable = true;
     dockfmt.enable = true;
-    dos2unix.enable = true;
+    dos2unix = {
+      enable = true;
+      excludes = [
+        # keep-sorted start
+        "*.vcf"
+        # keep-sorted end
+      ];
+    };
     flake-edit.enable = true;
     genemichaels.enable = true;
     gofmt.enable = true;
@@ -49,6 +56,7 @@
         # keep-sorted start
         "*.*ignore"
         "*.aac"
+        "*.csv"
         "*.docx"
         "*.envrc"
         "*.gitkeep"
@@ -63,10 +71,13 @@
         "*.pptx"
         "*.py"
         "*.rs"
+        "*.sample"
         "*.sh"
+        "*.sql"
         "*.toml"
         "*.txt"
         "*.typ"
+        "*.vcf"
         ".envrc"
         "LICENCE"
         "LICENSE"
