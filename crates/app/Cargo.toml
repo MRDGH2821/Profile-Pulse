@@ -1,0 +1,20 @@
+[package]
+name = "profile-pulse-app"
+version = "0.1.0"
+edition = "2024"
+description = "Profile Pulse desktop and web application"
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[[bin]]
+name = "profile-pulse"
+path = "src/main.rs"
+
+[dependencies]
+chrono.workspace = true
+directories.workspace = true
+dioxus = { version = "0.7", features = ["desktop", "router"] }
+profile-pulse-core = { path = "../core" }
+profile-pulse-storage = { path = "../storage" }
+uuid.workspace = true

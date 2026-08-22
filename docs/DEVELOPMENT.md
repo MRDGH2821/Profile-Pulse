@@ -72,9 +72,20 @@ cargo test -p profile-pulse-storage
 
 ### Phase 1+ (Dioxus desktop)
 
+Linux desktop builds need GTK 3, WebKitGTK 4.1, and libxdo. The Nix devshell includes these (`gtk3`, `webkitgtk_4_1`, `xdotool` for libxdo).
+
+On Fedora without Nix:
+
 ```bash
-cd crates/app
-dx serve --platform desktop
+sudo dnf install gtk3-devel webkit2gtk4.1-devel librsvg2-devel openssl-devel libxdo-devel
+```
+
+Run the app:
+
+```bash
+cargo run -p profile-pulse-app
+# or with hot reload:
+cd crates/app && dx serve --platform desktop
 ```
 
 ### Phase 7+ (Dioxus web)

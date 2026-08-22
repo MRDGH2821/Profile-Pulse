@@ -1,6 +1,6 @@
 # Profile Pulse Rewrite — Roadmap
 
-**Status:** Phase 0 in progress (foundation code landed on `mrdgh2821/feat/phase-0-foundation`)  
+**Status:** Phase 1 complete on `mrdgh2821/feat/phase-1-desktop-ui` (Phase 0 on `mrdgh2821/feat/phase-0-foundation`)  
 **Architecture:** [2026-08-22-rewrite-architecture-design.md](superpowers/specs/2026-08-22-rewrite-architecture-design.md)  
 **Implementation spec:** [2026-08-22-rewrite-implementation-spec.md](superpowers/specs/2026-08-22-rewrite-implementation-spec.md)  
 **Human plan:** [profile-pulse-app.md](human-plans/profile-pulse-app.md)
@@ -37,12 +37,12 @@ Cross-platform **desktop + web PWA** app that keeps device/cloud contacts update
 
 ## Phase 1 — Desktop UI shell
 
-- [ ] `profile-pulse-app` crate with Dioxus 0.7 desktop feature
-- [ ] Profile picker and create-profile flow
-- [ ] Contact search bar wired to `ContactIndex::search`
-- [ ] Contact list view
-- [ ] Contact details tab (read-only)
-- [ ] Placeholder tabs for editor and pic selector
+- [x] `profile-pulse-app` crate with Dioxus 0.7 desktop feature
+- [x] Profile picker and create-profile flow
+- [x] Contact search bar wired to `ContactIndex::search`
+- [x] Contact list view
+- [x] Contact details tab (read-only)
+- [x] Placeholder tabs for editor and pic selector
 
 ## Phase 2 — Built-in profile pic sources
 

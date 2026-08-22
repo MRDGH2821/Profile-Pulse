@@ -48,6 +48,8 @@
     "golangci",
     "Herdr",
     "Jaro",
+    "libxdo",
+    "librsvg",
     "moka",
     "mpsc",
     "MRDGH",
@@ -60,6 +62,8 @@
     "nixpkgs",
     "nocapture",
     "numtide",
+    "onclick",
+    "oninput",
     "obra",
     "octocat",
     "OPFS",
@@ -100,6 +104,7 @@
     "venv",
     "vobject",
     "webp",
+    "webkitgtk",
     "yamlfix",
     "zizmor"
   ]

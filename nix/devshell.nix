@@ -15,12 +15,18 @@ in
       git
       git-credential-oauth
       glab
+      gtk3
       lazygit
+      librsvg
       nil
       nixd
+      openssl
+      pkg-config
       repgrep
       ripgrep
       uv
+      webkitgtk_4_1
+      xdotool
       # keep-sorted end
     ];
   }
