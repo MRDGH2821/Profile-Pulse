@@ -45,6 +45,36 @@
     };
     prettier = {
       enable = true;
+      excludes = [
+        # keep-sorted start
+        "*.*ignore"
+        "*.aac"
+        "*.docx"
+        "*.envrc"
+        "*.gitkeep"
+        "*.jinja"
+        "*.jpg"
+        "*.lock"
+        "*.md"
+        "*.mp4"
+        "*.nix"
+        "*.pdf"
+        "*.png"
+        "*.pptx"
+        "*.py"
+        "*.rs"
+        "*.sh"
+        "*.toml"
+        "*.txt"
+        "*.typ"
+        ".envrc"
+        "LICENCE"
+        "LICENSE"
+        "docs/**"
+        "justfile"
+        # keep-sorted end
+      ];
+      includes = ["*"];
       priority = 100;
     };
     ruff-check = {
@@ -55,11 +85,21 @@
       enable = true;
       priority = 9;
     };
-    rustfmt.enable = true;
+    rustfmt = {
+      enable = true;
+      priority = 10;
+    };
     shellcheck.enable = true;
     shfmt.enable = true;
     sort-markdown-tables = {
       enable = true;
+      excludes = [
+        "**/docs/**"
+        "**/openspec/**"
+        "docs/superpowers/**"
+        "openspec/**"
+        "tests/fixtures/**"
+      ];
       priority = 3;
     };
     sqlfluff.enable = true;
@@ -75,7 +115,10 @@
       excludes = [
         # keep-sorted start
         "**/.cspell.json"
+        "**/.typos.toml"
+        ".agents/logs/**"
         ".cspell.json"
+        ".typos.toml"
         "CHANGELOG.md"
         # keep-sorted end
       ];
@@ -185,7 +228,14 @@
     };
     global = {
       allow-missing-formatter = true;
-      excludes = ["**/skills/**"];
+      excludes = [
+        # keep-sorted start
+        "**/openspec/**"
+        "**/skills/**"
+        "openspec/**"
+        "tests/fixtures/**"
+        # keep-sorted end
+      ];
     };
   };
 }
