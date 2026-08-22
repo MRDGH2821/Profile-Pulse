@@ -1,9 +1,7 @@
 use crate::error::StorageError;
 use crate::traits::StorageBackend;
 use async_trait::async_trait;
-use profile_pulse_core::{
-    contact_from_vcard_bytes, Contact, ContactId, Profile, ProfileId,
-};
+use profile_pulse_core::{Contact, ContactId, Profile, ProfileId, contact_from_vcard_bytes};
 use std::path::PathBuf;
 use tokio::fs;
 
@@ -30,7 +28,6 @@ impl FsVdirBackend {
         if !profiles_dir.exists() {
             return Err(StorageError::ProfileNotFound(id));
         }
-
         let mut entries = fs::read_dir(&profiles_dir).await?;
         while let Some(entry) = entries.next_entry().await? {
             let path = entry.path();
@@ -55,7 +52,6 @@ impl StorageBackend for FsVdirBackend {
         if !profiles_dir.exists() {
             return Ok(vec![]);
         }
-
         let mut profiles = Vec::new();
         let mut entries = fs::read_dir(&profiles_dir).await?;
         while let Some(entry) = entries.next_entry().await? {
@@ -83,13 +79,15 @@ impl StorageBackend for FsVdirBackend {
         Ok(())
     }
 
-    async fn list_contact_ids(&self, profile_id: ProfileId) -> Result<Vec<ContactId>, StorageError> {
+    async fn list_contact_ids(
+        &self,
+        profile_id: ProfileId,
+    ) -> Result<Vec<ContactId>, StorageError> {
         let dir = self.find_profile_dir(profile_id).await?;
         let contacts_dir = dir.join("contacts");
         if !contacts_dir.exists() {
             return Ok(vec![]);
         }
-
         let mut ids = Vec::new();
         let mut entries = fs::read_dir(contacts_dir).await?;
         while let Some(entry) = entries.next_entry().await? {
@@ -120,7 +118,11 @@ impl StorageBackend for FsVdirBackend {
         contact_from_vcard_bytes(profile_id, id, &bytes).map_err(StorageError::Core)
     }
 
-    async fn save_contact(&self, contact: &Contact, vcard_bytes: &[u8]) -> Result<(), StorageError> {
+    async fn save_contact(
+        &self,
+        contact: &Contact,
+        vcard_bytes: &[u8],
+    ) -> Result<(), StorageError> {
         let profile = self.load_profile(contact.profile_id).await?;
         let dir = self.profile_dir_for_slug(&profile.slug).await;
         fs::create_dir_all(dir.join("contacts")).await?;
@@ -180,9 +182,8 @@ impl StorageBackend for FsVdirBackend {
         let contacts = import_contacts_from_vcf(profile_id, vcf_bytes)?;
         let mut ids = Vec::with_capacity(contacts.len());
         for contact in contacts {
-            let vcard_bytes =
-                profile_pulse_core::contact_to_vcard_bytes(&contact)
-                    .map_err(|e| StorageError::Vcard(e.to_string()))?;
+            let vcard_bytes = profile_pulse_core::contact_to_vcard_bytes(&contact)
+                .map_err(|e| StorageError::Vcard(e.to_string()))?;
             self.save_contact(&contact, &vcard_bytes).await?;
             ids.push(contact.id);
         }

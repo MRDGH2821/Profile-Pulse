@@ -51,44 +51,52 @@ pub fn ContactEditor(
     let mut error = use_signal(|| None::<String>);
     let mut status = use_signal(|| None::<String>);
     let mut busy = use_signal(|| false);
-
     let is_new = initial.is_none();
-
     rsx! {
-        div { class: "editor-form",
+        div {
+            class: "editor-form",
             if let Some(message) = error() {
-                p { class: "error", "{message}" }
+                p {
+                    class: "error",
+                    "{message}"
+                }
             }
             if let Some(message) = status() {
-                p { class: "hint", "{message}" }
+                p {
+                    class: "hint",
+                    "{message}"
+                }
             }
-
-            label { "Display name"
-                input {
+            label {
+                "Display name" input {
                     r#type: "text",
                     value: "{display_name}",
-                    oninput: move |event| display_name.set(event.value()),
+                    oninput: move | event | display_name.set(event.value()),
                 }
             }
-            label { "Given name"
-                input {
+            label {
+                "Given name" input {
                     r#type: "text",
                     value: "{given_name}",
-                    oninput: move |event| given_name.set(event.value()),
+                    oninput: move | event | given_name.set(event.value()),
                 }
             }
-            label { "Family name"
-                input {
+            label {
+                "Family name" input {
                     r#type: "text",
                     value: "{family_name}",
-                    oninput: move |event| family_name.set(event.value()),
+                    oninput: move | event | family_name.set(event.value()),
                 }
             }
-
-            fieldset { class: "editor-fieldset",
-                legend { "Emails" }
-                for (index, email) in emails.read().iter().enumerate() {
-                    div { class: "editor-row", key: "{index}",
+            fieldset {
+                class: "editor-fieldset",
+                legend {
+                    "Emails"
+                }
+                for(index, email) in emails.read().iter().enumerate() {
+                    div {
+                        class: "editor-row",
+                        key: "{index}",
                         input {
                             r#type: "text",
                             placeholder: "Label",
@@ -115,7 +123,7 @@ pub fn ContactEditor(
                         }
                         button {
                             r#type: "button",
-                            onclick: move |_| {
+                            onclick: move | _ | {
                                 let mut list = emails();
                                 list.remove(index);
                                 emails.set(list);
@@ -126,7 +134,7 @@ pub fn ContactEditor(
                 }
                 button {
                     r#type: "button",
-                    onclick: move |_| {
+                    onclick: move | _ | {
                         let mut list = emails();
                         list.push(EmailAddress {
                             label: "home".into(),
@@ -137,11 +145,15 @@ pub fn ContactEditor(
                     "Add email"
                 }
             }
-
-            fieldset { class: "editor-fieldset",
-                legend { "Phones" }
-                for (index, phone) in phones.read().iter().enumerate() {
-                    div { class: "editor-row", key: "{index}",
+            fieldset {
+                class: "editor-fieldset",
+                legend {
+                    "Phones"
+                }
+                for(index, phone) in phones.read().iter().enumerate() {
+                    div {
+                        class: "editor-row",
+                        key: "{index}",
                         input {
                             r#type: "text",
                             placeholder: "Label",
@@ -168,7 +180,7 @@ pub fn ContactEditor(
                         }
                         button {
                             r#type: "button",
-                            onclick: move |_| {
+                            onclick: move | _ | {
                                 let mut list = phones();
                                 list.remove(index);
                                 phones.set(list);
@@ -179,7 +191,7 @@ pub fn ContactEditor(
                 }
                 button {
                     r#type: "button",
-                    onclick: move |_| {
+                    onclick: move | _ | {
                         let mut list = phones();
                         list.push(PhoneNumber {
                             label: "mobile".into(),
@@ -190,11 +202,15 @@ pub fn ContactEditor(
                     "Add phone"
                 }
             }
-
-            fieldset { class: "editor-fieldset",
-                legend { "Websites" }
-                for (index, site) in websites.read().iter().enumerate() {
-                    div { class: "editor-row", key: "{index}",
+            fieldset {
+                class: "editor-fieldset",
+                legend {
+                    "Websites"
+                }
+                for(index, site) in websites.read().iter().enumerate() {
+                    div {
+                        class: "editor-row",
+                        key: "{index}",
                         input {
                             r#type: "text",
                             placeholder: "Label",
@@ -221,7 +237,7 @@ pub fn ContactEditor(
                         }
                         button {
                             r#type: "button",
-                            onclick: move |_| {
+                            onclick: move | _ | {
                                 let mut list = websites();
                                 list.remove(index);
                                 websites.set(list);
@@ -232,7 +248,7 @@ pub fn ContactEditor(
                 }
                 button {
                     r#type: "button",
-                    onclick: move |_| {
+                    onclick: move | _ | {
                         let mut list = websites();
                         list.push(WebsiteLink {
                             label: "website".into(),
@@ -243,8 +259,8 @@ pub fn ContactEditor(
                     "Add website"
                 }
             }
-
-            div { class: "toolbar",
+            div {
+                class: "toolbar",
                 button {
                     disabled: busy(),
                     onclick: {
@@ -259,11 +275,19 @@ pub fn ContactEditor(
                             error.set(None);
                             let given = {
                                 let v = given_name().trim().to_string();
-                                if v.is_empty() { None } else { Some(v) }
+                                if v.is_empty() {
+                                    None
+                                } else {
+                                    Some(v)
+                                }
                             };
                             let family = {
                                 let v = family_name().trim().to_string();
-                                if v.is_empty() { None } else { Some(v) }
+                                if v.is_empty() {
+                                    None
+                                } else {
+                                    Some(v)
+                                }
                             };
                             let contact = Contact {
                                 id: contact_id,
@@ -271,44 +295,35 @@ pub fn ContactEditor(
                                 display_name: name,
                                 given_name: given,
                                 family_name: family,
-                                emails: emails()
-                                    .into_iter()
-                                    .filter(|e| !e.address.trim().is_empty())
-                                    .collect(),
-                                phones: phones()
-                                    .into_iter()
-                                    .filter(|p| !p.number.trim().is_empty())
-                                    .collect(),
-                                websites: websites()
-                                    .into_iter()
-                                    .filter(|w| !w.url.trim().is_empty())
-                                    .collect(),
-                                photo_content_hash: initial
-                                    .as_ref()
-                                    .and_then(|c| c.photo_content_hash.clone()),
+                                emails: emails().into_iter().filter(|e| !e.address.trim().is_empty()).collect(),
+                                phones: phones().into_iter().filter(|p| !p.number.trim().is_empty()).collect(),
+                                websites: websites().into_iter().filter(|w| !w.url.trim().is_empty()).collect(),
+                                photo_content_hash: initial.as_ref().and_then(|c| c.photo_content_hash.clone()),
                                 updated_at: Utc::now(),
                             };
                             let state = state.clone();
                             spawn(async move {
-                                let result = state
-                                    .contact_service
-                                    .update_contact(contact.clone())
-                                    .await
-                                    .map(|_| contact);
+                                let result =
+                                    state.contact_service.update_contact(contact.clone()).await.map(|_| contact);
                                 match result {
                                     Ok(saved) => {
                                         status.set(Some("Contact saved".into()));
                                         on_saved.call(saved);
-                                    }
+                                    },
                                     Err(err) => error.set(Some(err.to_string())),
                                 }
                                 busy.set(false);
                             });
                         }
                     },
-                    if is_new { "Create contact" } else { "Save changes" }
+                    if is_new {
+                        "Create contact"
+                    }
+                    else {
+                        "Save changes"
+                    }
                 }
-                if !is_new {
+                if ! is_new {
                     button {
                         disabled: busy(),
                         class: "danger-button",
@@ -319,11 +334,7 @@ pub fn ContactEditor(
                                 error.set(None);
                                 let state = state.clone();
                                 spawn(async move {
-                                    match state
-                                        .contact_service
-                                        .delete_contact(profile_id, contact_id)
-                                        .await
-                                    {
+                                    match state.contact_service.delete_contact(profile_id, contact_id).await {
                                         Ok(()) => on_deleted.call(()),
                                         Err(err) => error.set(Some(err.to_string())),
                                     }

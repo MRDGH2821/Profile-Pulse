@@ -26,7 +26,6 @@ pub fn PicSelector(
     let mut busy = use_signal(|| false);
     let mut github_username = use_signal(String::new);
     let mut gitlab_username = use_signal(String::new);
-
     let contact_for_effect = contact.clone();
     let state_for_discover = state.clone();
     use_effect(move || {
@@ -34,7 +33,13 @@ pub fn PicSelector(
         let contact = contact_for_effect.clone();
         spawn(async move {
             let ctx = ContactContext::from_contact(&contact);
-            match state.plugin_registry.read().unwrap().discover_all(&ctx).await {
+            match state
+                .plugin_registry
+                .read()
+                .unwrap()
+                .discover_all(&ctx)
+                .await
+            {
                 Ok(list) => {
                     error.set(None);
                     candidates.set(
@@ -50,28 +55,42 @@ pub fn PicSelector(
             }
         });
     });
-
     rsx! {
-        div { class: "pic-selector",
-            p { class: "hint",
+        div {
+            class: "pic-selector",
+            p {
+                class: "hint",
                 "Discover profile pictures from built-in sources. Select a candidate to fetch and apply."
             }
-
             if let Some(message) = error() {
-                p { class: "error", "{message}" }
+                p {
+                    class: "error",
+                    "{message}"
+                }
             }
             if let Some(message) = status() {
-                p { class: "hint", "{message}" }
+                p {
+                    class: "hint",
+                    "{message}"
+                }
             }
-
             if contact.photo_content_hash.is_some() {
-                p { class: "hint", "This contact already has a profile picture hash stored." }
+                p {
+                    class: "hint",
+                    "This contact already has a profile picture hash stored."
+                }
             }
-
-            div { class: "pic-convenience",
-                h3 { "Try a username" }
-                p { class: "hint", "Look up GitHub or GitLab avatars without adding a website link first." }
-                div { class: "create-profile",
+            div {
+                class: "pic-convenience",
+                h3 {
+                    "Try a username"
+                }
+                p {
+                    class: "hint",
+                    "Look up GitHub or GitLab avatars without adding a website link first."
+                }
+                div {
+                    class: "create-profile",
                     input {
                         r#type: "text",
                         placeholder: "GitHub username",
@@ -82,16 +101,12 @@ pub fn PicSelector(
                         disabled: busy(),
                         onclick: {
                             move |_| {
-                                if let Some(candidate) =
-                                    github_candidate_for_username(&github_username())
-                                {
+                                if let Some(candidate) = github_candidate_for_username(&github_username()) {
                                     let mut list = candidates.write().clone();
-                                    let plugin_id = PicSourcePluginId(
-                                        "profile-pulse.builtin.github-pic-source".into(),
-                                    );
+                                    let plugin_id =
+                                        PicSourcePluginId("profile-pulse.builtin.github-pic-source".into(),);
                                     if !list.iter().any(|row| {
-                                        row.plugin_id == plugin_id
-                                            && row.candidate.source_key == candidate.source_key
+                                        row.plugin_id == plugin_id && row.candidate.source_key == candidate.source_key
                                     }) {
                                         list.push(PicCandidateRow {
                                             plugin_id,
@@ -116,16 +131,12 @@ pub fn PicSelector(
                         disabled: busy(),
                         onclick: {
                             move |_| {
-                                if let Some(candidate) =
-                                    gitlab_candidate_for_username(&gitlab_username())
-                                {
+                                if let Some(candidate) = gitlab_candidate_for_username(&gitlab_username()) {
                                     let mut list = candidates.write().clone();
-                                    let plugin_id = PicSourcePluginId(
-                                        "profile-pulse.builtin.gitlab-pic-source".into(),
-                                    );
+                                    let plugin_id =
+                                        PicSourcePluginId("profile-pulse.builtin.gitlab-pic-source".into(),);
                                     if !list.iter().any(|row| {
-                                        row.plugin_id == plugin_id
-                                            && row.candidate.source_key == candidate.source_key
+                                        row.plugin_id == plugin_id && row.candidate.source_key == candidate.source_key
                                     }) {
                                         list.push(PicCandidateRow {
                                             plugin_id,
@@ -142,17 +153,19 @@ pub fn PicSelector(
                     }
                 }
             }
-
             if candidates.read().is_empty() {
-                p { class: "hint",
+                p {
+                    class: "hint",
                     "No candidates yet. Add emails for Gravatar, or GitHub/GitLab website links on the contact."
                 }
             }
-
-            ul { class: "pic-candidates",
+            ul {
+                class: "pic-candidates",
                 for row in candidates.read().iter() {
-                    li { class: "pic-candidate",
-                        div { class: "pic-candidate-main",
+                    li {
+                        class: "pic-candidate",
+                        div {
+                            class: "pic-candidate-main",
                             if let Some(url) = &row.candidate.preview_url {
                                 img {
                                     class: "pic-preview",
@@ -161,8 +174,13 @@ pub fn PicSelector(
                                 }
                             }
                             div {
-                                strong { "{row.candidate.label}" }
-                                p { class: "hint", "Source: {row.plugin_id}" }
+                                strong {
+                                    "{row.candidate.label}"
+                                }
+                                p {
+                                    class: "hint",
+                                    "Source: {row.plugin_id}"
+                                }
                             }
                         }
                         button {
@@ -180,34 +198,25 @@ pub fn PicSelector(
                                     status.set(Some(format!("Fetching {label}…")));
                                     let state = state.clone();
                                     spawn(async move {
-                                        let fetch_result = state
-                                            .plugin_registry
-                                            .read()
-                                            .unwrap()
-                                            .fetch(&plugin_id, &candidate)
-                                            .await;
+                                        let fetch_result =
+                                            state.plugin_registry.read().unwrap().fetch(&plugin_id, &candidate).await;
                                         match fetch_result {
                                             Ok(pic) => {
                                                 match state
                                                     .contact_service
-                                                    .apply_profile_pic(
-                                                        profile_id,
-                                                        contact_id,
-                                                        pic,
-                                                    )
-                                                    .await
-                                                {
+                                                    .apply_profile_pic(profile_id, contact_id, pic,)
+                                                    .await {
                                                     Ok(updated) => {
-                                                        status.set(Some(format!(
-                                                            "Applied profile picture from {label}"
-                                                        )));
+                                                        status.set(
+                                                            Some(format!("Applied profile picture from {label}"))
+                                                        );
                                                         on_applied.call(updated);
-                                                    }
+                                                    },
                                                     Err(err) => {
                                                         error.set(Some(err.to_string()))
-                                                    }
+                                                    },
                                                 }
-                                            }
+                                            },
                                             Err(err) => error.set(Some(err.to_string())),
                                         }
                                         busy.set(false);
@@ -219,10 +228,12 @@ pub fn PicSelector(
                     }
                 }
             }
-
-            if !contact.websites.is_empty() {
-                div { class: "pic-convenience",
-                    h3 { "Website links" }
+            if ! contact.websites.is_empty() {
+                div {
+                    class: "pic-convenience",
+                    h3 {
+                        "Website links"
+                    }
                     ul {
                         for site in contact.websites.iter() {
                             li {

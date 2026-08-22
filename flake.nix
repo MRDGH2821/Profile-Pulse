@@ -18,6 +18,7 @@
     smt = {
       inputs = {
         blueprint.follows = "blueprint";
+        crane.follows = "crane";
         git-hooks.follows = "git-hooks";
         nixpkgs.follows = "nixpkgs";
         pedantix.follows = "pedantix";

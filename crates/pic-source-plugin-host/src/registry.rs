@@ -1,13 +1,3 @@
-use std::collections::HashMap;
-use std::path::{Path, PathBuf};
-use std::sync::{Arc, RwLock};
-
-use profile_pulse_core::PicSourcePluginId;
-use profile_pulse_pic_source_plugin_api::{
-    ContactContext, PicSourceCapability, PicSourceHostApi, PicSourcePluginMetadata,
-    ProfilePicBytes, ProfilePicCandidate, ProfilePicSourcePlugin,
-};
-
 use crate::builtins::all_builtins;
 use crate::desktop_host::DesktopHostApi;
 use crate::error::HostError;
@@ -17,6 +7,14 @@ use crate::package::{
     read_install_state, read_manifest_from_dir, write_install_state,
 };
 use crate::wasm_runtime::WasmPicSourcePlugin;
+use profile_pulse_core::PicSourcePluginId;
+use profile_pulse_pic_source_plugin_api::{
+    ContactContext, PicSourceCapability, PicSourceHostApi, PicSourcePluginMetadata,
+    ProfilePicBytes, ProfilePicCandidate, ProfilePicSourcePlugin,
+};
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
+use std::sync::{Arc, RwLock};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PluginRuntimeKind {
@@ -60,9 +58,7 @@ impl PicSourcePluginRegistry {
     /// Create a registry with built-ins and installed WASM plugins loaded.
     pub fn with_builtins(data_root: impl Into<PathBuf>) -> Arc<RwLock<Self>> {
         let data_root = data_root.into();
-        let host = Arc::new(DesktopHostApi::new(
-            data_root.join("plugin-host-cache"),
-        ));
+        let host = Arc::new(DesktopHostApi::new(data_root.join("plugin-host-cache")));
         let mut registry = Self::new(data_root.clone(), host.clone());
         for plugin in all_builtins(host) {
             registry.register_builtin(plugin);
@@ -195,7 +191,10 @@ impl PicSourcePluginRegistry {
         Ok(())
     }
 
-    fn register_wasm_install(&mut self, install_dir: &Path) -> Result<PicSourcePluginId, HostError> {
+    fn register_wasm_install(
+        &mut self,
+        install_dir: &Path,
+    ) -> Result<PicSourcePluginId, HostError> {
         let manifest = read_manifest_from_dir(install_dir)?;
         let install_state = read_install_state(install_dir)?;
         let approved = approved_capabilities_from_install(&manifest, &install_state);

@@ -11,17 +11,17 @@ Cross-platform **desktop + web PWA** app that keeps device/cloud contacts update
 
 ## Phase overview
 
-| Phase | Name | Outcome | Plan |
-| --- | --- | --- | --- |
-| 0 | Foundation | Workspace, core types, desktop vdir + SQLite index | [phase-0](superpowers/plans/2026-08-22-rewrite-phase-0-foundation.md) |
-| 1 | Desktop UI shell | Dioxus desktop: profiles, contact search/list, details (read-only) | TBD |
-| 2 | Built-in pic sources | Pic source plugin API/host + Gravatar, GitHub, GitLab | Done |
-| 3 | WASM pic sources | WASM loader, sample `.pp-pic-source-plugin`, manager UI | Done |
-| 4 | Backup & import/export | Pre-write backup UI, aggregate VCF, profile bundle | Done |
-| 5 | Cloud sync | Google + CardDAV push/pull, per-contact sync button | In progress |
-| 6 | OS sync (desktop) | Linux OS contacts adapter | TBD |
-| 7 | Web PWA | Dioxus web, OPFS storage backend | TBD |
-| 8 | Background sync | Remote-change polling, pull prompts, conflict UI | TBD |
+| Phase | Name                   | Outcome                                                            | Plan                                                                  |
+| ----- | ---------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------- |
+| 0     | Foundation             | Workspace, core types, desktop vdir + SQLite index                 | [phase-0](superpowers/plans/2026-08-22-rewrite-phase-0-foundation.md) |
+| 1     | Desktop UI shell       | Dioxus desktop: profiles, contact search/list, details (read-only) | TBD                                                                   |
+| 2     | Built-in pic sources   | Pic source plugin API/host + Gravatar, GitHub, GitLab              | Done                                                                  |
+| 3     | WASM pic sources       | WASM loader, sample `.pp-pic-source-plugin`, manager UI            | Done                                                                  |
+| 4     | Backup & import/export | Pre-write backup UI, aggregate VCF, profile bundle                 | Done                                                                  |
+| 5     | Cloud sync             | Google + CardDAV push/pull, per-contact sync button                | In progress                                                           |
+| 6     | OS sync (desktop)      | Linux OS contacts adapter                                          | TBD                                                                   |
+| 7     | Web PWA                | Dioxus web, OPFS storage backend                                   | TBD                                                                   |
+| 8     | Background sync        | Remote-change polling, pull prompts, conflict UI                   | TBD                                                                   |
 
 ## Phase 0 — Foundation
 

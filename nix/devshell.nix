@@ -10,9 +10,6 @@
   ];
 in
   pkgs.mkShell {
-    shellHook = pre-commit-check.shellHook + ''
-      export LD_LIBRARY_PATH="${wasmRuntimeLibs}:''${LD_LIBRARY_PATH:-}"
-    '';
     packages = with pkgs; [
       # keep-sorted start
       bun
@@ -37,4 +34,9 @@ in
       xz
       # keep-sorted end
     ];
+    shellHook =
+      pre-commit-check.shellHook
+      + ''
+        export LD_LIBRARY_PATH="${wasmRuntimeLibs}:''${LD_LIBRARY_PATH:-}"
+      '';
   }

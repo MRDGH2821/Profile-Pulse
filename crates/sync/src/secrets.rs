@@ -1,6 +1,5 @@
-use std::path::{Path, PathBuf};
-
 use crate::error::SyncError;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone)]
 pub struct SecretStore {
@@ -29,13 +28,12 @@ impl SecretStore {
     }
 
     pub fn put(&self, key: &str, value: &str) -> Result<(), SyncError> {
-        std::fs::create_dir_all(&self.root)
-            .map_err(|e| SyncError::Storage(e.to_string()))?;
-        std::fs::write(self.path_for(key), value)
-            .map_err(|e| SyncError::Storage(e.to_string()))?;
+        std::fs::create_dir_all(&self.root).map_err(|e| SyncError::Storage(e.to_string()))?;
+        std::fs::write(self.path_for(key), value).map_err(|e| SyncError::Storage(e.to_string()))?;
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
+
             if let Ok(meta) = std::fs::metadata(self.path_for(key)) {
                 let mut perms = meta.permissions();
                 perms.set_mode(0o600);

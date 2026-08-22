@@ -1,11 +1,10 @@
+use crate::error::HostError;
 use profile_pulse_core::PicSourcePluginId;
 use profile_pulse_pic_source_plugin_api::{
-    PicSourceCapability, PicSourcePluginMetadata, PIC_SOURCE_PLUGIN_API_VERSION,
+    PIC_SOURCE_PLUGIN_API_VERSION, PicSourceCapability, PicSourcePluginMetadata,
 };
 use semver::Version;
 use serde::{Deserialize, Serialize};
-
-use crate::error::HostError;
 
 pub const MANIFEST_FILE: &str = "manifest.toml";
 pub const WASM_FILE: &str = "pic_source_plugin.wasm";

@@ -10,7 +10,6 @@ pub fn SyncSettings() -> Element {
     let state = use_context::<AppState>();
     let active_profile = use_context::<ActiveProfile>();
     let nav = navigator();
-
     let mut profiles = use_signal(Vec::<Profile>::new);
     let mut selected_profile = use_signal(|| None::<ProfileId>);
     let mut google_enabled = use_signal(|| false);
@@ -21,7 +20,6 @@ pub fn SyncSettings() -> Element {
     let mut error = use_signal(|| None::<String>);
     let mut status = use_signal(|| None::<String>);
     let mut busy = use_signal(|| false);
-
     use_effect({
         let state = state.clone();
         let active_profile = active_profile;
@@ -31,17 +29,19 @@ pub fn SyncSettings() -> Element {
                 if let Ok(list) = state.list_profiles().await {
                     profiles.set(list.clone());
                     if selected_profile().is_none() {
-                        selected_profile.set(active_profile.id().or_else(|| list.first().map(|p| p.id)));
+                        selected_profile
+                            .set(active_profile.id().or_else(|| list.first().map(|p| p.id)));
                     }
                 }
             });
         }
     });
-
     use_effect({
         let state = state.clone();
         move || {
-            let Some(profile_id) = selected_profile() else { return };
+            let Some(profile_id) = selected_profile() else {
+                return;
+            };
             let state = state.clone();
             spawn(async move {
                 if let Ok(profile) = state.storage.load_profile(profile_id).await {
@@ -66,33 +66,42 @@ pub fn SyncSettings() -> Element {
             });
         }
     });
-
     rsx! {
-        section { class: "panel",
-            div { class: "toolbar",
+        section {
+            class: "panel",
+            div {
+                class: "toolbar",
                 button {
                     class: "link-button",
-                    onclick: move |_| { let _ = nav.push(Route::Profiles {}); },
+                    onclick: move | _ | {
+                        let _ = nav.push(Route::Profiles {});
+                    },
                     "← Profiles"
                 }
-                h2 { "Sync targets" }
+                h2 {
+                    "Sync targets"
+                }
             }
-
-            p { class: "hint",
+            p {
+                class: "hint",
                 "Push-only by default. Use the Sync button on a contact to push updates. Pull is available from sync settings when a remote link exists."
             }
-
             if let Some(message) = error() {
-                p { class: "error", "{message}" }
+                p {
+                    class: "error",
+                    "{message}"
+                }
             }
             if let Some(message) = status() {
-                p { class: "hint", "{message}" }
+                p {
+                    class: "hint",
+                    "{message}"
+                }
             }
-
-            label { "Profile"
-                select {
+            label {
+                "Profile" select {
                     class: "profile-select",
-                    onchange: move |event| {
+                    onchange: move | event | {
                         if let Ok(uuid) = uuid::Uuid::parse_str(&event.value()) {
                             selected_profile.set(Some(ProfileId(uuid)));
                         }
@@ -106,10 +115,12 @@ pub fn SyncSettings() -> Element {
                     }
                 }
             }
-
             if let Some(profile_id) = selected_profile() {
-                div { class: "pic-convenience",
-                    h3 { "Google Contacts" }
+                div {
+                    class: "pic-convenience",
+                    h3 {
+                        "Google Contacts"
+                    }
                     label {
                         input {
                             r#type: "checkbox",
@@ -131,7 +142,7 @@ pub fn SyncSettings() -> Element {
                                         Ok(()) => {
                                             google_enabled.set(true);
                                             status.set(Some("Google account linked".into()));
-                                        }
+                                        },
                                         Err(err) => error.set(Some(err.to_string())),
                                     }
                                     busy.set(false);
@@ -141,9 +152,11 @@ pub fn SyncSettings() -> Element {
                         "Sign in with Google…"
                     }
                 }
-
-                div { class: "pic-convenience",
-                    h3 { "CardDAV" }
+                div {
+                    class: "pic-convenience",
+                    h3 {
+                        "CardDAV"
+                    }
                     label {
                         input {
                             r#type: "checkbox",
@@ -152,30 +165,29 @@ pub fn SyncSettings() -> Element {
                         }
                         " Enable CardDAV sync"
                     }
-                    label { "Server URL"
-                        input {
+                    label {
+                        "Server URL" input {
                             r#type: "url",
                             value: "{carddav_url}",
                             placeholder: "https://example.com/dav/contacts/",
-                            oninput: move |event| carddav_url.set(event.value()),
+                            oninput: move | event | carddav_url.set(event.value()),
                         }
                     }
-                    label { "Username"
-                        input {
+                    label {
+                        "Username" input {
                             r#type: "text",
                             value: "{carddav_username}",
-                            oninput: move |event| carddav_username.set(event.value()),
+                            oninput: move | event | carddav_username.set(event.value()),
                         }
                     }
-                    label { "App password"
-                        input {
+                    label {
+                        "App password" input {
                             r#type: "password",
                             value: "{carddav_password}",
-                            oninput: move |event| carddav_password.set(event.value()),
+                            oninput: move | event | carddav_password.set(event.value()),
                         }
                     }
                 }
-
                 button {
                     disabled: busy(),
                     onclick: {
@@ -191,44 +203,29 @@ pub fn SyncSettings() -> Element {
                                         error.set(Some(err.to_string()));
                                         busy.set(false);
                                         return;
-                                    }
+                                    },
                                 };
-
                                 profile.sync_targets.retain(|t| {
-                                    !matches!(
-                                        t,
-                                        SyncTargetConfig::Google { .. }
-                                            | SyncTargetConfig::CardDav { .. }
-                                    )
+                                    !matches!(t, SyncTargetConfig::Google { .. } | SyncTargetConfig::CardDav { .. })
                                 });
-                                profile.sync_targets.push(SyncTargetConfig::Google {
-                                    enabled: google_enabled(),
-                                });
+                                profile.sync_targets.push(SyncTargetConfig::Google { enabled: google_enabled(), });
                                 profile.sync_targets.push(SyncTargetConfig::CardDav {
                                     enabled: carddav_enabled(),
                                     url: carddav_url().trim().to_string(),
                                 });
-
                                 if carddav_enabled() {
                                     let credentials = CardDavCredentials {
                                         username: carddav_username().trim().to_string(),
                                         password: carddav_password(),
                                     };
-                                    if let Err(err) = state
-                                        .sync_service
-                                        .save_carddav_credentials(profile_id, &credentials)
-                                    {
+                                    if let Err(err) =
+                                        state.sync_service.save_carddav_credentials(profile_id, &credentials) {
                                         error.set(Some(err.to_string()));
                                         busy.set(false);
                                         return;
                                     }
                                 }
-
-                                match state
-                                    .contact_service
-                                    .update_profile_settings(profile)
-                                    .await
-                                {
+                                match state.contact_service.update_profile_settings(profile).await {
                                     Ok(_) => status.set(Some("Sync targets saved".into())),
                                     Err(err) => error.set(Some(err.to_string())),
                                 }

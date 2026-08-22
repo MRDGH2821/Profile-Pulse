@@ -1,8 +1,8 @@
-kind = "profile-pic-source"
-id = "community.sample-hello-pic-source"
-name = "Sample Hello Pic Source"
-version = "0.1.0"
-min_host_version = "1.0.0"
-runtime = "wasm"
 capabilities = []
+id = "community.sample-hello-pic-source"
+kind = "profile-pic-source"
+min_host_version = "1.0.0"
+name = "Sample Hello Pic Source"
+runtime = "wasm"
+version = "0.1.0"
 website_match = []

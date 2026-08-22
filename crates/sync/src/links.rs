@@ -1,10 +1,9 @@
+use crate::error::SyncError;
 use chrono::{DateTime, Utc};
 use profile_pulse_core::{ContactId, ProfileId};
-use rusqlite::{params, Connection};
+use rusqlite::{Connection, params};
 use std::path::Path;
 use std::sync::{Arc, Mutex};
-
-use crate::error::SyncError;
 
 #[derive(Debug, Clone)]
 pub struct SyncLinkStore {
@@ -16,7 +15,8 @@ impl SyncLinkStore {
         if let Some(parent) = path.as_ref().parent() {
             std::fs::create_dir_all(parent).map_err(|e| SyncError::Storage(e.to_string()))?;
         }
-        let conn = Connection::open(path.as_ref()).map_err(|e| SyncError::Storage(e.to_string()))?;
+        let conn =
+            Connection::open(path.as_ref()).map_err(|e| SyncError::Storage(e.to_string()))?;
         conn.execute_batch(
             "CREATE TABLE IF NOT EXISTS sync_links (
                 profile_id TEXT NOT NULL,

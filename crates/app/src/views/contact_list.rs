@@ -13,18 +13,18 @@ pub fn ContactList(profile_id: String) -> Element {
         Ok(id) => ProfileId(id),
         Err(_) => {
             return rsx! {
-                p { class: "error", "Invalid profile id" }
+                p {
+                    class: "error",
+                    "Invalid profile id"
+                }
             };
         }
     };
-
     active_profile.set(profile_uuid);
-
     let mut query = use_signal(String::new);
     let mut contacts = use_signal(Vec::<ContactSummary>::new);
     let mut error = use_signal(|| None::<String>);
     let mut profile_name = use_signal(|| profile_id.clone());
-
     let state_for_profile = state.clone();
     use_effect(move || {
         let state = state_for_profile.clone();
@@ -34,7 +34,6 @@ pub fn ContactList(profile_id: String) -> Element {
             }
         });
     });
-
     let state_for_search = state.clone();
     use_effect(move || {
         let state = state_for_search.clone();
@@ -50,18 +49,21 @@ pub fn ContactList(profile_id: String) -> Element {
             }
         });
     });
-
     rsx! {
-        section { class: "panel",
-            div { class: "toolbar",
+        section {
+            class: "panel",
+            div {
+                class: "toolbar",
                 button {
                     class: "link-button",
-                    onclick: move |_| {
+                    onclick: move | _ | {
                         let _ = nav.push(Route::Profiles {});
                     },
                     "← Profiles"
                 }
-                h2 { "Contacts — {profile_name}" }
+                h2 {
+                    "Contacts — {profile_name}"
+                }
                 button {
                     onclick: {
                         let profile_id = profile_id.clone();
@@ -75,12 +77,12 @@ pub fn ContactList(profile_id: String) -> Element {
                     "Add contact"
                 }
                 Link {
-                    to: Route::BackupsSettings {},
+                    to: Route:: BackupsSettings {
+                    },
                     class: "link-button",
                     "Import/export"
                 }
             }
-
             input {
                 class: "search-input",
                 r#type: "search",
@@ -88,16 +90,20 @@ pub fn ContactList(profile_id: String) -> Element {
                 value: "{query}",
                 oninput: move |event| query.set(event.value()),
             }
-
             if let Some(message) = error() {
-                p { class: "error", "{message}" }
+                p {
+                    class: "error",
+                    "{message}"
+                }
             }
-
             if contacts.read().is_empty() {
-                p { class: "hint", "No contacts yet. Use Add contact or Import/export." }
+                p {
+                    class: "hint",
+                    "No contacts yet. Use Add contact or Import/export."
+                }
             }
-
-            ul { class: "contact-list",
+            ul {
+                class: "contact-list",
                 for contact in contacts.read().iter() {
                     li {
                         button {
@@ -145,7 +151,6 @@ async fn load_contacts(
             .await
             .map_err(|e| e.to_string())?
     };
-
     let mut summaries = Vec::with_capacity(ids.len());
     for id in ids {
         let contact = state

@@ -1,7 +1,5 @@
 use crate::error::CoreError;
-use crate::model::{
-    Contact, ContactId, EmailAddress, PhoneNumber, ProfileId, WebsiteLink,
-};
+use crate::model::{Contact, ContactId, EmailAddress, PhoneNumber, ProfileId, WebsiteLink};
 use chrono::Utc;
 
 const PHOTO_HASH_PROP: &str = "X-PROFILE-PULSE-PHOTO-HASH";
@@ -13,7 +11,6 @@ pub fn contact_to_vcard_bytes(contact: &Contact) -> Result<Vec<u8>, CoreError> {
         format!("UID:{}", contact.id.0),
         format!("FN:{}", escape_text(&contact.display_name)),
     ];
-
     if let Some(given) = &contact.given_name {
         lines.push(format!("N:;{};;;", escape_text(given)));
     }
@@ -22,7 +19,6 @@ pub fn contact_to_vcard_bytes(contact: &Contact) -> Result<Vec<u8>, CoreError> {
     {
         lines.push(format!("N:{};;;;", escape_text(family)));
     }
-
     for email in &contact.emails {
         let label = escape_param(&email.label);
         lines.push(format!(
@@ -30,24 +26,17 @@ pub fn contact_to_vcard_bytes(contact: &Contact) -> Result<Vec<u8>, CoreError> {
             escape_text(&email.address)
         ));
     }
-
     for phone in &contact.phones {
         let label = escape_param(&phone.label);
-        lines.push(format!(
-            "TEL;TYPE={label}:{}",
-            escape_text(&phone.number)
-        ));
+        lines.push(format!("TEL;TYPE={label}:{}", escape_text(&phone.number)));
     }
-
     for site in &contact.websites {
         let label = escape_param(&site.label);
         lines.push(format!("URL;TYPE={label}:{}", escape_text(&site.url)));
     }
-
     if let Some(hash) = &contact.photo_content_hash {
         lines.push(format!("{PHOTO_HASH_PROP}:{}", escape_text(hash)));
     }
-
     lines.push("END:VCARD".to_string());
     Ok(lines.join("\r\n").into_bytes())
 }
@@ -59,7 +48,6 @@ pub fn contact_from_vcard_bytes(
 ) -> Result<Contact, CoreError> {
     let text = std::str::from_utf8(bytes)
         .map_err(|e| CoreError::Validation(format!("vcard is not utf-8: {e}")))?;
-
     let mut display_name = String::new();
     let mut given_name = None;
     let mut family_name = None;
@@ -68,13 +56,11 @@ pub fn contact_from_vcard_bytes(
     let mut websites = Vec::new();
     let mut photo_content_hash = None;
     let mut uid_from_vcard = None;
-
     for raw_line in text.lines() {
         let line = raw_line.trim();
         if line.is_empty() || line.starts_with("BEGIN:") || line.starts_with("END:") {
             continue;
         }
-
         let (key, params, value) = parse_line(line)?;
         match key {
             "FN" => display_name = unescape_text(value),
@@ -88,15 +74,24 @@ pub fn contact_from_vcard_bytes(
                 }
             }
             "EMAIL" => emails.push(EmailAddress {
-                label: params.get("TYPE").cloned().unwrap_or_else(|| "other".into()),
+                label: params
+                    .get("TYPE")
+                    .cloned()
+                    .unwrap_or_else(|| "other".into()),
                 address: unescape_text(value),
             }),
             "TEL" => phones.push(PhoneNumber {
-                label: params.get("TYPE").cloned().unwrap_or_else(|| "other".into()),
+                label: params
+                    .get("TYPE")
+                    .cloned()
+                    .unwrap_or_else(|| "other".into()),
                 number: unescape_text(value),
             }),
             "URL" => websites.push(WebsiteLink {
-                label: params.get("TYPE").cloned().unwrap_or_else(|| "website".into()),
+                label: params
+                    .get("TYPE")
+                    .cloned()
+                    .unwrap_or_else(|| "website".into()),
                 url: unescape_text(value),
             }),
             PHOTO_HASH_PROP => photo_content_hash = Some(unescape_text(value)),
@@ -108,11 +103,9 @@ pub fn contact_from_vcard_bytes(
             _ => {}
         }
     }
-
     if display_name.is_empty() {
         return Err(CoreError::Validation("vcard missing FN".into()));
     }
-
     Ok(Contact {
         id: uid_from_vcard.unwrap_or(contact_id),
         profile_id,
@@ -131,11 +124,9 @@ pub fn contact_from_vcard_bytes(
 pub fn split_vcard_blocks(bytes: &[u8]) -> Result<Vec<Vec<u8>>, CoreError> {
     let text = std::str::from_utf8(bytes)
         .map_err(|e| CoreError::Validation(format!("vcf is not utf-8: {e}")))?;
-
     let mut blocks = Vec::new();
     let mut current = Vec::new();
     let mut in_card = false;
-
     for raw_line in text.lines() {
         let line = raw_line.trim();
         if line.eq_ignore_ascii_case("BEGIN:VCARD") {
@@ -153,7 +144,6 @@ pub fn split_vcard_blocks(bytes: &[u8]) -> Result<Vec<Vec<u8>>, CoreError> {
             current.push(raw_line.to_string());
         }
     }
-
     if blocks.is_empty() {
         return Err(CoreError::Validation("no vCards found in import".into()));
     }
@@ -182,23 +172,22 @@ pub fn import_contacts_from_vcf(
     Ok(contacts)
 }
 
-fn parse_line(line: &str) -> Result<(&str, std::collections::HashMap<String, String>, &str), CoreError> {
+fn parse_line(
+    line: &str,
+) -> Result<(&str, std::collections::HashMap<String, String>, &str), CoreError> {
     let (head, value) = line
         .split_once(':')
         .ok_or_else(|| CoreError::Validation(format!("invalid vcard line: {line}")))?;
-
     let mut parts = head.split(';');
     let key = parts
         .next()
         .ok_or_else(|| CoreError::Validation(format!("invalid vcard line: {line}")))?;
-
     let mut params = std::collections::HashMap::new();
     for part in parts {
         if let Some((k, v)) = part.split_once('=') {
             params.insert(k.to_ascii_uppercase(), unescape_text(v));
         }
     }
-
     Ok((key, params, value))
 }
 

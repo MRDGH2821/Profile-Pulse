@@ -23,24 +23,24 @@
 
 ## File Structure
 
-| Path | Responsibility |
-| --- | --- |
-| `Cargo.toml` | Workspace root; `[workspace.members]` |
-| `crates/core/Cargo.toml` | `profile-pulse-core` package |
-| `crates/core/src/lib.rs` | Re-exports domain + services |
-| `crates/core/src/model.rs` | `Contact`, `Profile`, IDs, sync enums |
-| `crates/core/src/vcard.rs` | vCard ↔ `Contact` mapping via `vobject` |
-| `crates/core/src/backup.rs` | `BackupService` pre-write snapshots |
-| `crates/core/src/contact_service.rs` | `ContactService` orchestration |
-| `crates/core/src/error.rs` | `CoreError` |
-| `crates/storage/Cargo.toml` | `profile-pulse-storage` package |
-| `crates/storage/src/lib.rs` | Re-exports backends |
-| `crates/storage/src/traits.rs` | `StorageBackend`, `ContactIndex` traits |
-| `crates/storage/src/fs_vdir.rs` | Desktop vdir implementation |
-| `crates/storage/src/sqlite_index.rs` | SQLite search index |
-| `crates/storage/src/error.rs` | `StorageError` |
-| `legacy/iced-app/` | Moved from `src/` (optional member) |
-| `docs/ROADMAP.md` | Phase checklist (already created) |
+| Path                                 | Responsibility                          |
+| ------------------------------------ | --------------------------------------- |
+| `Cargo.toml`                         | Workspace root; `[workspace.members]`   |
+| `crates/core/Cargo.toml`             | `profile-pulse-core` package            |
+| `crates/core/src/lib.rs`             | Re-exports domain + services            |
+| `crates/core/src/model.rs`           | `Contact`, `Profile`, IDs, sync enums   |
+| `crates/core/src/vcard.rs`           | vCard ↔ `Contact` mapping via `vobject` |
+| `crates/core/src/backup.rs`          | `BackupService` pre-write snapshots     |
+| `crates/core/src/contact_service.rs` | `ContactService` orchestration          |
+| `crates/core/src/error.rs`           | `CoreError`                             |
+| `crates/storage/Cargo.toml`          | `profile-pulse-storage` package         |
+| `crates/storage/src/lib.rs`          | Re-exports backends                     |
+| `crates/storage/src/traits.rs`       | `StorageBackend`, `ContactIndex` traits |
+| `crates/storage/src/fs_vdir.rs`      | Desktop vdir implementation             |
+| `crates/storage/src/sqlite_index.rs` | SQLite search index                     |
+| `crates/storage/src/error.rs`        | `StorageError`                          |
+| `legacy/iced-app/`                   | Moved from `src/` (optional member)     |
+| `docs/ROADMAP.md`                    | Phase checklist (already created)       |
 
 ---
 
@@ -568,17 +568,17 @@ EOF
 
 ## Spec Coverage Checklist
 
-| Requirement | Task |
-| --- | --- |
-| Workspace crate layout | Task 1 |
+| Requirement                              | Task   |
+| ---------------------------------------- | ------ |
+| Workspace crate layout                   | Task 1 |
 | Domain types (`Contact`, `Profile`, IDs) | Task 2 |
-| vCard mapping | Task 3 |
-| Desktop vdir layout | Task 4 |
-| `StorageBackend` trait | Task 4 |
-| SQLite index only (not source of truth) | Task 5 |
-| Pre-write backup | Task 5 |
-| Legacy Iced isolated | Task 1 |
-| Implementation spec as source of truth | Task 0 |
+| vCard mapping                            | Task 3 |
+| Desktop vdir layout                      | Task 4 |
+| `StorageBackend` trait                   | Task 4 |
+| SQLite index only (not source of truth)  | Task 5 |
+| Pre-write backup                         | Task 5 |
+| Legacy Iced isolated                     | Task 1 |
+| Implementation spec as source of truth   | Task 0 |
 
 ## Next phase
 

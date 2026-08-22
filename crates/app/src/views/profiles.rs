@@ -15,7 +15,6 @@ pub fn Profiles() -> Element {
     let mut carddav_url = use_signal(String::new);
     let mut error = use_signal(|| None::<String>);
     let nav = navigator();
-
     let state_for_load = state.clone();
     use_effect(move || {
         let state = state_for_load.clone();
@@ -26,17 +25,24 @@ pub fn Profiles() -> Element {
             }
         });
     });
-
     rsx! {
-        section { class: "panel",
-            h2 { "Profiles" }
-            p { class: "hint", "Choose a profile or create a new local contact book." }
-
-            if let Some(message) = error() {
-                p { class: "error", "{message}" }
+        section {
+            class: "panel",
+            h2 {
+                "Profiles"
             }
-
-            ul { class: "profile-list",
+            p {
+                class: "hint",
+                "Choose a profile or create a new local contact book."
+            }
+            if let Some(message) = error() {
+                p {
+                    class: "error",
+                    "{message}"
+                }
+            }
+            ul {
+                class: "profile-list",
                 for profile in profiles.read().iter() {
                     li {
                         button {
@@ -46,9 +52,7 @@ pub fn Profiles() -> Element {
                                 let mut active_profile = active_profile;
                                 move |_| {
                                     active_profile.set(profile_id);
-                                    let _ = nav.push(Route::ContactList {
-                                        profile_id: profile_id.0.to_string(),
-                                    });
+                                    let _ = nav.push(Route::ContactList { profile_id: profile_id.0.to_string(), });
                                 }
                             },
                             "{profile.name}"
@@ -56,9 +60,11 @@ pub fn Profiles() -> Element {
                     }
                 }
             }
-
-            div { class: "create-profile",
-                h3 { "Create profile" }
+            div {
+                class: "create-profile",
+                h3 {
+                    "Create profile"
+                }
                 input {
                     r#type: "text",
                     placeholder: "Profile name",
@@ -117,10 +123,8 @@ pub fn Profiles() -> Element {
                                         active_profile.set(profile.id);
                                         profiles.write().push(profile.clone());
                                         new_name.set(String::new());
-                                        let _ = nav.push(Route::ContactList {
-                                            profile_id: profile.id.0.to_string(),
-                                        });
-                                    }
+                                        let _ = nav.push(Route::ContactList { profile_id: profile.id.0.to_string(), });
+                                    },
                                     Err(message) => error.set(Some(message)),
                                 }
                             });

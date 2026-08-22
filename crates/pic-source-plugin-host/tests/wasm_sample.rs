@@ -1,10 +1,9 @@
-use std::path::PathBuf;
-use std::sync::Arc;
-
 use profile_pulse_pic_source_plugin_api::{ContactContext, ProfilePicSourcePlugin};
 use profile_pulse_pic_source_plugin_host::{
-    install_package, PicSourcePluginRegistry, WasmPicSourcePlugin,
+    PicSourcePluginRegistry, WasmPicSourcePlugin, install_package,
 };
+use std::path::PathBuf;
+use std::sync::Arc;
 
 fn sample_plugin_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -18,8 +17,9 @@ fn sample_wasm_path() -> PathBuf {
 #[test]
 fn parses_valid_manifest() {
     let text = include_str!("../../../pic-source-plugins/sample-hello-pic-source/manifest.toml");
-    let manifest = profile_pulse_pic_source_plugin_host::PicSourcePluginManifest::parse(text.as_bytes())
-        .expect("parse manifest");
+    let manifest =
+        profile_pulse_pic_source_plugin_host::PicSourcePluginManifest::parse(text.as_bytes())
+            .expect("parse manifest");
     manifest.validate().expect("validate");
     assert_eq!(manifest.id, "community.sample-hello-pic-source");
 }
@@ -62,5 +62,9 @@ async fn installs_sample_package_into_data_dir() {
     let mut registry = PicSourcePluginRegistry::new(data_root.path().to_path_buf(), host);
     registry.load_installed_wasm_plugins().expect("load");
     let entries = registry.list_entries();
-    assert!(entries.iter().any(|e| e.metadata.id.0.contains("sample-hello")));
+    assert!(
+        entries
+            .iter()
+            .any(|e| e.metadata.id.0.contains("sample-hello"))
+    );
 }

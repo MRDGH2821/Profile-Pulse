@@ -1,17 +1,15 @@
-use std::path::Path;
-use std::sync::Arc;
-
-use chrono::Utc;
-use profile_pulse_core::{
-    contact_to_vcard_bytes, Contact, ContactId, Profile, ProfileId, SyncTargetConfig,
-};
-
 use crate::adapter::{PushResult, SyncAdapter};
 use crate::carddav::{CardDavAdapter, CardDavCredentials, carddav_secret_key};
 use crate::error::SyncError;
-use crate::google::{authorize_google_pkce, GoogleContactsAdapter};
+use crate::google::{GoogleContactsAdapter, authorize_google_pkce};
 use crate::links::SyncLinkStore;
 use crate::secrets::SecretStore;
+use chrono::Utc;
+use profile_pulse_core::{
+    Contact, ContactId, Profile, ProfileId, SyncTargetConfig, contact_to_vcard_bytes,
+};
+use std::path::Path;
+use std::sync::Arc;
 
 pub struct SyncService {
     secrets: SecretStore,
@@ -58,11 +56,13 @@ impl SyncService {
         target: &SyncTargetConfig,
     ) -> Option<Arc<dyn SyncAdapter>> {
         match target {
-            SyncTargetConfig::Google { enabled: true } => Some(Arc::new(GoogleContactsAdapter::new(
-                self.secrets.clone(),
-                profile_id,
-                self.google_client_id.clone(),
-            ))),
+            SyncTargetConfig::Google { enabled: true } => {
+                Some(Arc::new(GoogleContactsAdapter::new(
+                    self.secrets.clone(),
+                    profile_id,
+                    self.google_client_id.clone(),
+                )))
+            }
             SyncTargetConfig::CardDav { enabled: true, url } if !url.trim().is_empty() => {
                 Some(Arc::new(CardDavAdapter::new(
                     self.secrets.clone(),
@@ -91,31 +91,22 @@ impl SyncService {
     ) -> Result<Vec<PushResult>, SyncError> {
         let vcard = contact_to_vcard_bytes(contact)?;
         let mut results = Vec::new();
-
         for (_label, target) in Self::enabled_targets(profile) {
             let Some(adapter) = self.adapter_for(profile.id, &target) else {
                 continue;
             };
             let kind = adapter.target_kind();
-            let existing = self
-                .links
-                .get_remote_id(profile.id, contact.id, kind)?;
+            let existing = self.links.get_remote_id(profile.id, contact.id, kind)?;
             let remote_id = adapter
                 .push_contact(contact, &vcard, existing.as_deref())
                 .await?;
-            self.links.upsert_link(
-                profile.id,
-                contact.id,
-                kind,
-                &remote_id,
-                Utc::now(),
-            )?;
+            self.links
+                .upsert_link(profile.id, contact.id, kind, &remote_id, Utc::now())?;
             results.push(PushResult {
                 target_kind: kind.to_string(),
                 remote_id,
             });
         }
-
         if results.is_empty() {
             return Err(SyncError::NotConfigured(
                 "enable Google or CardDAV sync targets for this profile".into(),
@@ -137,21 +128,14 @@ impl SyncService {
             .find(|t| t.kind_label() == target_kind && t.is_enabled())
             .cloned()
             .ok_or_else(|| SyncError::NotConfigured(format!("{target_kind} not enabled")))?;
-
         let adapter = self
             .adapter_for(profile.id, &target)
             .ok_or_else(|| SyncError::NotConfigured(format!("{target_kind} not configured")))?;
-
         let (mut contact, _vcard) = adapter.pull_contact(remote_id).await?;
         contact.id = contact_id;
         contact.profile_id = profile.id;
-        self.links.upsert_link(
-            profile.id,
-            contact_id,
-            target_kind,
-            remote_id,
-            Utc::now(),
-        )?;
+        self.links
+            .upsert_link(profile.id, contact_id, target_kind, remote_id, Utc::now())?;
         Ok(contact)
     }
 }

@@ -2,7 +2,7 @@ use crate::error::StorageError;
 use crate::traits::ContactIndex;
 use async_trait::async_trait;
 use profile_pulse_core::{Contact, ContactId, ProfileId};
-use rusqlite::{params, Connection};
+use rusqlite::{Connection, params};
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
@@ -16,8 +16,8 @@ impl SqliteContactIndex {
         if let Some(parent) = path.as_ref().parent() {
             std::fs::create_dir_all(parent)?;
         }
-        let conn = Connection::open(path.as_ref())
-            .map_err(|e| StorageError::Database(e.to_string()))?;
+        let conn =
+            Connection::open(path.as_ref()).map_err(|e| StorageError::Database(e.to_string()))?;
         conn.execute_batch(
             "CREATE TABLE IF NOT EXISTS contacts (
                 profile_id TEXT NOT NULL,
@@ -79,9 +79,7 @@ impl ContactIndex for SqliteContactIndex {
                 )?;
                 Ok(())
             })
-        })
-        .await
-        .map_err(|e| StorageError::Database(e.to_string()))?
+        }).await.map_err(|e| StorageError::Database(e.to_string()))?
     }
 
     async fn remove_contact(
@@ -119,10 +117,9 @@ impl ContactIndex for SqliteContactIndex {
                      ORDER BY display_name ASC
                      LIMIT ?3",
                 )?;
-                let rows = stmt.query_map(
-                    params![profile_id.0.to_string(), q, limit],
-                    |row| row.get::<_, String>(0),
-                )?;
+                let rows = stmt.query_map(params![profile_id.0.to_string(), q, limit], |row| {
+                    row.get::<_, String>(0)
+                })?;
                 let mut ids = Vec::new();
                 for row in rows {
                     let id_str = row?;

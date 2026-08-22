@@ -1,11 +1,10 @@
-use std::path::PathBuf;
-
 use profile_pulse_core::PicSourcePluginId;
 use profile_pulse_pic_source_plugin_api::{
     PicSourceHostApi, PicSourceHostContext, PicSourcePluginError,
 };
-use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::Client;
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+use std::path::PathBuf;
 use tokio::fs;
 
 /// Desktop host API: HTTP via reqwest, plugin-scoped filesystem cache.
@@ -60,15 +59,13 @@ impl PicSourceHostApi for DesktopHostApi {
     ) -> Result<Vec<u8>, PicSourcePluginError> {
         let mut header_map = HeaderMap::new();
         for (name, value) in headers {
-            let name = HeaderName::from_bytes(name.as_bytes()).map_err(|e| {
-                PicSourcePluginError::Internal(format!("invalid header name: {e}"))
-            })?;
+            let name = HeaderName::from_bytes(name.as_bytes())
+                .map_err(|e| PicSourcePluginError::Internal(format!("invalid header name: {e}")))?;
             let value = HeaderValue::from_str(value).map_err(|e| {
                 PicSourcePluginError::Internal(format!("invalid header value: {e}"))
             })?;
             header_map.insert(name, value);
         }
-
         let response = self
             .client
             .get(url)
@@ -76,7 +73,6 @@ impl PicSourceHostApi for DesktopHostApi {
             .send()
             .await
             .map_err(|e| PicSourcePluginError::Network(e.to_string()))?;
-
         if response.status().as_u16() == 404 {
             return Err(PicSourcePluginError::NotFound);
         }
@@ -86,7 +82,6 @@ impl PicSourceHostApi for DesktopHostApi {
                 response.status()
             )));
         }
-
         response
             .bytes()
             .await

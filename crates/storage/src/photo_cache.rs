@@ -1,6 +1,5 @@
-use std::path::{Path, PathBuf};
-
 use crate::error::StorageError;
+use std::path::{Path, PathBuf};
 
 pub fn photo_cache_dir(data_root: &Path) -> PathBuf {
     data_root.join("photo-cache")
@@ -8,6 +7,7 @@ pub fn photo_cache_dir(data_root: &Path) -> PathBuf {
 
 pub fn sha256_hex(bytes: &[u8]) -> String {
     use sha2::{Digest, Sha256};
+
     format!("{:x}", Sha256::digest(bytes))
 }
 

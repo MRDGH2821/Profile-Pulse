@@ -1,11 +1,10 @@
-use async_trait::async_trait;
-use chrono::{DateTime, Utc};
-use profile_pulse_core::{contact_from_vcard_bytes, Contact, ContactId};
-use reqwest::Client;
-
 use crate::adapter::{RemoteChange, SyncAdapter};
 use crate::error::SyncError;
 use crate::secrets::SecretStore;
+use async_trait::async_trait;
+use chrono::{DateTime, Utc};
+use profile_pulse_core::{Contact, ContactId, contact_from_vcard_bytes};
+use reqwest::Client;
 
 pub fn carddav_secret_key(profile_id: profile_pulse_core::ProfileId) -> String {
     format!("carddav:{}", profile_id.0)
@@ -72,7 +71,6 @@ impl SyncAdapter for CardDavAdapter {
             .map(str::to_string)
             .unwrap_or_else(|| contact.id.0.to_string());
         let url = self.vcard_url(&remote_id);
-
         let response = self
             .client
             .put(&url)
@@ -82,7 +80,6 @@ impl SyncAdapter for CardDavAdapter {
             .send()
             .await
             .map_err(|e| SyncError::Http(e.to_string()))?;
-
         if !response.status().is_success() {
             let status = response.status();
             let text = response.text().await.unwrap_or_default();
@@ -101,21 +98,18 @@ impl SyncAdapter for CardDavAdapter {
             .send()
             .await
             .map_err(|e| SyncError::Http(e.to_string()))?;
-
         if !response.status().is_success() {
             let status = response.status();
             let text = response.text().await.unwrap_or_default();
             return Err(SyncError::Remote(format!("CardDAV {status}: {text}")));
         }
-
         let bytes = response
             .bytes()
             .await
             .map_err(|e| SyncError::Http(e.to_string()))?
             .to_vec();
         let contact_id = ContactId(uuid::Uuid::new_v4());
-        let contact =
-            contact_from_vcard_bytes(self.profile_id, contact_id, &bytes)?;
+        let contact = contact_from_vcard_bytes(self.profile_id, contact_id, &bytes)?;
         Ok((contact, bytes))
     }
 

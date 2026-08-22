@@ -1,13 +1,12 @@
-use async_trait::async_trait;
-use chrono::{DateTime, Utc};
-use profile_pulse_core::{contact_to_vcard_bytes, Contact, ContactId};
-use reqwest::Client;
-use serde_json::json;
-
 use crate::adapter::{RemoteChange, SyncAdapter};
 use crate::error::SyncError;
 use crate::google::oauth::refresh_google_access_token;
 use crate::secrets::SecretStore;
+use async_trait::async_trait;
+use chrono::{DateTime, Utc};
+use profile_pulse_core::{Contact, ContactId, contact_to_vcard_bytes};
+use reqwest::Client;
+use serde_json::json;
 
 pub struct GoogleContactsAdapter {
     client: Client,
@@ -36,32 +35,47 @@ impl GoogleContactsAdapter {
 
     fn person_body(contact: &Contact) -> serde_json::Value {
         let mut body = json!({
-            "names": [{
+            "names":[{
                 "displayName": contact.display_name,
                 "givenName": contact.given_name.clone().unwrap_or_default(),
                 "familyName": contact.family_name.clone().unwrap_or_default(),
             }],
         });
         if !contact.emails.is_empty() {
-            body["emailAddresses"] = json!(contact
-                .emails
-                .iter()
-                .map(|e| json!({ "value": e.address, "type": e.label }))
-                .collect::<Vec<_>>());
+            body["emailAddresses"] = json!(
+                contact
+                    .emails
+                    .iter()
+                    .map(|e| json!({
+                        "value": e.address,
+                        "type": e.label
+                    }))
+                    .collect::<Vec<_>>()
+            );
         }
         if !contact.phones.is_empty() {
-            body["phoneNumbers"] = json!(contact
-                .phones
-                .iter()
-                .map(|p| json!({ "value": p.number, "type": p.label }))
-                .collect::<Vec<_>>());
+            body["phoneNumbers"] = json!(
+                contact
+                    .phones
+                    .iter()
+                    .map(|p| json!({
+                        "value": p.number,
+                        "type": p.label
+                    }))
+                    .collect::<Vec<_>>()
+            );
         }
         if !contact.websites.is_empty() {
-            body["urls"] = json!(contact
-                .websites
-                .iter()
-                .map(|w| json!({ "value": w.url, "type": w.label }))
-                .collect::<Vec<_>>());
+            body["urls"] = json!(
+                contact
+                    .websites
+                    .iter()
+                    .map(|w| json!({
+                        "value": w.url,
+                        "type": w.label
+                    }))
+                    .collect::<Vec<_>>()
+            );
         }
         body
     }
@@ -81,15 +95,19 @@ impl SyncAdapter for GoogleContactsAdapter {
     ) -> Result<String, SyncError> {
         let token = self.access_token().await?;
         let body = Self::person_body(contact);
-
         let response = if let Some(resource_name) = existing_remote_id {
             self.client
                 .patch(format!(
                     "https://people.googleapis.com/v1/{resource_name}:updateContact"
                 ))
-                .query(&[("updatePersonFields", "names,emailAddresses,phoneNumbers,urls")])
+                .query(&[(
+                    "updatePersonFields",
+                    "names,emailAddresses,phoneNumbers,urls",
+                )])
                 .bearer_auth(&token)
-                .json(&json!({ "person": body }))
+                .json(&json!({
+                    "person": body
+                }))
                 .send()
                 .await
                 .map_err(|e| SyncError::Http(e.to_string()))?
@@ -102,13 +120,11 @@ impl SyncAdapter for GoogleContactsAdapter {
                 .await
                 .map_err(|e| SyncError::Http(e.to_string()))?
         };
-
         if !response.status().is_success() {
             let status = response.status();
             let text = response.text().await.unwrap_or_default();
             return Err(SyncError::Remote(format!("Google API {status}: {text}")));
         }
-
         let value: serde_json::Value = response
             .json()
             .await
@@ -122,27 +138,27 @@ impl SyncAdapter for GoogleContactsAdapter {
 
     async fn pull_contact(&self, remote_id: &str) -> Result<(Contact, Vec<u8>), SyncError> {
         let token = self.access_token().await?;
-        let response = self
-            .client
-            .get(format!(
-                "https://people.googleapis.com/v1/{remote_id}?personFields=names,emailAddresses,phoneNumbers,urls"
-            ))
-            .bearer_auth(&token)
-            .send()
-            .await
-            .map_err(|e| SyncError::Http(e.to_string()))?;
-
+        let response =
+            self
+                .client
+                .get(
+                    format!(
+                        "https://people.googleapis.com/v1/{remote_id}?personFields=names,emailAddresses,phoneNumbers,urls"
+                    ),
+                )
+                .bearer_auth(&token)
+                .send()
+                .await
+                .map_err(|e| SyncError::Http(e.to_string()))?;
         if !response.status().is_success() {
             let status = response.status();
             let text = response.text().await.unwrap_or_default();
             return Err(SyncError::Remote(format!("Google API {status}: {text}")));
         }
-
         let person: serde_json::Value = response
             .json()
             .await
             .map_err(|e| SyncError::Http(e.to_string()))?;
-
         let display_name = person
             .pointer("/names/0/displayName")
             .and_then(|v| v.as_str())
@@ -158,7 +174,6 @@ impl SyncAdapter for GoogleContactsAdapter {
             .and_then(|v| v.as_str())
             .filter(|s| !s.is_empty())
             .map(str::to_string);
-
         let mut emails = Vec::new();
         if let Some(list) = person.get("emailAddresses").and_then(|v| v.as_array()) {
             for item in list {
@@ -174,7 +189,6 @@ impl SyncAdapter for GoogleContactsAdapter {
                 }
             }
         }
-
         let mut phones = Vec::new();
         if let Some(list) = person.get("phoneNumbers").and_then(|v| v.as_array()) {
             for item in list {
@@ -190,7 +204,6 @@ impl SyncAdapter for GoogleContactsAdapter {
                 }
             }
         }
-
         let mut websites = Vec::new();
         if let Some(list) = person.get("urls").and_then(|v| v.as_array()) {
             for item in list {
@@ -206,7 +219,6 @@ impl SyncAdapter for GoogleContactsAdapter {
                 }
             }
         }
-
         let contact = Contact {
             id: ContactId(uuid::Uuid::new_v4()),
             profile_id: self.profile_id,

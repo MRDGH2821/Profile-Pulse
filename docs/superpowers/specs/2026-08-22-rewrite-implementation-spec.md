@@ -14,39 +14,39 @@ The legacy Iced app under `src/` is **superseded**. The rewrite lives in a Cargo
 
 ## Global constraints (verbatim)
 
-| Constraint | Value |
-| --- | --- |
-| UI framework | **Dioxus 0.7** |
-| v1 platforms | **Desktop (native) + website (PWA)** — no mobile |
-| Live contact book | App-owned store; sync targets are adapters |
-| On-disk live format | **vdir** — one `.vcf` per contact |
-| Backup export | Aggregated single `.vcf` + profile metadata |
-| Pre-write backup | **Always** before contact/profile mutation |
-| Sync default | Push-only; pull is explicit |
-| Pull conflicts | Per-contact: Keep local / Take remote / Review |
-| Profile pic extensibility | **Profile pic source plugins** only in v1 |
-| User pic source package | `.pp-pic-source-plugin` (WASM) |
-| Native user pic sources | Desktop only — **v1.1** |
-| Sync adapters | First-party only — not pic source plugins |
-| Web deployment | Static PWA, local-first, no required backend |
-| License | GPLv3-or-later |
-| Rust edition | **2024** (match existing repo) |
+| Constraint                | Value                                            |
+| ------------------------- | ------------------------------------------------ |
+| UI framework              | **Dioxus 0.7**                                   |
+| v1 platforms              | **Desktop (native) + website (PWA)** — no mobile |
+| Live contact book         | App-owned store; sync targets are adapters       |
+| On-disk live format       | **vdir** — one `.vcf` per contact                |
+| Backup export             | Aggregated single `.vcf` + profile metadata      |
+| Pre-write backup          | **Always** before contact/profile mutation       |
+| Sync default              | Push-only; pull is explicit                      |
+| Pull conflicts            | Per-contact: Keep local / Take remote / Review   |
+| Profile pic extensibility | **Profile pic source plugins** only in v1        |
+| User pic source package   | `.pp-pic-source-plugin` (WASM)                   |
+| Native user pic sources   | Desktop only — **v1.1**                          |
+| Sync adapters             | First-party only — not pic source plugins        |
+| Web deployment            | Static PWA, local-first, no required backend     |
+| License                   | GPLv3-or-later                                   |
+| Rust edition              | **2024** (match existing repo)                   |
 
 ## Resolved defaults (v1 start)
 
 These close open questions from the architecture design so implementation can proceed. Change via ADR + spec update if needed.
 
-| Topic | v1 default |
-| --- | --- |
-| Cloud auth | **OAuth 2.0 PKCE** for Google and Outlook; **app password** or token-per-server for CardDAV |
-| Remote-change check | Poll every **15 minutes** while app is active; **one prompt** listing which linked targets changed |
-| SQLite role | **Index only** — search, sort keys, pic metadata, sync bookkeeping; **vdir `.vcf` files are source of truth** |
-| Web secrets | **Passphrase-encrypted IDB** vault (Argon2id + AES-GCM); WebAuthn wrap deferred |
-| Web scraping pic sources | **Public HTTP/API only** on web; document CORS limits; desktop may add host fetch proxy later |
-| First OS adapter | **Linux** (author platform: Fedora) via **Evolution Data Server / flatpak portal** or `contacts` DB — spike in Phase 6 |
-| First cloud sync adapter | **Google Contacts** |
-| Second cloud sync adapter | **CardDAV** (generic; covers many providers) |
-| Shared pic cache | Global under app data: `cache/avatars/<sha256>` |
+| Topic                     | v1 default                                                                                                             |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Cloud auth                | **OAuth 2.0 PKCE** for Google and Outlook; **app password** or token-per-server for CardDAV                            |
+| Remote-change check       | Poll every **15 minutes** while app is active; **one prompt** listing which linked targets changed                     |
+| SQLite role               | **Index only** — search, sort keys, pic metadata, sync bookkeeping; **vdir `.vcf` files are source of truth**          |
+| Web secrets               | **Passphrase-encrypted IDB** vault (Argon2id + AES-GCM); WebAuthn wrap deferred                                        |
+| Web scraping pic sources  | **Public HTTP/API only** on web; document CORS limits; desktop may add host fetch proxy later                          |
+| First OS adapter          | **Linux** (author platform: Fedora) via **Evolution Data Server / flatpak portal** or `contacts` DB — spike in Phase 6 |
+| First cloud sync adapter  | **Google Contacts**                                                                                                    |
+| Second cloud sync adapter | **CardDAV** (generic; covers many providers)                                                                           |
+| Shared pic cache          | Global under app data: `cache/avatars/<sha256>`                                                                        |
 
 ## Workspace layout
 
@@ -276,12 +276,12 @@ pub trait ContactIndex: Send + Sync {
 
 Implementations:
 
-| Type | Platform | Phase |
-| --- | --- | --- |
-| `FsVdirBackend` | Desktop | 0 |
-| `OpfsVdirBackend` | Web WASM | 7 |
-| `SqliteContactIndex` | Desktop | 0 |
-| `WebContactIndex` | Web (IDB or wasm-sqlite) | 7 |
+| Type                 | Platform                 | Phase |
+| -------------------- | ------------------------ | ----- |
+| `FsVdirBackend`      | Desktop                  | 0     |
+| `OpfsVdirBackend`    | Web WASM                 | 7     |
+| `SqliteContactIndex` | Desktop                  | 0     |
+| `WebContactIndex`    | Web (IDB or wasm-sqlite) | 7     |
 
 ### `BackupService`
 
@@ -385,11 +385,11 @@ Host **rejects** install if `kind != "profile-pic-source"`.
 
 ### Built-in plugin IDs (reserved)
 
-| ID | Platform |
-| --- | --- |
+| ID                                          | Platform |
+| ------------------------------------------- | -------- |
 | `profile-pulse.builtin.gravatar-pic-source` | Gravatar |
-| `profile-pulse.builtin.github-pic-source` | GitHub |
-| `profile-pulse.builtin.gitlab-pic-source` | GitLab |
+| `profile-pulse.builtin.github-pic-source`   | GitHub   |
+| `profile-pulse.builtin.gitlab-pic-source`   | GitLab   |
 
 ## Pic source plugin host (`profile-pulse-pic-source-plugin-host`)
 
@@ -432,14 +432,14 @@ Dioxus 0.7 with features:
 
 ### Routes (v1)
 
-| Route | Description |
-| --- | --- |
-| `/` | Profile picker / default profile contacts |
-| `/profiles/:id/contacts` | Contact search + list |
-| `/profiles/:id/contacts/:cid` | Tabbed: details / editor / pic selector |
-| `/settings/pic-sources` | Profile pic source plugin manager |
-| `/settings/sync` | Sync target linking |
-| `/settings/backups` | Backup schedule + export |
+| Route                         | Description                               |
+| ----------------------------- | ----------------------------------------- |
+| `/`                           | Profile picker / default profile contacts |
+| `/profiles/:id/contacts`      | Contact search + list                     |
+| `/profiles/:id/contacts/:cid` | Tabbed: details / editor / pic selector   |
+| `/settings/pic-sources`       | Profile pic source plugin manager         |
+| `/settings/sync`              | Sync target linking                       |
+| `/settings/backups`           | Backup schedule + export                  |
 
 Pic selector tab calls `PicSourcePluginRegistry::discover_all`, renders candidates, on select writes PHOTO via `ContactService::apply_profile_pic`.
 
@@ -471,29 +471,29 @@ impl<B: StorageBackend, I: ContactIndex> ContactService<B, I> {
 
 ## Implementation phases
 
-| Phase | Name | Deliverable | Plan doc |
-| --- | --- | --- | --- |
-| **0** | Foundation | Workspace, core types, desktop vdir + SQLite index | [phase-0](../plans/2026-08-22-rewrite-phase-0-foundation.md) |
-| **1** | Desktop UI shell | Dioxus desktop, contact list/search, read-only details | TBD at Phase 1 start |
-| **2** | Built-in pic sources | API + host + Gravatar/GitHub/GitLab | TBD |
-| **3** | WASM pic sources | Wasm loader, sample plugin, settings UI | TBD |
-| **4** | Backup/export | Pre-write backup, aggregate VCF, profile import/export | TBD |
-| **5** | Cloud sync | Google + CardDAV push/pull + conflict UI | TBD |
-| **6** | OS sync (desktop) | Linux OS contacts adapter | TBD |
-| **7** | Web PWA | Dioxus web + OPFS backend | TBD |
-| **8** | Background sync | Remote-change polling + pull prompts | TBD |
+| Phase | Name                 | Deliverable                                            | Plan doc                                                     |
+| ----- | -------------------- | ------------------------------------------------------ | ------------------------------------------------------------ |
+| **0** | Foundation           | Workspace, core types, desktop vdir + SQLite index     | [phase-0](../plans/2026-08-22-rewrite-phase-0-foundation.md) |
+| **1** | Desktop UI shell     | Dioxus desktop, contact list/search, read-only details | TBD at Phase 1 start                                         |
+| **2** | Built-in pic sources | API + host + Gravatar/GitHub/GitLab                    | TBD                                                          |
+| **3** | WASM pic sources     | Wasm loader, sample plugin, settings UI                | TBD                                                          |
+| **4** | Backup/export        | Pre-write backup, aggregate VCF, profile import/export | TBD                                                          |
+| **5** | Cloud sync           | Google + CardDAV push/pull + conflict UI               | TBD                                                          |
+| **6** | OS sync (desktop)    | Linux OS contacts adapter                              | TBD                                                          |
+| **7** | Web PWA              | Dioxus web + OPFS backend                              | TBD                                                          |
+| **8** | Background sync      | Remote-change polling + pull prompts                   | TBD                                                          |
 
 See [docs/ROADMAP.md](../../ROADMAP.md) for milestone checklist.
 
 ## Testing strategy
 
-| Layer | Approach |
-| --- | --- |
-| `core` | Unit tests for vCard mapping, backup paths, conflict enums |
-| `storage` | `tempfile` integration tests: round-trip contact save/load, search index |
-| `pic-source-plugin-api` | Mock `PicSourceHostApi` |
-| `pic-source-plugin-host` | Built-in plugin tests against mock HTTP |
-| `app` | Dioxus RSX snapshot tests where feasible; manual desktop smoke |
+| Layer                    | Approach                                                                 |
+| ------------------------ | ------------------------------------------------------------------------ |
+| `core`                   | Unit tests for vCard mapping, backup paths, conflict enums               |
+| `storage`                | `tempfile` integration tests: round-trip contact save/load, search index |
+| `pic-source-plugin-api`  | Mock `PicSourceHostApi`                                                  |
+| `pic-source-plugin-host` | Built-in plugin tests against mock HTTP                                  |
+| `app`                    | Dioxus RSX snapshot tests where feasible; manual desktop smoke           |
 
 Run: `cargo test --workspace` from repo root (after workspace conversion).
 
@@ -505,19 +505,19 @@ Run: `cargo test --workspace` from repo root (after workspace conversion).
 
 ## Dependencies (workspace-level guidance)
 
-| Crate | Purpose | Phase |
-| --- | --- | --- |
-| `tokio` | Async runtime (desktop) | 0 |
-| `thiserror`, `anyhow` | Errors | 0 |
-| `serde`, `serde_json`, `toml` | Config/serialization | 0 |
-| `uuid`, `chrono` | IDs/time | 0 |
-| `vobject` | vCard | 0 |
-| `rusqlite` + `tokio` blocking pool | SQLite index | 0 |
-| `directories` | XDG paths | 0 |
-| `dioxus` 0.7 | UI | 1 |
-| `reqwest` | HTTP (host + plugins) | 2 |
-| `wasmtime` | Desktop WASM plugins | 3 |
-| `oauth2` | Cloud sync | 5 |
+| Crate                              | Purpose                 | Phase |
+| ---------------------------------- | ----------------------- | ----- |
+| `tokio`                            | Async runtime (desktop) | 0     |
+| `thiserror`, `anyhow`              | Errors                  | 0     |
+| `serde`, `serde_json`, `toml`      | Config/serialization    | 0     |
+| `uuid`, `chrono`                   | IDs/time                | 0     |
+| `vobject`                          | vCard                   | 0     |
+| `rusqlite` + `tokio` blocking pool | SQLite index            | 0     |
+| `directories`                      | XDG paths               | 0     |
+| `dioxus` 0.7                       | UI                      | 1     |
+| `reqwest`                          | HTTP (host + plugins)   | 2     |
+| `wasmtime`                         | Desktop WASM plugins    | 3     |
+| `oauth2`                           | Cloud sync              | 5     |
 
 Pin versions in workspace `Cargo.toml` `[workspace.dependencies]`.
 

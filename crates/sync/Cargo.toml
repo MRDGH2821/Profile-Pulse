@@ -3,8 +3,8 @@ name = "profile-pulse-sync"
 version = "0.1.0"
 edition = "2024"
 description = "Profile Pulse cloud sync adapters"
-license.workspace = true
 repository.workspace = true
+license.workspace = true
 publish = false
 
 [dependencies]
@@ -18,7 +18,7 @@ rusqlite.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
-tokio = { workspace = true, features = ["net", "io-util"] }
+tokio = { workspace = true, features = ["io-util", "net"] }
 url = "2.5"
 uuid.workspace = true
 

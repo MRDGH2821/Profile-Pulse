@@ -72,22 +72,11 @@ pub struct ProfileSettings {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum SyncTargetConfig {
-    Google {
-        enabled: bool,
-    },
-    Outlook {
-        enabled: bool,
-    },
-    CardDav {
-        enabled: bool,
-        url: String,
-    },
-    AppleIcloud {
-        enabled: bool,
-    },
-    OsContacts {
-        enabled: bool,
-    },
+    Google { enabled: bool },
+    Outlook { enabled: bool },
+    CardDav { enabled: bool, url: String },
+    AppleIcloud { enabled: bool },
+    OsContacts { enabled: bool },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

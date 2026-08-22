@@ -35,7 +35,6 @@ impl BackupService {
                 label: "initial".into(),
             });
         }
-
         let timestamp = Utc::now().format("%Y%m%dT%H%M%SZ");
         let label = timestamp.to_string();
         let dest = source.join("backups").join(&label);
@@ -51,7 +50,6 @@ impl BackupService {
         if !backups_dir.exists() {
             return Ok(vec![]);
         }
-
         let mut refs = Vec::new();
         let mut entries = fs::read_dir(&backups_dir)
             .await
@@ -90,9 +88,7 @@ impl BackupService {
                 "backup not found: {backup_label}"
             )));
         }
-
         let _ = self.snapshot_profile_before_write(profile_slug).await?;
-
         let mut entries = fs::read_dir(&profile_dir)
             .await
             .map_err(|e| CoreError::Validation(e.to_string()))?;
@@ -116,7 +112,6 @@ impl BackupService {
                     .map_err(|e| CoreError::Validation(e.to_string()))?;
             }
         }
-
         copy_dir_excluding_backups(&backup_dir, &profile_dir).await?;
         Ok(())
     }

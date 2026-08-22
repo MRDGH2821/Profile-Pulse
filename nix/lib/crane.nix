@@ -3,15 +3,12 @@
   pkgs,
 }: let
   craneLib = inputs.crane.mkLib pkgs;
-  lib = pkgs.lib;
+  inherit (pkgs) lib;
 
   pname = "profile-pulse";
-  version =
-    (builtins.fromTOML (builtins.readFile ../../crates/app/Cargo.toml)).package.version;
+  version = (fromTOML (builtins.readFile ../../crates/app/Cargo.toml)).package.version;
 
-  sourceFilter =
-    path: type:
-    (craneLib.filterCargoSources path type) || lib.hasSuffix ".css" path;
+  sourceFilter = path: type: (craneLib.filterCargoSources path type) || lib.hasSuffix ".css" path;
 
   src = lib.cleanSourceWith {
     filter = sourceFilter;
@@ -41,10 +38,10 @@
   appPackageArgs =
     baseArgs
     // {
+      buildInputs = desktopBuildInputs;
       cargoExtraArgs = "--package profile-pulse-app";
       meta.mainProgram = "profile-pulse";
       nativeBuildInputs = desktopNativeBuildInputs;
-      buildInputs = desktopBuildInputs;
     };
 
   workspaceCheckArgs =

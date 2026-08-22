@@ -6,9 +6,9 @@ description = "Legacy Iced desktop app (frozen — superseded by Dioxus rewrite)
 readme = "../../README.md"
 repository = "https://github.com/MRDGH2821/Profile-Pulse"
 license = "GPL-3.0-or-later"
-publish = false
 keywords = ["contacts", "desktop", "social-media", "vcard", "vcf"]
 categories = ["gui", "network-programming"]
+publish = false
 
 [[bin]]
 name = "profile-pulse-legacy"

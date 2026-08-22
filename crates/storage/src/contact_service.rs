@@ -3,8 +3,7 @@ use crate::profile_bundle::{export_profile_bundle, import_profile_bundle};
 use crate::traits::{ContactIndex, StorageBackend};
 use chrono::Utc;
 use profile_pulse_core::{
-    contact_to_vcard_bytes, BackupRef, BackupService, Contact,
-    ContactId, Profile, ProfileId,
+    BackupRef, BackupService, Contact, ContactId, Profile, ProfileId, contact_to_vcard_bytes,
 };
 use profile_pulse_pic_source_plugin_api::ProfilePicBytes;
 use std::path::{Path, PathBuf};
@@ -91,9 +90,7 @@ where
             .snapshot_profile_before_write(&slug)
             .await
             .map_err(|e| StorageError::Vcard(e.to_string()))?;
-        self.storage
-            .delete_contact(profile_id, contact_id)
-            .await?;
+        self.storage.delete_contact(profile_id, contact_id).await?;
         self.index.remove_contact(profile_id, contact_id).await?;
         Ok(())
     }
@@ -140,7 +137,10 @@ where
         Ok(profile)
     }
 
-    pub async fn list_backups(&self, profile_id: ProfileId) -> Result<Vec<BackupRef>, StorageError> {
+    pub async fn list_backups(
+        &self,
+        profile_id: ProfileId,
+    ) -> Result<Vec<BackupRef>, StorageError> {
         let slug = self.profile_slug(profile_id).await?;
         self.backup
             .list_profile_backups(&slug)
@@ -193,14 +193,12 @@ where
             if dir.trim().is_empty() {
                 continue;
             }
-
             let bundle = self.export_profile_bundle(profile.id).await?;
             fs::create_dir_all(&dir).await?;
             let timestamp = Utc::now().format("%Y%m%dT%H%M%SZ");
             let filename = format!("{}-profile-pulse-{}.pp-profile", profile.slug, timestamp);
             let path = PathBuf::from(&dir).join(filename);
             fs::write(&path, &bundle).await?;
-
             profile.settings.scheduled_backup_last_run = Some(Utc::now());
             profile.updated_at = Utc::now();
             self.storage.save_profile(&profile).await?;
@@ -215,10 +213,7 @@ where
         contact_id: ContactId,
         pic: ProfilePicBytes,
     ) -> Result<Contact, StorageError> {
-        let mut contact = self
-            .storage
-            .load_contact(profile_id, contact_id)
-            .await?;
+        let mut contact = self.storage.load_contact(profile_id, contact_id).await?;
         let hash = crate::photo_cache::sha256_hex(&pic.bytes);
         crate::photo_cache::store_photo(&self.data_root, &hash, &pic.bytes).await?;
         contact.photo_content_hash = Some(hash);

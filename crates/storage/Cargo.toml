@@ -3,8 +3,8 @@ name = "profile-pulse-storage"
 version = "0.1.0"
 edition = "2024"
 description = "Profile Pulse storage backends"
-license.workspace = true
 repository.workspace = true
+license.workspace = true
 
 [dependencies]
 async-trait.workspace = true

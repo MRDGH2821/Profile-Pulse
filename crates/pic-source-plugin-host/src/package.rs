@@ -1,13 +1,11 @@
-use std::fs;
-use std::path::{Path, PathBuf};
-
-use profile_pulse_pic_source_plugin_api::PicSourceCapability;
-use tokio::fs as async_fs;
-
 use crate::error::HostError;
 use crate::manifest::{
-    PicSourcePluginManifest, PluginInstallState, INSTALL_FILE, MANIFEST_FILE, WASM_FILE,
+    INSTALL_FILE, MANIFEST_FILE, PicSourcePluginManifest, PluginInstallState, WASM_FILE,
 };
+use profile_pulse_pic_source_plugin_api::PicSourceCapability;
+use std::fs;
+use std::path::{Path, PathBuf};
+use tokio::fs as async_fs;
 
 pub fn plugins_root(data_root: &Path) -> PathBuf {
     data_root.join("pic-source-plugins")
@@ -74,7 +72,8 @@ fn capability_matches(name: &str, cap: PicSourceCapability) -> bool {
     name == crate::manifest::capability_name(cap)
 }
 
-/// Install a `.pp-pic-source-plugin` directory or zip archive into the data directory.
+/// Install a `.pp-pic-source-plugin` directory or zip archive into the data
+/// directory.
 pub async fn install_package(
     data_root: &Path,
     source: &Path,
@@ -96,7 +95,6 @@ pub async fn install_package(
             "expected a plugin directory or .pp-pic-source-plugin zip".into(),
         ));
     };
-
     let manifest = read_manifest_from_dir(&staged_dir)?;
     manifest.validate()?;
     if !staged_dir.join(WASM_FILE).exists() {
@@ -104,13 +102,11 @@ pub async fn install_package(
             "package missing {WASM_FILE}"
         )));
     }
-
     let dest = plugin_install_dir(data_root, &manifest.id);
     if dest.exists() {
         async_fs::remove_dir_all(&dest).await?;
     }
     copy_dir_recursive(&staged_dir, &dest)?;
-
     let install_state = PluginInstallState {
         enabled: true,
         approved_capabilities: approved
@@ -151,7 +147,8 @@ fn find_package_root(staging: &Path) -> Result<PathBuf, HostError> {
 
 fn extract_zip(archive: &Path, dest: &Path) -> Result<(), HostError> {
     let file = fs::File::open(archive)?;
-    let mut zip = zip::ZipArchive::new(file).map_err(|e| HostError::InvalidPackage(e.to_string()))?;
+    let mut zip =
+        zip::ZipArchive::new(file).map_err(|e| HostError::InvalidPackage(e.to_string()))?;
     for i in 0..zip.len() {
         let mut entry = zip
             .by_index(i)

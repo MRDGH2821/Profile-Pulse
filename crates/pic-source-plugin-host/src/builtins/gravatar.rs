@@ -1,5 +1,4 @@
-use std::sync::Arc;
-
+use crate::desktop_host::{DesktopHostApi, guess_content_type, host_context};
 use async_trait::async_trait;
 use profile_pulse_core::PicSourcePluginId;
 use profile_pulse_pic_source_plugin_api::{
@@ -7,8 +6,7 @@ use profile_pulse_pic_source_plugin_api::{
     PicSourcePluginMetadata, ProfilePicBytes, ProfilePicCandidate, ProfilePicSourcePlugin,
 };
 use semver::Version;
-
-use crate::desktop_host::{guess_content_type, host_context, DesktopHostApi};
+use std::sync::Arc;
 
 pub const PLUGIN_ID: &str = "profile-pulse.builtin.gravatar-pic-source";
 

@@ -7,25 +7,24 @@ pub trait StorageBackend: Send + Sync {
     async fn list_profiles(&self) -> Result<Vec<Profile>, StorageError>;
     async fn load_profile(&self, id: ProfileId) -> Result<Profile, StorageError>;
     async fn save_profile(&self, profile: &Profile) -> Result<(), StorageError>;
-
-    async fn list_contact_ids(&self, profile_id: ProfileId) -> Result<Vec<ContactId>, StorageError>;
+    async fn list_contact_ids(&self, profile_id: ProfileId)
+    -> Result<Vec<ContactId>, StorageError>;
     async fn load_contact(
         &self,
         profile_id: ProfileId,
         id: ContactId,
     ) -> Result<Contact, StorageError>;
-    async fn save_contact(&self, contact: &Contact, vcard_bytes: &[u8]) -> Result<(), StorageError>;
+    async fn save_contact(&self, contact: &Contact, vcard_bytes: &[u8])
+    -> Result<(), StorageError>;
     async fn delete_contact(
         &self,
         profile_id: ProfileId,
         id: ContactId,
     ) -> Result<(), StorageError>;
-
     async fn export_profile_vcf_aggregate(
         &self,
         profile_id: ProfileId,
     ) -> Result<Vec<u8>, StorageError>;
-
     async fn import_vcf_into_profile(
         &self,
         profile_id: ProfileId,
@@ -47,6 +46,5 @@ pub trait ContactIndex: Send + Sync {
         query: &str,
         limit: u32,
     ) -> Result<Vec<ContactId>, StorageError>;
-
     async fn clear_profile(&self, profile_id: ProfileId) -> Result<(), StorageError>;
 }

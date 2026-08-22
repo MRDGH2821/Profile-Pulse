@@ -1,16 +1,14 @@
-use std::path::{Path, PathBuf};
-use std::sync::Arc;
-
+use crate::desktop_host::{DesktopHostApi, guess_content_type};
+use crate::error::HostError;
 use async_trait::async_trait;
 use profile_pulse_pic_source_plugin_api::{
     ContactContext, PicSourceCapability, PicSourceHostApi, PicSourceHostContext,
     PicSourcePluginError, PicSourcePluginMetadata, ProfilePicBytes, ProfilePicCandidate,
     ProfilePicSourcePlugin,
 };
+use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use wasmtime::{Caller, Engine, Instance, Linker, Module, Store};
-
-use crate::desktop_host::{guess_content_type, DesktopHostApi};
-use crate::error::HostError;
 
 const GUEST_HEAP: i32 = 256 * 1024;
 
@@ -49,11 +47,9 @@ impl WasmPicSourcePlugin {
                 crate::manifest::WASM_FILE
             )));
         }
-
         let engine = Engine::default();
-        let module = Module::from_file(&engine, &wasm_path)
-            .map_err(|e| HostError::Wasm(e.to_string()))?;
-
+        let module =
+            Module::from_file(&engine, &wasm_path).map_err(|e| HostError::Wasm(e.to_string()))?;
         Ok(Self {
             metadata,
             capabilities,
@@ -80,11 +76,9 @@ impl WasmPicSourcePlugin {
         let mut store = Store::new(&self.engine, state);
         let mut linker = Linker::new(&self.engine);
         link_host_functions(&mut linker)?;
-
         let instance = linker
             .instantiate(&mut store, &self.module)
             .map_err(|e| PicSourcePluginError::Internal(e.to_string()))?;
-
         reset_guest(&mut store, &instance)?;
         let output = invoke_guest_json(&mut store, &instance, export, input)?;
         serde_json::from_slice(&output)
@@ -103,7 +97,11 @@ fn link_host_functions(linker: &mut Linker<WasmHostState>) -> Result<(), PicSour
              out_ptr: i32,
              out_cap: i32|
              -> i32 {
-                if !caller.data().approved.contains(&PicSourceCapability::Network) {
+                if !caller
+                    .data()
+                    .approved
+                    .contains(&PicSourceCapability::Network)
+                {
                     return -403;
                 }
                 let url = match read_guest_string(&mut caller, url_ptr, url_len) {
@@ -150,7 +148,6 @@ fn invoke_guest_json(
     let invoke = instance
         .get_typed_func::<(i32, i32, i32, i32), i32>(&mut *store, export)
         .map_err(|e| PicSourcePluginError::Internal(format!("missing export `{export}`: {e}")))?;
-
     let in_ptr = alloc
         .call(&mut *store, input.len() as i32)
         .map_err(|e| PicSourcePluginError::Internal(e.to_string()))?;
@@ -158,14 +155,12 @@ fn invoke_guest_json(
         return Err(PicSourcePluginError::Internal("plugin_alloc failed".into()));
     }
     write_guest_bytes_raw(store, instance, in_ptr, input)?;
-
     let out_ptr = alloc
         .call(&mut *store, GUEST_HEAP)
         .map_err(|e| PicSourcePluginError::Internal(e.to_string()))?;
     if out_ptr < 0 {
         return Err(PicSourcePluginError::Internal("plugin_alloc failed".into()));
     }
-
     let written = invoke
         .call(
             &mut *store,
@@ -202,7 +197,9 @@ fn read_guest_string(
         .and_then(|e| e.into_memory())
         .ok_or(-1)?;
     let mut buf = vec![0u8; len as usize];
-    memory.read(caller, ptr as usize, &mut buf).map_err(|_| -1)?;
+    memory
+        .read(caller, ptr as usize, &mut buf)
+        .map_err(|_| -1)?;
     String::from_utf8(buf).map_err(|_| -1)
 }
 
@@ -265,8 +262,8 @@ impl ProfilePicSourcePlugin for WasmPicSourcePlugin {
         &self,
         ctx: &ContactContext,
     ) -> Result<Vec<ProfilePicCandidate>, PicSourcePluginError> {
-        let input = serde_json::to_vec(ctx)
-            .map_err(|e| PicSourcePluginError::Internal(e.to_string()))?;
+        let input =
+            serde_json::to_vec(ctx).map_err(|e| PicSourcePluginError::Internal(e.to_string()))?;
         self.call_json("discover", &input)
     }
 

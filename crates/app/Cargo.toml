@@ -3,8 +3,8 @@ name = "profile-pulse-app"
 version = "0.1.0"
 edition = "2024"
 description = "Profile Pulse desktop and web application"
-license.workspace = true
 repository.workspace = true
+license.workspace = true
 publish = false
 
 [[bin]]
@@ -13,8 +13,8 @@ path = "src/main.rs"
 
 [dependencies]
 chrono.workspace = true
-directories.workspace = true
 dioxus = { version = "0.7", features = ["desktop", "router"] }
+directories.workspace = true
 profile-pulse-core = { path = "../core" }
 profile-pulse-pic-source-plugin-api = { path = "../pic-source-plugin-api" }
 profile-pulse-pic-source-plugin-host = { path = "../pic-source-plugin-host" }

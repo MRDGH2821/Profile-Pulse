@@ -1,6 +1,5 @@
-use std::collections::HashSet;
-use std::sync::Arc;
-
+use crate::builtins::github_username_from_url;
+use crate::desktop_host::{DesktopHostApi, guess_content_type, host_context};
 use async_trait::async_trait;
 use profile_pulse_core::PicSourcePluginId;
 use profile_pulse_pic_source_plugin_api::{
@@ -8,9 +7,8 @@ use profile_pulse_pic_source_plugin_api::{
     PicSourcePluginMetadata, ProfilePicBytes, ProfilePicCandidate, ProfilePicSourcePlugin,
 };
 use semver::Version;
-
-use crate::builtins::github_username_from_url;
-use crate::desktop_host::{guess_content_type, host_context, DesktopHostApi};
+use std::collections::HashSet;
+use std::sync::Arc;
 
 pub const PLUGIN_ID: &str = "profile-pulse.builtin.github-pic-source";
 
@@ -30,7 +28,6 @@ impl GithubPicSource {
     fn collect_usernames(ctx: &ContactContext) -> Vec<String> {
         let mut seen = HashSet::new();
         let mut usernames = Vec::new();
-
         for site in &ctx.websites {
             if let Some(user) = github_username_from_url(&site.url) {
                 if seen.insert(user.clone()) {
@@ -38,7 +35,6 @@ impl GithubPicSource {
                 }
             }
         }
-
         usernames
     }
 }
@@ -96,7 +92,8 @@ impl ProfilePicSourcePlugin for GithubPicSource {
     }
 }
 
-/// Discover a GitHub avatar for a manually entered username (pic selector convenience).
+/// Discover a GitHub avatar for a manually entered username (pic selector
+/// convenience).
 pub fn github_candidate_for_username(username: &str) -> Option<ProfilePicCandidate> {
     let user = username.trim().trim_start_matches('@');
     if user.is_empty() || user.contains('/') {

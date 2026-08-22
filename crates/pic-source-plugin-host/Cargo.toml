@@ -3,8 +3,8 @@ name = "profile-pulse-pic-source-plugin-host"
 version = "0.1.0"
 edition = "2024"
 description = "Profile pic source plugin host for Profile Pulse"
-license.workspace = true
 repository.workspace = true
+license.workspace = true
 
 [dependencies]
 async-trait.workspace = true
@@ -16,13 +16,13 @@ reqwest.workspace = true
 semver.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+tempfile.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["fs", "rt-multi-thread"] }
 toml.workspace = true
-tempfile.workspace = true
 wasmtime.workspace = true
 zip.workspace = true
 
 [dev-dependencies]
-tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tempfile.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

@@ -1,4 +1,6 @@
-use crate::views::{BackupsSettings, ContactDetail, ContactList, PicSourcesSettings, Profiles, SyncSettings};
+use crate::views::{
+    BackupsSettings, ContactDetail, ContactList, PicSourcesSettings, Profiles, SyncSettings,
+};
 use dioxus::prelude::*;
 
 #[derive(Routable, Clone, Debug, PartialEq)]

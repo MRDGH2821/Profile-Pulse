@@ -1,3 +1,3 @@
 pub mod adapter;
 
-pub use adapter::{carddav_secret_key, CardDavAdapter, CardDavCredentials};
+pub use adapter::{CardDavAdapter, CardDavCredentials, carddav_secret_key};
