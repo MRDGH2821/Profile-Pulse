@@ -42,11 +42,12 @@ nix flake check   # formatting + flake checks
 
 ```text
 crates/
-  core/           # profile-pulse-core — domain + services
-  storage/        # profile-pulse-storage — vdir + SQLite index
-  app/            # profile-pulse-app — Dioxus UI (Phase 1+)
-pic-source-plugins/
-  builtin-*/      # built-in profile pic source plugins (Phase 2+)
+  core/                      # profile-pulse-core — domain + services
+  storage/                   # profile-pulse-storage — vdir + SQLite index
+  pic-source-plugin-api/     # profile pic source plugin trait + types (Phase 2+)
+  pic-source-plugin-host/    # built-in plugins + registry (Phase 2+)
+  app/                       # profile-pulse-app — Dioxus UI (Phase 1+)
+pic-source-plugins/          # WASM plugins (Phase 3+)
 legacy/
   iced-app/       # frozen pre-rewrite app
 ```

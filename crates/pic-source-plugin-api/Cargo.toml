@@ -1,0 +1,15 @@
+[package]
+name = "profile-pulse-pic-source-plugin-api"
+version = "0.1.0"
+edition = "2024"
+description = "Profile pic source plugin API for Profile Pulse"
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+log.workspace = true
+profile-pulse-core = { path = "../core" }
+semver.workspace = true
+serde.workspace = true
+thiserror.workspace = true

@@ -1,6 +1,9 @@
 use dioxus::prelude::*;
 use profile_pulse_core::{Profile, ProfileId, ProfileSettings};
-use profile_pulse_storage::{FsVdirBackend, SqliteContactIndex, StorageBackend};
+use profile_pulse_pic_source_plugin_host::PicSourcePluginRegistry;
+use profile_pulse_storage::{
+    ContactService, FsVdirBackend, SqliteContactIndex, StorageBackend,
+};
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -21,6 +24,8 @@ impl ActiveProfile {
 pub struct AppState {
     pub storage: Arc<FsVdirBackend>,
     pub index: Arc<SqliteContactIndex>,
+    pub contact_service: Arc<ContactService<FsVdirBackend, SqliteContactIndex>>,
+    pub pic_registry: Arc<PicSourcePluginRegistry>,
     data_root: PathBuf,
 }
 
@@ -33,10 +38,18 @@ impl AppState {
             SqliteContactIndex::new(data_root.join("index.sqlite"))
                 .expect("initialize sqlite contact index"),
         );
+        let contact_service = Arc::new(ContactService::new(
+            storage.clone(),
+            index.clone(),
+            data_root.clone(),
+        ));
+        let pic_registry = PicSourcePluginRegistry::with_builtins(&data_root);
 
         Self {
             storage,
             index,
+            contact_service,
+            pic_registry,
             data_root,
         }
     }

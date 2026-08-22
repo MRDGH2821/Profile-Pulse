@@ -1,5 +1,6 @@
 use crate::routes::Route;
 use crate::state::AppState;
+use crate::views::PicSelector;
 use dioxus::prelude::*;
 use profile_pulse_core::{ContactId, ProfileId};
 use profile_pulse_storage::StorageBackend;
@@ -143,7 +144,16 @@ pub fn ContactDetail(profile_id: String, contact_id: String) -> Element {
                     p { class: "placeholder", "Contact editor — Phase 4" }
                 },
                 ContactTab::PicSelector => rsx! {
-                    p { class: "placeholder", "Profile pic selector — Phase 2" }
+                    if let Some(c) = contact() {
+                        PicSelector {
+                            profile_id: profile_uuid,
+                            contact_id: contact_uuid,
+                            contact: c.clone(),
+                            on_applied: move |updated| contact.set(Some(updated)),
+                        }
+                    } else {
+                        p { class: "hint", "Loading contact…" }
+                    }
                 },
             }
         }

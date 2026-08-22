@@ -1,25 +1,22 @@
 [package]
-name = "profile-pulse-storage"
+name = "profile-pulse-pic-source-plugin-host"
 version = "0.1.0"
 edition = "2024"
-description = "Profile Pulse storage backends"
+description = "Profile pic source plugin host for Profile Pulse"
 license.workspace = true
 repository.workspace = true
 
 [dependencies]
 async-trait.workspace = true
-chrono.workspace = true
+log.workspace = true
+md5.workspace = true
 profile-pulse-core = { path = "../core" }
 profile-pulse-pic-source-plugin-api = { path = "../pic-source-plugin-api" }
-rusqlite.workspace = true
+reqwest.workspace = true
+semver.workspace = true
 serde.workspace = true
-sha2.workspace = true
 thiserror.workspace = true
-tokio.workspace = true
-toml.workspace = true
-uuid.workspace = true
+tokio = { workspace = true, features = ["fs", "rt-multi-thread"] }
 
 [dev-dependencies]
-profile-pulse-core = { path = "../core" }
-tempfile.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

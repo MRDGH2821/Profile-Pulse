@@ -1,6 +1,6 @@
 # Profile Pulse Rewrite — Roadmap
 
-**Status:** Phase 1 complete on `mrdgh2821/feat/phase-1-desktop-ui` (Phase 0 on `mrdgh2821/feat/phase-0-foundation`)  
+**Status:** Phase 2 complete on `mrdgh2821/feat/phase-2-pic-sources`  
 **Architecture:** [2026-08-22-rewrite-architecture-design.md](superpowers/specs/2026-08-22-rewrite-architecture-design.md)  
 **Implementation spec:** [2026-08-22-rewrite-implementation-spec.md](superpowers/specs/2026-08-22-rewrite-implementation-spec.md)  
 **Human plan:** [profile-pulse-app.md](human-plans/profile-pulse-app.md)
@@ -15,7 +15,7 @@ Cross-platform **desktop + web PWA** app that keeps device/cloud contacts update
 | --- | --- | --- | --- |
 | 0 | Foundation | Workspace, core types, desktop vdir + SQLite index | [phase-0](superpowers/plans/2026-08-22-rewrite-phase-0-foundation.md) |
 | 1 | Desktop UI shell | Dioxus desktop: profiles, contact search/list, details (read-only) | TBD |
-| 2 | Built-in pic sources | Pic source plugin API/host + Gravatar, GitHub, GitLab | TBD |
+| 2 | Built-in pic sources | Pic source plugin API/host + Gravatar, GitHub, GitLab | Done |
 | 3 | WASM pic sources | WASM loader, sample `.pp-pic-source-plugin`, manager UI | TBD |
 | 4 | Backup & import/export | Pre-write backup UI, aggregate VCF, profile bundle | TBD |
 | 5 | Cloud sync | Google + CardDAV push/pull, per-contact sync button | TBD |
@@ -46,13 +46,13 @@ Cross-platform **desktop + web PWA** app that keeps device/cloud contacts update
 
 ## Phase 2 — Built-in profile pic sources
 
-- [ ] `profile-pulse-pic-source-plugin-api` crate
-- [ ] `profile-pulse-pic-source-plugin-host` with `BuiltinRuntime`
-- [ ] Built-in: `profile-pulse.builtin.gravatar-pic-source`
-- [ ] Built-in: `profile-pulse.builtin.github-pic-source`
-- [ ] Built-in: `profile-pulse.builtin.gitlab-pic-source`
-- [ ] Pic selector tab: discover + preview + apply via `ContactService::apply_profile_pic`
-- [ ] Website link convenience actions in pic selector
+- [x] `profile-pulse-pic-source-plugin-api` crate
+- [x] `profile-pulse-pic-source-plugin-host` with `BuiltinRuntime`
+- [x] Built-in: `profile-pulse.builtin.gravatar-pic-source`
+- [x] Built-in: `profile-pulse.builtin.github-pic-source`
+- [x] Built-in: `profile-pulse.builtin.gitlab-pic-source`
+- [x] Pic selector tab: discover + preview + apply via `ContactService::apply_profile_pic`
+- [x] Website link convenience actions in pic selector
 
 ## Phase 3 — WASM profile pic sources
 

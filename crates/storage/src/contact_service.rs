@@ -1,6 +1,9 @@
 use crate::error::StorageError;
+use crate::photo_cache::{sha256_hex, store_photo};
 use crate::traits::{ContactIndex, StorageBackend};
-use profile_pulse_core::{contact_to_vcard_bytes, BackupService, Contact};
+use chrono::Utc;
+use profile_pulse_core::{contact_to_vcard_bytes, BackupService, Contact, ContactId, ProfileId};
+use profile_pulse_pic_source_plugin_api::ProfilePicBytes;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -8,6 +11,7 @@ pub struct ContactService<B, I> {
     storage: Arc<B>,
     index: Arc<I>,
     backup: BackupService,
+    data_root: PathBuf,
 }
 
 impl<B, I> ContactService<B, I>
@@ -21,6 +25,7 @@ where
             storage,
             index,
             backup: BackupService::new(profiles_root),
+            data_root,
         }
     }
 
@@ -31,9 +36,28 @@ where
             .snapshot_profile_before_write(&profile.slug)
             .await
             .map_err(|e| StorageError::Vcard(e.to_string()))?;
-        let vcard_bytes = contact_to_vcard_bytes(&contact).map_err(|e| StorageError::Vcard(e.to_string()))?;
+        let vcard_bytes =
+            contact_to_vcard_bytes(&contact).map_err(|e| StorageError::Vcard(e.to_string()))?;
         self.storage.save_contact(&contact, &vcard_bytes).await?;
         self.index.upsert_contact(&contact).await?;
         Ok(())
+    }
+
+    pub async fn apply_profile_pic(
+        &self,
+        profile_id: ProfileId,
+        contact_id: ContactId,
+        pic: ProfilePicBytes,
+    ) -> Result<Contact, StorageError> {
+        let mut contact = self
+            .storage
+            .load_contact(profile_id, contact_id)
+            .await?;
+        let hash = sha256_hex(&pic.bytes);
+        store_photo(&self.data_root, &hash, &pic.bytes).await?;
+        contact.photo_content_hash = Some(hash);
+        contact.updated_at = Utc::now();
+        self.update_contact(contact.clone()).await?;
+        Ok(contact)
     }
 }

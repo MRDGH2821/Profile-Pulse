@@ -3,6 +3,8 @@ resolver = "3"
 members = [
   "crates/core",
   "crates/storage",
+  "crates/pic-source-plugin-api",
+  "crates/pic-source-plugin-host",
   "crates/app",
   "legacy/iced-app",
 ]
@@ -26,6 +28,11 @@ uuid = { version = "1.19", features = ["serde", "v4"] }
 vobject = "0.8"
 rusqlite = { version = "0.32", features = ["bundled"] }
 tempfile = "3.24"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
+sha2 = "0.10"
+semver = { version = "1.0", features = ["serde"] }
+log = "0.4"
+md5 = "0.7"
 
 [profile.dev]
 opt-level = 0

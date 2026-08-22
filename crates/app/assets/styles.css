@@ -111,3 +111,42 @@ input[type="text"] {
 .details dd {
   margin-left: 0;
 }
+
+.pic-selector {
+  display: grid;
+  gap: 1rem;
+}
+
+.pic-candidates {
+  list-style: none;
+  padding: 0;
+}
+
+.pic-candidate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #8883;
+}
+
+.pic-candidate-main {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pic-preview {
+  width: 4rem;
+  height: 4rem;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  border: 1px solid #8884;
+}
+
+.pic-convenience {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #8883;
+}

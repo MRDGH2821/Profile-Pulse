@@ -20,6 +20,15 @@ impl std::fmt::Display for ContactId {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct PicSourcePluginId(pub String);
+
+impl std::fmt::Display for PicSourcePluginId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct WebsiteLink {
     pub label: String,
