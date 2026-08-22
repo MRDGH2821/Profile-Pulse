@@ -28,13 +28,13 @@ cache/
 
 # Logs
 *.log
-!.ai/logs
 logs/
+!.agents/logs
 
 # Testing
 coverage/
 
-# MegaLinter
+
 # AI
 # keep-sorted start
 .agents/mcp_config.json
@@ -114,7 +114,6 @@ ehthumbs.db
 .mcp.json
 .opencode/skills
 .vscode/mcp.json
-/.agents/skills
 apm_modules/
 opencode.json
 
