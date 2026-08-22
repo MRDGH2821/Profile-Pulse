@@ -17,10 +17,10 @@ pub fn contact_to_vcard_bytes(contact: &Contact) -> Result<Vec<u8>, CoreError> {
     if let Some(given) = &contact.given_name {
         lines.push(format!("N:;{};;;", escape_text(given)));
     }
-    if let Some(family) = &contact.family_name {
-        if contact.given_name.is_none() {
-            lines.push(format!("N:{};;;;", escape_text(family)));
-        }
+    if let Some(family) = &contact.family_name
+        && contact.given_name.is_none()
+    {
+        lines.push(format!("N:{};;;;", escape_text(family)));
     }
 
     for email in &contact.emails {

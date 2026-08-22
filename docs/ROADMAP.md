@@ -1,6 +1,6 @@
 # Profile Pulse Rewrite — Roadmap
 
-**Status:** Phase 0 ready to start  
+**Status:** Phase 0 in progress (foundation code landed on `mrdgh2821/feat/phase-0-foundation`)  
 **Architecture:** [2026-08-22-rewrite-architecture-design.md](superpowers/specs/2026-08-22-rewrite-architecture-design.md)  
 **Implementation spec:** [2026-08-22-rewrite-implementation-spec.md](superpowers/specs/2026-08-22-rewrite-implementation-spec.md)  
 **Human plan:** [profile-pulse-app.md](human-plans/profile-pulse-app.md)
@@ -25,15 +25,15 @@ Cross-platform **desktop + web PWA** app that keeps device/cloud contacts update
 
 ## Phase 0 — Foundation
 
-- [ ] Cargo workspace with `profile-pulse-core`, `profile-pulse-storage`
-- [ ] Legacy Iced app moved to `legacy/iced-app` (no new features)
-- [ ] Domain model: `Contact`, `Profile`, IDs, sync enums
-- [ ] vCard read/write via `vobject`
-- [ ] Desktop vdir: `profiles/<slug>/contacts/<uuid>.vcf`
-- [ ] SQLite contact search index
-- [ ] Pre-write profile snapshot backup
-- [ ] `ContactService::update_contact` orchestration
-- [ ] Workspace tests + clippy clean
+- [x] Cargo workspace with `profile-pulse-core`, `profile-pulse-storage`
+- [x] Legacy Iced app moved to `legacy/iced-app` (no new features)
+- [x] Domain model: `Contact`, `Profile`, IDs, sync enums
+- [x] vCard read/write via vCard 3.0 mapping (core `vcard` module)
+- [x] Desktop vdir: `profiles/<slug>/contacts/<uuid>.vcf`
+- [x] SQLite contact search index
+- [x] Pre-write profile snapshot backup
+- [x] `ContactService::update_contact` orchestration
+- [ ] Workspace tests + clippy clean (legacy crate may retain warnings)
 
 ## Phase 1 — Desktop UI shell
 
