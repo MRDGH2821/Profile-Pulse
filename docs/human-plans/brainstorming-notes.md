@@ -33,7 +33,7 @@
 
 | Topic                   | Options discussed                                   |
 | ----------------------- | --------------------------------------------------- |
-| Auth for cloud targets  | OAuth PKCE / app passwords / OS Contacts APIs       |
+| Auth for cloud targets  | OAuth PKCE / app passwords                          |
 | Remote-check UX details | Poll interval; per-target vs any-target prompt      |
 | SQLite role             | Index/search/pic cache only vs more                 |
 | Web secret storage      | Passphrase-encrypted IDB v1 vs WebAuthn later       |

@@ -71,7 +71,6 @@ It should also create a backup of contacts & profile before any write operation 
 
 The app should be able to sync contacts back into:
 
-- OS Contacts
 - Google Contacts (by signing in)
 - Outlook Contacts (by signing in)
 - iCloud Contacts (by signing in)

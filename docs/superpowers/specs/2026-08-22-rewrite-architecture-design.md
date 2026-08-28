@@ -38,8 +38,8 @@ Earlier brainstorming assumed **desktop + mobile** with web later. **Mobile is d
 
 | Surface     | Technology           | Role                                                                                                   |
 | ----------- | -------------------- | ------------------------------------------------------------------------------------------------------ |
-| **Desktop** | Dioxus native + Rust | Primary power-user surface: filesystem vdir, OS contacts, native pic source plugins, scheduled backups |
-| **Website** | Dioxus WASM PWA      | No-install access; cloud sync only (no OS address book); WASM pic source plugins only                  |
+| **Desktop** | Dioxus native + Rust | Primary power-user surface: filesystem vdir, native pic source plugins, scheduled backups |
+| **Website** | Dioxus WASM PWA      | No-install access; cloud sync; WASM pic source plugins only                  |
 
 Both surfaces share the same Dioxus UI and Rust core, compiled to native and `wasm32` respectively.
 
@@ -59,7 +59,6 @@ flowchart TB
 
   subgraph desktop_only [Desktop only]
     VdirFS[vdir on disk]
-    OSSync[OS contact adapters]
     NativeRT[native pic source plugin runtime]
   end
 
@@ -75,7 +74,6 @@ flowchart TB
   UI --> Host
   Host --> API
   D --> VdirFS
-  D --> OSSync
   D --> NativeRT
   W --> OPFS
   W --> CloudOnly
@@ -91,7 +89,7 @@ flowchart TB
 | **UI** (`profile-pulse-app`)                                        | Dioxus views: contact search, details/editor/pic-selector tabs, settings, **profile pic source plugin** manager |
 | **Core** (`profile-pulse-core`)                                     | Domain model, profiles, backup rules, conflict resolution, orchestration — no UI, no pic source plugin loading  |
 | **Storage** (`profile-pulse-storage`)                               | Pluggable backends: filesystem vdir (desktop), OPFS/IDB (web)                                                   |
-| **Sync** (`profile-pulse-sync`)                                     | First-party adapters: Google, Outlook, CardDAV, iCloud (where feasible); OS contacts **desktop only**           |
+| **Sync** (`profile-pulse-sync`)                                     | First-party adapters: Google, Outlook, CardDAV, iCloud (where feasible)           |
 | **Pic source plugin API** (`profile-pulse-pic-source-plugin-api`)   | Stable host ↔ **profile pic source plugin** contract, versioned                                                 |
 | **Pic source plugin host** (`profile-pulse-pic-source-plugin-host`) | Registry, discovery, enable/disable, capabilities, runtimes                                                     |
 | **Built-in pic source plugins** (`pic-source-plugins/builtin-*`)    | Gravatar, GitHub, GitLab — compile-time, embedded in both binaries                                              |
@@ -176,13 +174,12 @@ Implement a **`StorageBackend`** trait in core; vdir-on-disk and OPFS are interc
 | Outlook / Microsoft | Yes     | Yes     | OAuth + API                              |
 | CardDAV             | Yes     | Yes     | OAuth or app password                    |
 | Apple / iCloud      | Yes     | Limited | Platform-dependent; document constraints |
-| OS address book     | Yes     | **No**  | Windows / macOS / Linux native APIs      |
 
 **Sync adapters are first-party only** — not profile pic source plugins. They handle OAuth, rate limits, and contact writes. **Profile pic source plugins** only discover and fetch candidate profile pictures.
 
 ### Profile creation flow
 
-When a user creates a profile, they may link **multiple outbound targets** (Google, Apple, Outlook, CardDAV, OS on desktop). The app-owned store remains source of truth; adapters are projections.
+When a user creates a profile, they may link **multiple outbound targets** (Google, Apple, Outlook, CardDAV). The app-owned store remains source of truth; adapters are projections.
 
 ## Profile pic source plugin architecture
 
@@ -308,12 +305,12 @@ Pic source plugins call **host functions** only:
 3. Built-in profile pic source plugins: Gravatar, GitHub, GitLab
 4. WASM pic source plugin host on **both** surfaces + sample community pic source plugin
 5. Cloud sync: Google + one of Outlook or CardDAV
-6. Desktop-only: OS contact adapter for one OS first (pick based on author platform)
-7. Profile pic source plugin manager UI (list, enable/disable, install file, capability approval)
+6. Profile pic source plugin manager UI (list, enable/disable, install file, capability approval)
 
 ### Defer
 
 - Native desktop pic source plugin runtime (v1.1 unless WhatsApp is hard v1)
+- OS address book sync (Linux / Windows / macOS)
 - Profile pic source plugin marketplace and code signing
 - Full social scrape pic source plugins on web
 - Apple/iCloud sync if blocked by platform APIs on web

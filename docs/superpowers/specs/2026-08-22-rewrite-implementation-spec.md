@@ -43,7 +43,6 @@ These close open questions from the architecture design so implementation can pr
 | SQLite role               | **Index only** — search, sort keys, pic metadata, sync bookkeeping; **vdir `.vcf` files are source of truth**          |
 | Web secrets               | **Passphrase-encrypted IDB** vault (Argon2id + AES-GCM); WebAuthn wrap deferred                                        |
 | Web scraping pic sources  | **Public HTTP/API only** on web; document CORS limits; desktop may add host fetch proxy later                          |
-| First OS adapter          | **Linux** (author platform: Fedora) via **Evolution Data Server / flatpak portal** or `contacts` DB — spike in Phase 6 |
 | First cloud sync adapter  | **Google Contacts**                                                                                                    |
 | Second cloud sync adapter | **CardDAV** (generic; covers many providers)                                                                           |
 | Shared pic cache          | Global under app data: `cache/avatars/<sha256>`                                                                        |
@@ -200,7 +199,6 @@ pub enum SyncTargetConfig {
     Outlook { enabled: bool },
     CardDav { enabled: bool, url: String },
     AppleIcloud { enabled: bool },
-    OsContacts { enabled: bool }, // desktop cfg only
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -479,9 +477,8 @@ impl<B: StorageBackend, I: ContactIndex> ContactService<B, I> {
 | **3** | WASM pic sources     | Wasm loader, sample plugin, settings UI                | TBD                                                          |
 | **4** | Backup/export        | Pre-write backup, aggregate VCF, profile import/export | TBD                                                          |
 | **5** | Cloud sync           | Google + CardDAV push/pull + conflict UI               | TBD                                                          |
-| **6** | OS sync (desktop)    | Linux OS contacts adapter                              | TBD                                                          |
-| **7** | Web PWA              | Dioxus web + OPFS backend                              | TBD                                                          |
-| **8** | Background sync      | Remote-change polling + pull prompts                   | TBD                                                          |
+| **6** | Web PWA              | Dioxus web + OPFS backend                              | TBD                                                          |
+| **7** | Background sync      | Remote-change polling + pull prompts                   | TBD                                                          |
 
 See [docs/ROADMAP.md](../../ROADMAP.md) for milestone checklist.
 

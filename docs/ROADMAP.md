@@ -1,13 +1,13 @@
 # Profile Pulse Rewrite — Roadmap
 
-**Status:** Phase 5 in progress on `mrdgh2821/feat/phase-5-cloud-sync`  
+**Status:** Phase 5 complete on `mrdgh2821/feat/phase-5-cloud-sync`  
 **Architecture:** [2026-08-22-rewrite-architecture-design.md](superpowers/specs/2026-08-22-rewrite-architecture-design.md)  
 **Implementation spec:** [2026-08-22-rewrite-implementation-spec.md](superpowers/specs/2026-08-22-rewrite-implementation-spec.md)  
 **Human plan:** [profile-pulse-app.md](human-plans/profile-pulse-app.md)
 
 ## Vision
 
-Cross-platform **desktop + web PWA** app that keeps device/cloud contacts updated with profile pictures from social and web platforms. App-owned **vdir** contact store; Google / Outlook / CardDAV / OS are **sync adapters**. Profile pictures come from **built-in** and user **profile pic source plugins** (WASM).
+Cross-platform **desktop + web PWA** app that keeps device/cloud contacts updated with profile pictures from social and web platforms. App-owned **vdir** contact store; Google / Outlook / CardDAV are **sync adapters**. Profile pictures come from **built-in** and user **profile pic source plugins** (WASM).
 
 ## Phase overview
 
@@ -18,10 +18,9 @@ Cross-platform **desktop + web PWA** app that keeps device/cloud contacts update
 | 2     | Built-in pic sources   | Pic source plugin API/host + Gravatar, GitHub, GitLab              | Done                                                                  |
 | 3     | WASM pic sources       | WASM loader, sample `.pp-pic-source-plugin`, manager UI            | Done                                                                  |
 | 4     | Backup & import/export | Pre-write backup UI, aggregate VCF, profile bundle                 | Done                                                                  |
-| 5     | Cloud sync             | Google + CardDAV push/pull, per-contact sync button                | In progress                                                           |
-| 6     | OS sync (desktop)      | Linux OS contacts adapter                                          | TBD                                                                   |
-| 7     | Web PWA                | Dioxus web, OPFS storage backend                                   | TBD                                                                   |
-| 8     | Background sync        | Remote-change polling, pull prompts, conflict UI                   | TBD                                                                   |
+| 5     | Cloud sync             | Google + CardDAV push/pull, per-contact sync button                | Done                                                                  |
+| 6     | Web PWA                | Dioxus web, OPFS storage backend                                   | TBD                                                                   |
+| 7     | Background sync        | Remote-change polling, pull prompts, conflict UI                   | TBD                                                                   |
 
 ## Phase 0 — Foundation
 
@@ -80,13 +79,7 @@ Cross-platform **desktop + web PWA** app that keeps device/cloud contacts update
 - [x] Per-contact Sync button
 - [x] Multi-target link on profile create
 
-## Phase 6 — OS sync (desktop)
-
-- [ ] Linux OS contacts adapter spike
-- [ ] Push contact to OS address book
-- [ ] Document Windows/macOS follow-ups
-
-## Phase 7 — Web PWA
+## Phase 6 — Web PWA
 
 - [ ] Dioxus web target build
 - [ ] `OpfsVdirBackend` + web contact index
@@ -94,7 +87,7 @@ Cross-platform **desktop + web PWA** app that keeps device/cloud contacts update
 - [ ] Static deploy docs (GitHub Pages or similar)
 - [ ] WASM pic source plugins in browser
 
-## Phase 8 — Background sync & conflicts
+## Phase 7 — Background sync & conflicts
 
 - [ ] 15-minute remote-change poll while app active
 - [ ] Pull prompt listing changed targets
@@ -103,6 +96,7 @@ Cross-platform **desktop + web PWA** app that keeps device/cloud contacts update
 ## Explicitly out of scope (v1)
 
 - Mobile native apps
+- OS address book sync (desktop Linux / Windows / macOS)
 - Native desktop user pic source plugins (v1.1)
 - Profile pic source marketplace / signing
 - User-installable sync plugins

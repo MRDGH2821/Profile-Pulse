@@ -76,7 +76,6 @@ pub enum SyncTargetConfig {
     Outlook { enabled: bool },
     CardDav { enabled: bool, url: String },
     AppleIcloud { enabled: bool },
-    OsContacts { enabled: bool },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -109,8 +108,7 @@ impl SyncTargetConfig {
             SyncTargetConfig::Google { enabled }
             | SyncTargetConfig::Outlook { enabled }
             | SyncTargetConfig::CardDav { enabled, .. }
-            | SyncTargetConfig::AppleIcloud { enabled }
-            | SyncTargetConfig::OsContacts { enabled } => *enabled,
+            | SyncTargetConfig::AppleIcloud { enabled } => *enabled,
         }
     }
 
@@ -120,7 +118,6 @@ impl SyncTargetConfig {
             SyncTargetConfig::Outlook { .. } => "outlook",
             SyncTargetConfig::CardDav { .. } => "carddav",
             SyncTargetConfig::AppleIcloud { .. } => "apple_icloud",
-            SyncTargetConfig::OsContacts { .. } => "os_contacts",
         }
     }
 }
