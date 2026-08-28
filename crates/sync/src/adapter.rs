@@ -1,16 +1,8 @@
+use crate::conflict::RemoteChange;
 use crate::error::SyncError;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use profile_pulse_core::Contact;
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct RemoteChange {
-    pub remote_id: String,
-    pub display_name: String,
-    pub updated_at: DateTime<Utc>,
-}
-
-pub use crate::credentials::PushResult;
 
 #[async_trait]
 pub trait SyncAdapter: Send + Sync {

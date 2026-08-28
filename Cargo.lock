@@ -6399,6 +6399,7 @@ dependencies = [
  "profile-pulse-storage",
  "profile-pulse-sync",
  "rfd",
+ "tokio",
  "uuid",
  "wasm-bindgen",
 ]

@@ -67,6 +67,8 @@ pub struct ProfileSettings {
     pub scheduled_backup_dir: Option<String>,
     #[serde(default)]
     pub scheduled_backup_last_run: Option<DateTime<Utc>>,
+    #[serde(default)]
+    pub last_remote_sync_check: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

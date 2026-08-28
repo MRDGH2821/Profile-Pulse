@@ -1,5 +1,6 @@
 use crate::routes::Route;
 use crate::state::AppState;
+use crate::views::contact_pull_conflict::ContactPullConflictPanel;
 use crate::views::{ContactEditor, PicSelector};
 use dioxus::prelude::*;
 use profile_pulse_core::{ContactId, ProfileId};
@@ -27,6 +28,7 @@ pub fn ContactDetail(profile_id: String, contact_id: String) -> Element {
     let mut contact = use_signal(|| None::<profile_pulse_core::Contact>);
     let mut error = use_signal(|| None::<String>);
     let mut sync_status = use_signal(|| None::<String>);
+    let mut conflict_status = use_signal(|| None::<String>);
     let profile_uuid = match uuid::Uuid::parse_str(&profile_id) {
         Ok(id) => ProfileId(id),
         Err(_) => {
@@ -140,6 +142,20 @@ pub fn ContactDetail(profile_id: String, contact_id: String) -> Element {
                     class: "hint",
                     "{message}"
                 }
+            }
+            if let Some(message) = conflict_status() {
+                p {
+                    class: "hint",
+                    "{message}"
+                }
+            }
+            ContactPullConflictPanel {
+                profile_uuid: profile_uuid,
+                contact_uuid: contact_uuid,
+                contact: contact,
+                on_open_editor: move |_| tab.set(ContactTab::Editor),
+                error: error,
+                conflict_status: conflict_status,
             }
             match tab() {
                 ContactTab::Details => rsx!{

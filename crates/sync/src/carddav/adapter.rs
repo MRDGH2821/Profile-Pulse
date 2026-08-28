@@ -1,4 +1,5 @@
-use crate::adapter::{RemoteChange, SyncAdapter};
+use crate::adapter::SyncAdapter;
+use crate::conflict::RemoteChange;
 use crate::credentials::{CardDavCredentials, carddav_secret_key};
 use crate::error::SyncError;
 use crate::secrets::SecretStore;

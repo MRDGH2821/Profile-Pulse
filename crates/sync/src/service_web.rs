@@ -1,9 +1,12 @@
+use crate::conflict::{
+    PullApplyResult, PullConflict, PullPrepareResult, RemoteChange, TargetRemoteChanges,
+};
 use crate::credentials::{CardDavCredentials, PushResult, carddav_secret_key};
 use crate::error::SyncError;
 use crate::links_web::SyncLinkStore;
 use crate::secrets_web::SecretStore;
 use profile_pulse_core::{
-    Contact, ContactId, Profile, ProfileId, SyncTargetConfig,
+    Contact, ContactId, Profile, ProfileId, PullConflictResolution, SyncTargetConfig,
 };
 use std::path::Path;
 
@@ -76,5 +79,50 @@ impl SyncService {
         Err(SyncError::NotConfigured(
             "cloud sync pull is not yet available in the web build".into(),
         ))
+    }
+
+    pub async fn poll_remote_changes(
+        &self,
+        _profile: &Profile,
+    ) -> Result<Vec<TargetRemoteChanges>, SyncError> {
+        Ok(vec![])
+    }
+
+    pub async fn prepare_pull_item(
+        &self,
+        _profile: &Profile,
+        _target_kind: &str,
+        _change: &RemoteChange,
+        _contact_id: ContactId,
+        _local: Option<&Contact>,
+    ) -> Result<PullPrepareResult, SyncError> {
+        Err(SyncError::NotConfigured(
+            "cloud sync pull is not yet available in the web build".into(),
+        ))
+    }
+
+    pub async fn pull_with_resolution(
+        &self,
+        _profile: &Profile,
+        _conflict: &PullConflict,
+        _resolution: PullConflictResolution,
+    ) -> Result<(Contact, PullApplyResult), SyncError> {
+        Err(SyncError::NotConfigured(
+            "cloud sync pull is not yet available in the web build".into(),
+        ))
+    }
+
+    pub async fn apply_pull_item(
+        &self,
+        _profile: &Profile,
+        _target_kind: &str,
+        _remote_id: &str,
+        contact: Contact,
+    ) -> Result<Contact, SyncError> {
+        Ok(contact)
+    }
+
+    pub fn links(&self) -> &SyncLinkStore {
+        &self.links
     }
 }

@@ -11,7 +11,7 @@ This guide covers the **Dioxus rewrite** (desktop + web PWA). For the frozen leg
 | [Architecture design](superpowers/specs/2026-08-22-rewrite-architecture-design.md) | High-level decisions             |
 | [Phase 0 plan](superpowers/plans/2026-08-22-rewrite-phase-0-foundation.md)         | First implementation tasks       |
 | [Human plan](human-plans/profile-pulse-app.md)                                     | Product requirements             |
-| [DIOXUS.md](DIOXUS.md)                                                             | Dioxus 0.7 app setup (`dx`, features, deploy) |
+| [DIOXUS.md](DIOXUS.md)                                                             | Dioxus 0.7 app setup (`dx`, features, layout) |
 
 ## Prerequisites
 
@@ -124,7 +124,6 @@ From `crates/app` (where `Dioxus.toml` lives):
 ```bash
 cd crates/app
 dx serve --platform web      # dev server with hot reload
-dx build --platform web      # production WASM bundle
 ```
 
 Or compile WASM directly:

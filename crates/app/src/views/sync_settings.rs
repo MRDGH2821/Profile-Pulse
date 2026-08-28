@@ -1,5 +1,6 @@
 use crate::routes::Route;
 use crate::state::{ActiveProfile, AppState};
+use crate::views::sync_pull_panel::SyncPullPanel;
 use dioxus::prelude::*;
 use profile_pulse_core::{Profile, ProfileId, SyncTargetConfig};
 use profile_pulse_storage::StorageBackend;
@@ -84,7 +85,15 @@ pub fn SyncSettings() -> Element {
             }
             p {
                 class: "hint",
-                "Push-only by default. Use the Sync button on a contact to push updates. Pull is available from sync settings when a remote link exists."
+                "Push-only by default. Use the Sync button on a contact to push updates. Pull remote changes from this page when the background poll reports edits."
+            }
+            if let Some(profile_id) = selected_profile() {
+                SyncPullPanel {
+                    selected_profile: profile_id,
+                    busy: busy,
+                    error: error,
+                    status: status,
+                }
             }
             if let Some(message) = error() {
                 p {

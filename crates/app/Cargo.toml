@@ -13,6 +13,7 @@ path = "src/main.rs"
 
 [features]
 default = ["desktop"]
+# dx --platform <name> enables the matching feature (see Dioxus tutorial/new_app)
 desktop = ["dioxus/desktop", "dep:directories", "dep:rfd"]
 web = ["dioxus/web"]
 
@@ -27,6 +28,9 @@ profile-pulse-sync = { path = "../sync" }
 uuid.workspace = true
 directories = { workspace = true, optional = true }
 rfd = { version = "0.17.2", optional = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tokio = { workspace = true, features = ["time"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.3", features = ["wasm_js"] }

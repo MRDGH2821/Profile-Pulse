@@ -110,12 +110,8 @@ cd crates/app
 # Desktop — hot reload
 dx serve --platform desktop
 
-# Web — dev server (default http://127.0.0.1:8080)
+# Web — dev server (http://127.0.0.1:8080 by default)
 dx serve --platform web
-
-# Production bundles
-dx build --platform desktop
-dx build --platform web
 ```
 
 `dx serve` calls `cargo build` with the correct `--no-default-features --features <platform>` flags, same as a [new_app](https://dioxuslabs.com/learn/0.7/tutorial/new_app/) project.
@@ -156,30 +152,6 @@ Before storing sync credentials in the browser:
 ```bash
 export PROFILE_PULSE_VAULT_PASSPHRASE="choose-a-strong-passphrase"
 ```
-
-## Static deploy (web PWA)
-
-After `dx build --platform web`, output lands under `crates/app/target/dx/` (exact path varies by dx version — check build logs).
-
-Typical GitHub Pages flow:
-
-1. `cd crates/app && dx build --platform web --release`
-2. Copy the generated `public` / `web` bundle to your Pages branch or `docs/` folder
-3. Ensure the host serves `index.html` for client-side routes (SPA fallback)
-
-Phase 6 tracks full deploy automation in [ROADMAP.md](ROADMAP.md).
-
-## Creating *new* Dioxus surfaces (future phases)
-
-When adding a new Dioxus binary (e.g. a separate admin tool or mobile shell):
-
-1. **Greenfield:** `dx new <name>` and pick **Workspace** if it should join this Cargo workspace
-2. **In-repo:** Copy `crates/app` layout — `Cargo.toml` features, `Dioxus.toml`, `main.rs` + `lib.rs`, `assets/`
-3. Register the crate in root `Cargo.toml` `members`
-4. Share domain crates via path dependencies (`profile-pulse-core`, etc.)
-5. Run `dx doctor` after adding targets
-
-Do **not** use `dx new` inside `crates/app` — that would overwrite the existing app.
 
 ## Troubleshooting
 

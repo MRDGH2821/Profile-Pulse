@@ -86,6 +86,7 @@ impl AppState {
                 scheduled_backup_enabled: false,
                 scheduled_backup_dir: None,
                 scheduled_backup_last_run: None,
+                last_remote_sync_check: None,
             },
             sync_targets,
             created_at: now,

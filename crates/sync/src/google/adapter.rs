@@ -1,4 +1,5 @@
-use crate::adapter::{RemoteChange, SyncAdapter};
+use crate::adapter::SyncAdapter;
+use crate::conflict::RemoteChange;
 use crate::error::SyncError;
 use crate::google::oauth::refresh_google_access_token;
 use crate::secrets::SecretStore;
@@ -237,9 +238,74 @@ impl SyncAdapter for GoogleContactsAdapter {
 
     async fn check_remote_changes(
         &self,
-        _since: DateTime<Utc>,
+        since: DateTime<Utc>,
     ) -> Result<Vec<RemoteChange>, SyncError> {
-        Ok(vec![])
+        let token = self.access_token().await?;
+        let mut changes = Vec::new();
+        let mut page_token: Option<String> = None;
+        loop {
+            let mut request = self
+                .client
+                .get("https://people.googleapis.com/v1/people/me/connections")
+                .query(&[
+                    ("personFields", "metadata,names"),
+                    ("pageSize", "100"),
+                ])
+                .bearer_auth(&token);
+            if let Some(token) = &page_token {
+                request = request.query(&[("pageToken", token)]);
+            }
+            let response = request
+                .send()
+                .await
+                .map_err(|e| SyncError::Http(e.to_string()))?;
+            if !response.status().is_success() {
+                let status = response.status();
+                let text = response.text().await.unwrap_or_default();
+                return Err(SyncError::Remote(format!("Google {status}: {text}")));
+            }
+            let body: serde_json::Value = response
+                .json()
+                .await
+                .map_err(|e| SyncError::Http(e.to_string()))?;
+            if let Some(connections) = body["connections"].as_array() {
+                for person in connections {
+                    let Some(remote_id) = person["resourceName"].as_str() else {
+                        continue;
+                    };
+                    let updated_at = person["metadata"]["sources"]
+                        .as_array()
+                        .and_then(|sources| sources.first())
+                        .and_then(|source| source["updateTime"].as_str())
+                        .and_then(|value| DateTime::parse_from_rfc3339(value).ok())
+                        .map(|value| value.with_timezone(&Utc));
+                    let Some(updated_at) = updated_at else {
+                        continue;
+                    };
+                    if updated_at <= since {
+                        continue;
+                    }
+                    let display_name = person["names"]
+                        .as_array()
+                        .and_then(|names| names.first())
+                        .and_then(|name| name["displayName"].as_str())
+                        .unwrap_or("Unknown contact")
+                        .to_string();
+                    changes.push(RemoteChange {
+                        remote_id: remote_id.to_string(),
+                        display_name,
+                        updated_at,
+                    });
+                }
+            }
+            page_token = body["nextPageToken"]
+                .as_str()
+                .map(std::string::ToString::to_string);
+            if page_token.is_none() {
+                break;
+            }
+        }
+        Ok(changes)
     }
 }
 

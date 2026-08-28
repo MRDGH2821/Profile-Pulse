@@ -1,5 +1,9 @@
 use crate::adapter::SyncAdapter;
 use crate::carddav::CardDavAdapter;
+use crate::conflict::{
+    PullApplyResult, PullConflict, PullPrepareResult, RemoteChange, TargetRemoteChanges,
+    is_pull_conflict, resolve_pull_conflict,
+};
 use crate::credentials::{CardDavCredentials, PushResult, carddav_secret_key};
 use crate::error::SyncError;
 use crate::google::{GoogleContactsAdapter, authorize_google_pkce};
@@ -7,7 +11,8 @@ use crate::links::SyncLinkStore;
 use crate::secrets::SecretStore;
 use chrono::Utc;
 use profile_pulse_core::{
-    Contact, ContactId, Profile, ProfileId, SyncTargetConfig, contact_to_vcard_bytes,
+    Contact, ContactId, Profile, ProfileId, PullConflictResolution, SyncTargetConfig,
+    contact_to_vcard_bytes,
 };
 use std::path::Path;
 use std::sync::Arc;
@@ -138,5 +143,118 @@ impl SyncService {
         self.links
             .upsert_link(profile.id, contact_id, target_kind, remote_id, Utc::now())?;
         Ok(contact)
+    }
+
+    /// Poll enabled sync targets for remote edits since the profile's last check.
+    pub async fn poll_remote_changes(
+        &self,
+        profile: &Profile,
+    ) -> Result<Vec<TargetRemoteChanges>, SyncError> {
+        let since = profile
+            .settings
+            .last_remote_sync_check
+            .unwrap_or(profile.created_at);
+        let mut results = Vec::new();
+        for (_label, target) in Self::enabled_targets(profile) {
+            let Some(adapter) = self.adapter_for(profile.id, &target) else {
+                continue;
+            };
+            let kind = adapter.target_kind();
+            let changes = adapter.check_remote_changes(since).await?;
+            if !changes.is_empty() {
+                results.push(TargetRemoteChanges {
+                    target_kind: kind.to_string(),
+                    changes,
+                });
+            }
+        }
+        Ok(results)
+    }
+
+    /// Decide whether a single remote change can be applied or needs conflict resolution.
+    pub async fn prepare_pull_item(
+        &self,
+        profile: &Profile,
+        target_kind: &str,
+        change: &RemoteChange,
+        contact_id: ContactId,
+        local: Option<&Contact>,
+    ) -> Result<PullPrepareResult, SyncError> {
+        let target = profile
+            .sync_targets
+            .iter()
+            .find(|t| t.kind_label() == target_kind && t.is_enabled())
+            .cloned()
+            .ok_or_else(|| SyncError::NotConfigured(format!("{target_kind} not enabled")))?;
+        let adapter = self
+            .adapter_for(profile.id, &target)
+            .ok_or_else(|| SyncError::NotConfigured(format!("{target_kind} not configured")))?;
+        let (mut remote, _vcard) = adapter.pull_contact(&change.remote_id).await?;
+        remote.id = contact_id;
+        remote.profile_id = profile.id;
+
+        let Some(local) = local else {
+            return Ok(PullPrepareResult::Apply(remote));
+        };
+
+        let link = self
+            .links
+            .get_link(profile.id, contact_id, target_kind)?
+            .ok_or_else(|| SyncError::NotConfigured("sync link missing".into()))?;
+        if is_pull_conflict(local, &remote, link.updated_at) {
+            Ok(PullPrepareResult::Conflict(PullConflict {
+                contact_id,
+                target_kind: target_kind.to_string(),
+                remote_id: change.remote_id.clone(),
+                local: local.clone(),
+                remote,
+            }))
+        } else {
+            Ok(PullPrepareResult::Apply(remote))
+        }
+    }
+
+    /// Apply a prepared pull, resolving conflicts when needed.
+    pub async fn pull_with_resolution(
+        &self,
+        profile: &Profile,
+        conflict: &PullConflict,
+        resolution: PullConflictResolution,
+    ) -> Result<(Contact, PullApplyResult), SyncError> {
+        match resolve_pull_conflict(conflict, resolution) {
+            Ok(contact) => {
+                let result = if matches!(resolution, PullConflictResolution::KeepLocal) {
+                    PullApplyResult::KeptLocal
+                } else {
+                    self.links.upsert_link(
+                        profile.id,
+                        conflict.contact_id,
+                        &conflict.target_kind,
+                        &conflict.remote_id,
+                        Utc::now(),
+                    )?;
+                    PullApplyResult::Applied
+                };
+                Ok((contact, result))
+            }
+            Err(_) => Ok((conflict.local.clone(), PullApplyResult::DeferredReview)),
+        }
+    }
+
+    /// Apply a non-conflicting remote change and update the sync link.
+    pub async fn apply_pull_item(
+        &self,
+        profile: &Profile,
+        target_kind: &str,
+        remote_id: &str,
+        contact: Contact,
+    ) -> Result<Contact, SyncError> {
+        self.links
+            .upsert_link(profile.id, contact.id, target_kind, remote_id, Utc::now())?;
+        Ok(contact)
+    }
+
+    pub fn links(&self) -> &SyncLinkStore {
+        &self.links
     }
 }

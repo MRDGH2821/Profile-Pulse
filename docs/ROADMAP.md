@@ -86,20 +86,20 @@ Reference: [DIOXUS.md](DIOXUS.md) (aligned with [Dioxus 0.7 getting started](htt
 - [x] Dioxus web target build (`cargo build --target wasm32-unknown-unknown --no-default-features --features web`)
 - [x] `OpfsVdirBackend` + `WebContactIndex`
 - [x] Passphrase-encrypted secret vault (`PROFILE_PULSE_VAULT_PASSPHRASE` + `localStorage`)
-- [x] `Dioxus.toml` + `dx` workflow documented (`dx serve/build --platform web` from `crates/app`)
-- [ ] Static deploy bundle verified (`dx build --platform web --release`) and GitHub Pages (or similar) instructions
+- [x] `Dioxus.toml` + `dx` workflow documented (`dx serve --platform web` from `crates/app`)
 - [ ] WASM pic source plugins in browser — built-in sources only; user plugin install deferred
 
 ## Phase 7 — Background sync & conflicts
 
-- [ ] 15-minute remote-change poll while app active
-- [ ] Pull prompt listing changed targets
-- [ ] Per-contact conflict resolution: Keep local / Take remote / Review
+- [x] 15-minute remote-change poll while app active
+- [x] Pull prompt listing changed targets
+- [x] Per-contact conflict resolution: Keep local / Take remote / Review
 
 ## Explicitly out of scope (v1)
 
 - Mobile native apps
 - OS address book sync (desktop Linux / Windows / macOS)
+- Static hosting automation (GitHub Pages, CI deploy pipelines)
 - Native desktop user pic source plugins (v1.1)
 - Profile pic source marketplace / signing
 - User-installable sync plugins

@@ -3,6 +3,7 @@
 pub mod adapter;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod carddav;
+pub mod conflict;
 pub mod credentials;
 pub mod error;
 #[cfg(not(target_arch = "wasm32"))]
@@ -21,7 +22,11 @@ mod service;
 mod service_web;
 
 #[cfg(not(target_arch = "wasm32"))]
-pub use adapter::{RemoteChange, SyncAdapter};
+pub use adapter::SyncAdapter;
+pub use conflict::{
+    PullApplyResult, PullConflict, PullPrepareResult, RemoteChange, TargetRemoteChanges,
+    is_pull_conflict, resolve_pull_conflict,
+};
 pub use credentials::{CardDavCredentials, PushResult, carddav_secret_key};
 #[cfg(not(target_arch = "wasm32"))]
 pub use carddav::CardDavAdapter;
@@ -29,9 +34,11 @@ pub use error::SyncError;
 #[cfg(not(target_arch = "wasm32"))]
 pub use google::{GoogleContactsAdapter, GoogleTokenBundle, authorize_google_pkce};
 #[cfg(not(target_arch = "wasm32"))]
+pub use links::SyncLink;
+#[cfg(not(target_arch = "wasm32"))]
 pub use links::SyncLinkStore;
 #[cfg(target_arch = "wasm32")]
-pub use links_web::SyncLinkStore;
+pub use links_web::{SyncLink, SyncLinkStore};
 #[cfg(not(target_arch = "wasm32"))]
 pub use secrets::SecretStore;
 #[cfg(target_arch = "wasm32")]
