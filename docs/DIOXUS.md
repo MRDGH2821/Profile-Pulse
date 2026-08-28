@@ -50,14 +50,19 @@ Ubuntu and other distros: see the [Linux section](https://dioxuslabs.com/learn/0
 
 ## Project layout (`crates/app`)
 
-Matches the [tutorial structure](https://dioxuslabs.com/learn/0.7/tutorial/new_app/) with workspace-specific additions:
+Matches the [Desktop template](https://github.com/DioxusLabs/dioxus-template/tree/main/Desktop) with workspace-specific additions:
 
 ```text
 crates/app/
+├── .cargo/config.toml  # target-dir → workspace target/
 ├── Cargo.toml          # features: desktop (default), web
-├── Dioxus.toml         # dx bundling / serve config
-├── assets/             # static files (use asset!() macro)
+├── Dioxus.toml         # dx serve / bundle / watcher config
+├── assets/             # manganis assets (asset! macro)
 │   └── styles.css
+├── icons/              # bundle icons for desktop installers
+│   └── icon.png
+├── public/             # static files copied to dist (PWA manifest, etc.)
+│   └── manifest.json
 └── src/
     ├── main.rs         # fn main() { profile_pulse_app::launch(); }
     ├── lib.rs          # dioxus::launch(App), routes, views
@@ -118,23 +123,44 @@ dx serve --platform web
 
 ## `Dioxus.toml`
 
-Minimal config (see also `dx config init` in the CLI README):
+Full config generated from the official template + `dx config init` (see `crates/app/Dioxus.toml`):
 
 ```toml
 [application]
 name = "profile-pulse"
 default_platform = "desktop"
+out_dir = "dist"
+asset_dir = "assets"
+public_dir = "public"
 
 [web.app]
 title = "Profile Pulse"
 
 [web.watcher]
-watch_path = ["src", "assets"]
+reload_html = true
+index_on_404 = true
+watch_path = ["src", "assets", "public"]
 
 [web.resource.dev]
+style = ["/assets/styles.css"]
+
+[bundle]
+identifier = "com.github.mrdgh2821.profile-pulse"
+icon = ["icons/icon.png"]
 ```
 
-Styles are loaded in `lib.rs` via `asset!("/assets/styles.css")`. Assets can live anywhere in the tree; keeping them under `assets/` matches the official recommendation.
+Styles are also loaded in `lib.rs` via `asset!("/assets/styles.css")` for desktop. The `[web.resource.dev]` entry ensures the dev server injects CSS for web hot reload.
+
+### Web toolchain notes
+
+```bash
+rustup target add wasm32-unknown-unknown
+# wasm-bindgen-cli must match Cargo.lock — check with:
+grep 'name = "wasm-bindgen"$' -A1 ../../Cargo.lock
+cargo install wasm-bindgen-cli --version 0.2.127 --locked
+```
+
+The Nix devshell includes `wasm-bindgen-cli` (nixpkgs may lag the lockfile; install the matching version if `dx build --platform web` reports a mismatch).
 
 ## Platform-specific app state
 

@@ -30,6 +30,7 @@ in
       repgrep
       ripgrep
       uv
+      wasm-bindgen-cli_0_2_126
       webkitgtk_4_1
       xdotool
       xz

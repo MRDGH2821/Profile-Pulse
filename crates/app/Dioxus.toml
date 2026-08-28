@@ -1,12 +1,41 @@
 [application]
+# dx uses this name for bundle output paths and identifiers.
 name = "profile-pulse"
 default_platform = "desktop"
+out_dir = "dist"
+asset_dir = "assets"
+public_dir = "public"
 
 [web.app]
 title = "Profile Pulse"
 
+[web.wasm_opt]
+# z = smallest binary; 4 = fastest compile (dev-friendly).
+level = "4"
+
 [web.watcher]
-watch_path = ["src", "assets"]
+reload_html = true
+index_on_404 = true
+watch_path = ["src", "assets", "public"]
+
+[web.resource]
+# Styles are loaded via asset!() in lib.rs; keep production shell minimal.
+style = []
+script = []
 
 [web.resource.dev]
-style = ["assets/styles.css"]
+style = ["/assets/styles.css"]
+script = []
+
+[bundle]
+identifier = "com.github.mrdgh2821.profile-pulse"
+publisher = "MRDGH2821"
+icon = ["icons/icon.png"]
+resources = ["public/*"]
+copyright = "Copyright © 2026 MRDGH2821"
+category = "Utility"
+short_description = "Contact management with social profile integration"
+long_description = """
+Profile Pulse is a cross-platform contact manager with social media
+integration, cloud sync, and profile picture discovery.
+"""

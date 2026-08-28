@@ -1,24 +1,36 @@
 # Profile Pulse App
 
-Dioxus 0.7 application shell (desktop + web). Matches the [bare-bones template](https://dioxuslabs.com/learn/0.7/tutorial/new_app/) layout inside the Cargo workspace.
+Dioxus 0.7 application shell (desktop + web). Follows the [official Desktop template](https://github.com/DioxusLabs/dioxus-template/tree/main/Desktop) inside the Cargo workspace.
 
 ## Layout
 
 ```text
 Cargo.toml
-Dioxus.toml
-assets/
+Dioxus.toml          # dx serve / bundle config
+.cargo/config.toml   # workspace target-dir
+assets/              # manganis assets (asset! macro)
+icons/               # bundle icons (desktop installers)
+public/              # static files copied to dist (manifest, etc.)
 src/
-  main.rs    # entrypoint
-  lib.rs     # dioxus::launch(App)
+  main.rs            # entrypoint
+  lib.rs             # dioxus::launch(App)
 ```
 
 ## Run
 
+All `dx` commands run from **this directory**:
+
 ```bash
-# from this directory
 dx serve --platform desktop
 dx serve --platform web
+dx build --platform desktop
+dx bundle --package-types deb
 ```
 
-See [docs/DIOXUS.md](../../docs/DIOXUS.md) for toolchain setup and workspace conventions.
+## Toolchain
+
+- `dx` — from Nix devshell (`dioxus-cli`) or [install script](https://dioxus.dev/install.sh)
+- `rustup target add wasm32-unknown-unknown` — required for web
+- `wasm-bindgen-cli` version must match `Cargo.lock` (run `dx build --platform web`; if mismatched, `cargo install wasm-bindgen-cli --version <lockfile-version> --locked`)
+
+See [docs/DIOXUS.md](../../docs/DIOXUS.md) for full setup.
