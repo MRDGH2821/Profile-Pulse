@@ -12,8 +12,13 @@ chrono.workspace = true
 serde.workspace = true
 serde_json = { workspace = true, optional = true }
 thiserror.workspace = true
-tokio = { workspace = true, features = ["fs", "rt-multi-thread"] }
 uuid.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tokio = { workspace = true, features = ["fs", "rt-multi-thread"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+tokio = { workspace = true, features = ["rt", "macros"] }
 
 [dev-dependencies]
 serde_json.workspace = true

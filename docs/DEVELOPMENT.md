@@ -11,17 +11,29 @@ This guide covers the **Dioxus rewrite** (desktop + web PWA). For the frozen leg
 | [Architecture design](superpowers/specs/2026-08-22-rewrite-architecture-design.md) | High-level decisions             |
 | [Phase 0 plan](superpowers/plans/2026-08-22-rewrite-phase-0-foundation.md)         | First implementation tasks       |
 | [Human plan](human-plans/profile-pulse-app.md)                                     | Product requirements             |
+| [DIOXUS.md](DIOXUS.md)                                                             | Dioxus 0.7 app setup (`dx`, features, deploy) |
 
 ## Prerequisites
 
 - **Rust** 1.85+ (edition 2024)
 - **Nix** + **direnv** (recommended) — `use flake` from repo root
-- **Dioxus CLI** (`dx`) — required from Phase 1 onward
+- **Dioxus CLI** (`dx`) — required from Phase 1 onward ([official getting started](https://dioxuslabs.com/learn/0.7/getting_started/))
 
 ```bash
-# Optional: install Dioxus CLI when starting Phase 1
-cargo install dioxus-cli --version 0.7
+# In Nix/direnv shell (recommended): dx is already available
+direnv allow
+
+# Otherwise install dx (prebuilt binary — preferred over cargo install)
+curl -sSL https://dioxus.dev/install.sh | bash
+
+# Web builds also need the WASM target
+rustup target add wasm32-unknown-unknown
+
+# Verify toolchain + platform deps
+dx doctor
 ```
+
+See **[DIOXUS.md](DIOXUS.md)** for the full Profile Pulse ↔ Dioxus 0.7 mapping.
 
 ## Environment setup
 
@@ -103,13 +115,34 @@ export PROFILE_PULSE_GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com
 
 Link targets under **Sync** in the app header. Push is default — use **Sync contact** on a contact's Details tab. CardDAV uses server URL + username/app password stored locally under `{data_dir}/secrets/`.
 
-### Phase 7+ (Dioxus web)
+### Phase 6 (Dioxus web PWA)
+
+Follow **[DIOXUS.md](DIOXUS.md)** and the [official getting started guide](https://dioxuslabs.com/learn/0.7/getting_started/).
+
+From `crates/app` (where `Dioxus.toml` lives):
 
 ```bash
 cd crates/app
-dx build --platform web
-dx serve --platform web
+dx serve --platform web      # dev server with hot reload
+dx build --platform web      # production WASM bundle
 ```
+
+Or compile WASM directly:
+
+```bash
+cargo build -p profile-pulse-app \
+  --target wasm32-unknown-unknown \
+  --no-default-features \
+  --features web
+```
+
+Set a vault passphrase before storing sync credentials in the browser:
+
+```bash
+export PROFILE_PULSE_VAULT_PASSPHRASE="choose-a-strong-passphrase"
+```
+
+Data is stored in OPFS (`OpfsVdirBackend`) with sync secrets encrypted in `localStorage`. Cloud sync push/pull is not yet wired for web.
 
 ### Pre-commit
 
@@ -118,6 +151,8 @@ prek --all-files
 # or after Phase 0 workspace exists:
 prek run --all-files
 ```
+
+### Phase 7+ (Background sync)
 
 ### Formatting (Nix)
 

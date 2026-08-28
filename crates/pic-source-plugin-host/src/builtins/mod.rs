@@ -2,7 +2,10 @@ pub mod github;
 pub mod gitlab;
 pub mod gravatar;
 
+#[cfg(not(target_arch = "wasm32"))]
 use crate::desktop_host::DesktopHostApi;
+#[cfg(target_arch = "wasm32")]
+use crate::web_host::PluginHostApi as DesktopHostApi;
 use profile_pulse_pic_source_plugin_api::ProfilePicSourcePlugin;
 use std::sync::Arc;
 

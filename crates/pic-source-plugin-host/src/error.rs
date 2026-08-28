@@ -16,4 +16,6 @@ pub enum HostError {
     InvalidPackage(String),
     #[error("wasm error: {0}")]
     Wasm(String),
+    #[error("unsupported: {0}")]
+    Unsupported(String),
 }

@@ -19,4 +19,6 @@ pub enum StorageError {
     TomlParse(#[from] toml::de::Error),
     #[error("core error: {0}")]
     Core(#[from] profile_pulse_core::CoreError),
+    #[error("web storage error: {0}")]
+    Web(String),
 }

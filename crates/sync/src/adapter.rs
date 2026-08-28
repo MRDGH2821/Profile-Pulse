@@ -10,11 +10,7 @@ pub struct RemoteChange {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PushResult {
-    pub target_kind: String,
-    pub remote_id: String,
-}
+pub use crate::credentials::PushResult;
 
 #[async_trait]
 pub trait SyncAdapter: Send + Sync {

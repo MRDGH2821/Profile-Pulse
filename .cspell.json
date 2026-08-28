@@ -83,6 +83,7 @@
     "regenerable",
     "rfd",
     "rumdl",
+    "rsplit",
     "rusqlite",
     "rustc",
     "rustls",

@@ -1,5 +1,6 @@
 use crate::routes::Route;
 use crate::state::{ActiveProfile, AppState};
+use crate::views::backups_import_export_toolbar::BackupsImportExportToolbar;
 use dioxus::prelude::*;
 use profile_pulse_core::{BackupRef, Profile, ProfileId};
 use profile_pulse_storage::StorageBackend;
@@ -163,137 +164,13 @@ pub fn BackupsSettings() -> Element {
                         "Save backup settings"
                     }
                 }
-                div {
-                    class: "toolbar",
-                    button {
-                        disabled: busy(),
-                        onclick: {
-                            let state = state.clone();
-                            move |_| {
-                                let Some(path) =
-                                    rfd::FileDialog::new().add_filter("vCard", &["vcf"]).pick_file() else {
-                                        return;
-                                    };
-                                busy.set(true);
-                                error.set(None);
-                                let state = state.clone();
-                                spawn(async move {
-                                    match std::fs::read(&path) {
-                                        Ok(bytes) => {
-                                            match state.contact_service.import_vcf(profile_id, &bytes).await {
-                                                Ok(ids) => status.set(
-                                                    Some(format!("Imported {} contact(s)", ids.len()))
-                                                ),
-                                                Err(err) => error.set(Some(err.to_string())),
-                                            }
-                                        },
-                                        Err(err) => error.set(Some(err.to_string())),
-                                    }
-                                    busy.set(false);
-                                });
-                            }
-                        },
-                        "Import VCF…"
-                    }
-                    button {
-                        disabled: busy(),
-                        onclick: {
-                            let state = state.clone();
-                            move |_| {
-                                let Some(path) =
-                                    rfd::FileDialog::new()
-                                        .add_filter("Profile Pulse bundle", &["pp-profile", "zip"])
-                                        .pick_file() else {
-                                        return;
-                                    };
-                                busy.set(true);
-                                error.set(None);
-                                let state = state.clone();
-                                spawn(async move {
-                                    match std::fs::read(&path) {
-                                        Ok(bytes) => {
-                                            match state.contact_service.import_profile_bundle(&bytes).await {
-                                                Ok(profile) => {
-                                                    status.set(
-                                                        Some(format!("Imported profile \"{}\"", profile.name))
-                                                    );
-                                                    if let Ok(list) = state.list_profiles().await {
-                                                        profiles.set(list);
-                                                    }
-                                                },
-                                                Err(err) => error.set(Some(err.to_string())),
-                                            }
-                                        },
-                                        Err(err) => error.set(Some(err.to_string())),
-                                    }
-                                    busy.set(false);
-                                });
-                            }
-                        },
-                        "Import profile bundle…"
-                    }
-                    button {
-                        disabled: busy(),
-                        onclick: {
-                            let state = state.clone();
-                            move |_| {
-                                busy.set(true);
-                                error.set(None);
-                                let state = state.clone();
-                                spawn(async move {
-                                    match state.contact_service.export_vcf_aggregate(profile_id).await {
-                                        Ok(bytes) => {
-                                            if let Some(path) =
-                                                rfd::FileDialog::new()
-                                                    .set_file_name("contacts.vcf")
-                                                    .add_filter("vCard", &["vcf"])
-                                                    .save_file() {
-                                                let write_result = std::fs::write(&path, bytes);
-                                                match write_result {
-                                                    Ok(()) => status.set(Some("Exported aggregate VCF".into(),)),
-                                                    Err(err) => error.set(Some(err.to_string())),
-                                                }
-                                            }
-                                        },
-                                        Err(err) => error.set(Some(err.to_string())),
-                                    }
-                                    busy.set(false);
-                                });
-                            }
-                        },
-                        "Export VCF…"
-                    }
-                    button {
-                        disabled: busy(),
-                        onclick: {
-                            let state = state.clone();
-                            move |_| {
-                                busy.set(true);
-                                error.set(None);
-                                let state = state.clone();
-                                spawn(async move {
-                                    match state.contact_service.export_profile_bundle(profile_id).await {
-                                        Ok(bytes) => {
-                                            if let Some(path) =
-                                                rfd::FileDialog::new()
-                                                    .set_file_name("profile.pp-profile")
-                                                    .add_filter("Profile Pulse bundle", &["pp-profile", "zip"],)
-                                                    .save_file() {
-                                                let write_result = std::fs::write(&path, bytes);
-                                                match write_result {
-                                                    Ok(()) => status.set(Some("Exported profile bundle".into(),)),
-                                                    Err(err) => error.set(Some(err.to_string())),
-                                                }
-                                            }
-                                        },
-                                        Err(err) => error.set(Some(err.to_string())),
-                                    }
-                                    busy.set(false);
-                                });
-                            }
-                        },
-                        "Export profile bundle…"
-                    }
+                BackupsImportExportToolbar {
+                    profile_id: profile_id,
+                    busy: busy(),
+                    busy_signal: busy,
+                    error: error,
+                    status: status,
+                    profiles: profiles,
                 }
                 h3 {
                     "Pre-write backup snapshots"

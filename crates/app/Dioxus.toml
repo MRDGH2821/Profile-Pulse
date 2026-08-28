@@ -1,0 +1,12 @@
+[application]
+name = "profile-pulse"
+default_platform = "desktop"
+
+[web.app]
+title = "Profile Pulse"
+
+[web.watcher]
+watch_path = ["src", "assets"]
+
+[web.resource.dev]
+style = ["assets/styles.css"]

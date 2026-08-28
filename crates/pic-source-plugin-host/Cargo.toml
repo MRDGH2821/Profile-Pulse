@@ -12,16 +12,22 @@ log.workspace = true
 md5.workspace = true
 profile-pulse-core = { path = "../core" }
 profile-pulse-pic-source-plugin-api = { path = "../pic-source-plugin-api" }
-reqwest.workspace = true
 semver.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-tempfile.workspace = true
 thiserror.workspace = true
-tokio = { workspace = true, features = ["fs", "rt-multi-thread"] }
 toml.workspace = true
-wasmtime.workspace = true
 zip.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+reqwest.workspace = true
+tempfile.workspace = true
+tokio = { workspace = true, features = ["fs", "macros", "rt-multi-thread"] }
+wasmtime.workspace = true
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+reqwest = { version = "0.12", default-features = false, features = ["json"] }
+tokio = { version = "1.49", features = ["macros", "rt", "sync"] }
 
 [dev-dependencies]
 tempfile.workspace = true

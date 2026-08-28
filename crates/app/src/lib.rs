@@ -18,6 +18,7 @@ fn App() -> Element {
     use_context_provider(AppState::initialize);
     let active_profile = use_context::<ActiveProfile>();
     let state = use_context::<AppState>();
+    #[cfg(not(target_arch = "wasm32"))]
     use_effect(move || {
         let state = state.clone();
         spawn(async move {

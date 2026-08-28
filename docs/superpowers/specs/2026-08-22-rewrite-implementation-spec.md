@@ -423,10 +423,12 @@ OAuth token storage uses desktop keychain / web encrypted IDB — **not** availa
 
 ## UI (`profile-pulse-app`) — Phase 1+
 
-Dioxus 0.7 with features:
+Dioxus 0.7 with features (see [tutorial/new_app](https://dioxuslabs.com/learn/0.7/tutorial/new_app/) and [DIOXUS.md](../../DIOXUS.md)):
 
-- `desktop` — `dioxus/desktop`
+- `desktop` — `dioxus/desktop` (default)
 - `web` — `dioxus/web`
+
+`dx serve --platform <desktop|web>` from `crates/app` enables the matching Cargo feature. App entrypoint: `dioxus::launch(App)` in `lib.rs`, `main.rs` calls `profile_pulse_app::launch()`.
 
 ### Routes (v1)
 

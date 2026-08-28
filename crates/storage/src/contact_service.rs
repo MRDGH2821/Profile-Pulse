@@ -8,6 +8,7 @@ use profile_pulse_core::{
 use profile_pulse_pic_source_plugin_api::ProfilePicBytes;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
+#[cfg(not(target_arch = "wasm32"))]
 use tokio::fs;
 
 pub struct ContactService<B, I> {
@@ -181,30 +182,37 @@ where
     }
 
     pub async fn run_scheduled_backups(&self) -> Result<u32, StorageError> {
-        let profiles = self.storage.list_profiles().await?;
-        let mut count = 0u32;
-        for mut profile in profiles {
-            if !profile.settings.scheduled_backup_enabled {
-                continue;
-            }
-            let Some(dir) = profile.settings.scheduled_backup_dir.clone() else {
-                continue;
-            };
-            if dir.trim().is_empty() {
-                continue;
-            }
-            let bundle = self.export_profile_bundle(profile.id).await?;
-            fs::create_dir_all(&dir).await?;
-            let timestamp = Utc::now().format("%Y%m%dT%H%M%SZ");
-            let filename = format!("{}-profile-pulse-{}.pp-profile", profile.slug, timestamp);
-            let path = PathBuf::from(&dir).join(filename);
-            fs::write(&path, &bundle).await?;
-            profile.settings.scheduled_backup_last_run = Some(Utc::now());
-            profile.updated_at = Utc::now();
-            self.storage.save_profile(&profile).await?;
-            count += 1;
+        #[cfg(target_arch = "wasm32")]
+        {
+            return Ok(0);
         }
-        Ok(count)
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let profiles = self.storage.list_profiles().await?;
+            let mut count = 0u32;
+            for mut profile in profiles {
+                if !profile.settings.scheduled_backup_enabled {
+                    continue;
+                }
+                let Some(dir) = profile.settings.scheduled_backup_dir.clone() else {
+                    continue;
+                };
+                if dir.trim().is_empty() {
+                    continue;
+                }
+                let bundle = self.export_profile_bundle(profile.id).await?;
+                fs::create_dir_all(&dir).await?;
+                let timestamp = Utc::now().format("%Y%m%dT%H%M%SZ");
+                let filename = format!("{}-profile-pulse-{}.pp-profile", profile.slug, timestamp);
+                let path = PathBuf::from(&dir).join(filename);
+                fs::write(&path, &bundle).await?;
+                profile.settings.scheduled_backup_last_run = Some(Utc::now());
+                profile.updated_at = Utc::now();
+                self.storage.save_profile(&profile).await?;
+                count += 1;
+            }
+            Ok(count)
+        }
     }
 
     pub async fn apply_profile_pic(

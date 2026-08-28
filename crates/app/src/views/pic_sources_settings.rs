@@ -1,9 +1,10 @@
 use crate::routes::Route;
 use crate::state::AppState;
+use crate::views::pic_sources_install_toolbar::PicSourceInstallToolbar;
 use dioxus::prelude::*;
 use profile_pulse_pic_source_plugin_api::PicSourceCapability;
 use profile_pulse_pic_source_plugin_host::{
-    PACKAGE_EXTENSION, PicSourcePluginManifest, PluginRuntimeKind, capability_name, preview_package,
+    PACKAGE_EXTENSION, PicSourcePluginManifest, PluginRuntimeKind, capability_name,
 };
 
 #[component]
@@ -60,30 +61,13 @@ pub fn PicSourcesSettings() -> Element {
                     "{message}"
                 }
             }
-            div {
-                class: "toolbar",
-                button {
-                    disabled: busy(),
-                    onclick: move | _ | {
-                        let Some(path) =
-                            rfd::FileDialog::new()
-                                .add_filter("Profile pic source plugin", &[PACKAGE_EXTENSION, "zip"])
-                                .pick_file() else {
-                                return;
-                            };
-                        match preview_package(&path) {
-                            Ok(manifest) => {
-                                error.set(None);
-                                pending_manifest.set(Some(manifest));
-                                pending_path.set(Some(path.display().to_string()));
-                                approve_network.set(false);
-                                approve_secrets.set(false);
-                            },
-                            Err(err) => error.set(Some(err.to_string())),
-                        }
-                    },
-                    "Install from file…"
-                }
+            PicSourceInstallToolbar {
+                busy: busy(),
+                error: error,
+                pending_manifest: pending_manifest,
+                pending_path: pending_path,
+                approve_network: approve_network,
+                approve_secrets: approve_secrets,
             }
             if let Some(manifest) = pending_manifest() {
                 div {

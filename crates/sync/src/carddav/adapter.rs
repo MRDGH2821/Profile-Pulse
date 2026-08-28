@@ -1,20 +1,11 @@
 use crate::adapter::{RemoteChange, SyncAdapter};
+use crate::credentials::{CardDavCredentials, carddav_secret_key};
 use crate::error::SyncError;
 use crate::secrets::SecretStore;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use profile_pulse_core::{Contact, ContactId, contact_from_vcard_bytes};
 use reqwest::Client;
-
-pub fn carddav_secret_key(profile_id: profile_pulse_core::ProfileId) -> String {
-    format!("carddav:{}", profile_id.0)
-}
-
-#[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
-pub struct CardDavCredentials {
-    pub username: String,
-    pub password: String,
-}
 
 pub struct CardDavAdapter {
     client: Client,

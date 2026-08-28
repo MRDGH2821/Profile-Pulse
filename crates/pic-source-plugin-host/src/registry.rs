@@ -1,11 +1,16 @@
 use crate::builtins::all_builtins;
+#[cfg(not(target_arch = "wasm32"))]
 use crate::desktop_host::DesktopHostApi;
+#[cfg(target_arch = "wasm32")]
+use crate::web_host::PluginHostApi as DesktopHostApi;
 use crate::error::HostError;
 use crate::manifest::MANIFEST_FILE;
+#[cfg(not(target_arch = "wasm32"))]
 use crate::package::{
     approved_capabilities_from_install, install_package, plugin_install_dir, plugins_root,
     read_install_state, read_manifest_from_dir, write_install_state,
 };
+#[cfg(not(target_arch = "wasm32"))]
 use crate::wasm_runtime::WasmPicSourcePlugin;
 use profile_pulse_core::PicSourcePluginId;
 use profile_pulse_pic_source_plugin_api::{
@@ -63,6 +68,7 @@ impl PicSourcePluginRegistry {
         for plugin in all_builtins(host) {
             registry.register_builtin(plugin);
         }
+        #[cfg(not(target_arch = "wasm32"))]
         if let Err(err) = registry.load_installed_wasm_plugins() {
             log::warn!("failed to load installed wasm plugins: {err}");
         }
@@ -114,12 +120,21 @@ impl PicSourcePluginRegistry {
             entry.enabled = enabled;
             return Ok(());
         }
-        entry.enabled = enabled;
-        let install_dir = plugin_install_dir(&self.data_root, plugin_id);
-        let mut state = read_install_state(&install_dir)?;
-        state.enabled = enabled;
-        write_install_state(&install_dir, &state)?;
-        Ok(())
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            entry.enabled = enabled;
+            let install_dir = plugin_install_dir(&self.data_root, plugin_id);
+            let mut state = read_install_state(&install_dir)?;
+            state.enabled = enabled;
+            write_install_state(&install_dir, &state)?;
+            Ok(())
+        }
+        #[cfg(target_arch = "wasm32")]
+        {
+            Err(HostError::Unsupported(
+                "user-installed WASM plugins are not available in the web build".into(),
+            ))
+        }
     }
 
     pub fn get(
@@ -163,6 +178,7 @@ impl PicSourcePluginRegistry {
         Ok(plugin.fetch_pic(candidate).await?)
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub async fn install_package(
         &mut self,
         source: &Path,
@@ -172,6 +188,7 @@ impl PicSourcePluginRegistry {
         self.register_wasm_install(&install_dir)
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn load_installed_wasm_plugins(&mut self) -> Result<(), HostError> {
         let root = plugins_root(&self.data_root);
         if !root.exists() {
@@ -191,6 +208,7 @@ impl PicSourcePluginRegistry {
         Ok(())
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     fn register_wasm_install(
         &mut self,
         install_dir: &Path,
@@ -219,6 +237,7 @@ impl PicSourcePluginRegistry {
         Ok(PicSourcePluginId(id))
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub async fn load_wasm_package(
         &mut self,
         path: &Path,

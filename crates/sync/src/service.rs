@@ -1,5 +1,6 @@
-use crate::adapter::{PushResult, SyncAdapter};
-use crate::carddav::{CardDavAdapter, CardDavCredentials, carddav_secret_key};
+use crate::adapter::SyncAdapter;
+use crate::carddav::CardDavAdapter;
+use crate::credentials::{CardDavCredentials, PushResult, carddav_secret_key};
 use crate::error::SyncError;
 use crate::google::{GoogleContactsAdapter, authorize_google_pkce};
 use crate::links::SyncLinkStore;

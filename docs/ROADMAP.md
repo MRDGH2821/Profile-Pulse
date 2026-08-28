@@ -81,11 +81,14 @@ Cross-platform **desktop + web PWA** app that keeps device/cloud contacts update
 
 ## Phase 6 — Web PWA
 
-- [ ] Dioxus web target build
-- [ ] `OpfsVdirBackend` + web contact index
-- [ ] Passphrase-encrypted secret vault
-- [ ] Static deploy docs (GitHub Pages or similar)
-- [ ] WASM pic source plugins in browser
+Reference: [DIOXUS.md](DIOXUS.md) (aligned with [Dioxus 0.7 getting started](https://dioxuslabs.com/learn/0.7/getting_started/))
+
+- [x] Dioxus web target build (`cargo build --target wasm32-unknown-unknown --no-default-features --features web`)
+- [x] `OpfsVdirBackend` + `WebContactIndex`
+- [x] Passphrase-encrypted secret vault (`PROFILE_PULSE_VAULT_PASSPHRASE` + `localStorage`)
+- [x] `Dioxus.toml` + `dx` workflow documented (`dx serve/build --platform web` from `crates/app`)
+- [ ] Static deploy bundle verified (`dx build --platform web --release`) and GitHub Pages (or similar) instructions
+- [ ] WASM pic source plugins in browser — built-in sources only; user plugin install deferred
 
 ## Phase 7 — Background sync & conflicts
 
