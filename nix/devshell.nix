@@ -16,6 +16,7 @@ in
       bzip2
       cocogitto
       copier
+      dioxus-cli
       git
       git-credential-oauth
       glab
