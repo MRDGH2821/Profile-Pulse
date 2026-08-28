@@ -47,7 +47,9 @@
   workspaceCheckArgs =
     baseArgs
     // {
+      buildInputs = desktopBuildInputs;
       cargoExtraArgs = "--workspace --exclude profile-pulse-legacy";
+      nativeBuildInputs = desktopNativeBuildInputs;
     };
 
   buildDepsOnly = args: craneLib.buildDepsOnly args;
