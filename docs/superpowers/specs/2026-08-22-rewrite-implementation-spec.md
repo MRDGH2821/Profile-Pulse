@@ -36,16 +36,16 @@ The legacy Iced app under `src/` is **superseded**. The rewrite lives in a Cargo
 
 These close open questions from the architecture design so implementation can proceed. Change via ADR + spec update if needed.
 
-| Topic                     | v1 default                                                                                                             |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Cloud auth                | **OAuth 2.0 PKCE** for Google and Outlook; **app password** or token-per-server for CardDAV                            |
-| Remote-change check       | Poll every **15 minutes** while app is active; **one prompt** listing which linked targets changed                     |
-| SQLite role               | **Index only** — search, sort keys, pic metadata, sync bookkeeping; **vdir `.vcf` files are source of truth**          |
-| Web secrets               | **Passphrase-encrypted IDB** vault (Argon2id + AES-GCM); WebAuthn wrap deferred                                        |
-| Web scraping pic sources  | **Public HTTP/API only** on web; document CORS limits; desktop may add host fetch proxy later                          |
-| First cloud sync adapter  | **Google Contacts**                                                                                                    |
-| Second cloud sync adapter | **CardDAV** (generic; covers many providers)                                                                           |
-| Shared pic cache          | Global under app data: `cache/avatars/<sha256>`                                                                        |
+| Topic                     | v1 default                                                                                                    |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Cloud auth                | **OAuth 2.0 PKCE** for Google and Outlook; **app password** or token-per-server for CardDAV                   |
+| Remote-change check       | Poll every **15 minutes** while app is active; **one prompt** listing which linked targets changed            |
+| SQLite role               | **Index only** — search, sort keys, pic metadata, sync bookkeeping; **vdir `.vcf` files are source of truth** |
+| Web secrets               | **Passphrase-encrypted IDB** vault (Argon2id + AES-GCM); WebAuthn wrap deferred                               |
+| Web scraping pic sources  | **Public HTTP/API only** on web; document CORS limits; desktop may add host fetch proxy later                 |
+| First cloud sync adapter  | **Google Contacts**                                                                                           |
+| Second cloud sync adapter | **CardDAV** (generic; covers many providers)                                                                  |
+| Shared pic cache          | Global under app data: `cache/avatars/<sha256>`                                                               |
 
 ## Workspace layout
 

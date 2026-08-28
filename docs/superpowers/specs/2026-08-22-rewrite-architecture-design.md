@@ -36,10 +36,10 @@ Earlier brainstorming assumed **desktop + mobile** with web later. **Mobile is d
 
 ## Platform decision
 
-| Surface     | Technology           | Role                                                                                                   |
-| ----------- | -------------------- | ------------------------------------------------------------------------------------------------------ |
+| Surface     | Technology           | Role                                                                                      |
+| ----------- | -------------------- | ----------------------------------------------------------------------------------------- |
 | **Desktop** | Dioxus native + Rust | Primary power-user surface: filesystem vdir, native pic source plugins, scheduled backups |
-| **Website** | Dioxus WASM PWA      | No-install access; cloud sync; WASM pic source plugins only                  |
+| **Website** | Dioxus WASM PWA      | No-install access; cloud sync; WASM pic source plugins only                               |
 
 Both surfaces share the same Dioxus UI and Rust core, compiled to native and `wasm32` respectively.
 
@@ -89,7 +89,7 @@ flowchart TB
 | **UI** (`profile-pulse-app`)                                        | Dioxus views: contact search, details/editor/pic-selector tabs, settings, **profile pic source plugin** manager |
 | **Core** (`profile-pulse-core`)                                     | Domain model, profiles, backup rules, conflict resolution, orchestration — no UI, no pic source plugin loading  |
 | **Storage** (`profile-pulse-storage`)                               | Pluggable backends: filesystem vdir (desktop), OPFS/IDB (web)                                                   |
-| **Sync** (`profile-pulse-sync`)                                     | First-party adapters: Google, Outlook, CardDAV, iCloud (where feasible)           |
+| **Sync** (`profile-pulse-sync`)                                     | First-party adapters: Google, Outlook, CardDAV, iCloud (where feasible)                                         |
 | **Pic source plugin API** (`profile-pulse-pic-source-plugin-api`)   | Stable host ↔ **profile pic source plugin** contract, versioned                                                 |
 | **Pic source plugin host** (`profile-pulse-pic-source-plugin-host`) | Registry, discovery, enable/disable, capabilities, runtimes                                                     |
 | **Built-in pic source plugins** (`pic-source-plugins/builtin-*`)    | Gravatar, GitHub, GitLab — compile-time, embedded in both binaries                                              |
