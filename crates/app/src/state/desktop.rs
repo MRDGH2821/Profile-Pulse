@@ -29,6 +29,7 @@ pub struct AppState {
     pub contact_service: Arc<ContactService<AppBackend, AppIndex>>,
     pub plugin_registry: Arc<RwLock<PicSourcePluginRegistry>>,
     pub sync_service: Arc<SyncService>,
+    #[allow(dead_code)]
     data_root: PathBuf,
 }
 
@@ -59,6 +60,7 @@ impl AppState {
         }
     }
 
+    #[allow(dead_code)]
     pub fn data_root(&self) -> &PathBuf {
         &self.data_root
     }

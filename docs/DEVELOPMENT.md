@@ -115,6 +115,23 @@ export PROFILE_PULSE_GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com
 
 Link targets under **Sync** in the app header. Push is default — use **Sync contact** on a contact's Details tab. CardDAV uses server URL + username/app password stored locally under `{data_dir}/secrets/`.
 
+### Phase 7 (Background sync)
+
+While the desktop app is active, remote changes are polled every 15 minutes for the active profile. When changes are detected, a header banner links to **Sync** settings where you can **Pull remote changes**. Conflicts offer **Keep local**, **Take remote**, or **Review in editor** on the contact detail page.
+
+### Phase 8 (Release readiness)
+
+Rewrite crates (`core`, `storage`, `sync`, `app`, `pic-source-plugin-*`) should pass:
+
+```bash
+cargo clippy -p profile-pulse-app -p profile-pulse-sync -p profile-pulse-core \
+  -p profile-pulse-storage -p profile-pulse-pic-source-plugin-host \
+  -p profile-pulse-pic-source-plugin-api -- -D warnings
+cargo test --workspace
+```
+
+The frozen `legacy/iced-app` crate may retain warnings.
+
 ### Phase 6 (Dioxus web PWA)
 
 Follow **[DIOXUS.md](DIOXUS.md)** and the [official getting started guide](https://dioxuslabs.com/learn/0.7/getting_started/).

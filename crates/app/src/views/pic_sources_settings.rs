@@ -4,7 +4,7 @@ use crate::views::pic_sources_install_toolbar::PicSourceInstallToolbar;
 use dioxus::prelude::*;
 use profile_pulse_pic_source_plugin_api::PicSourceCapability;
 use profile_pulse_pic_source_plugin_host::{
-    PACKAGE_EXTENSION, PicSourcePluginManifest, PluginRuntimeKind, capability_name,
+    PACKAGE_EXTENSION, PicSourcePluginManifest, PluginRuntimeKind, capability_name, install_package,
 };
 
 #[component]
@@ -156,9 +156,25 @@ pub fn PicSourcesSettings() -> Element {
                                     error.set(None);
                                     let state = state.clone();
                                     spawn(async move {
-                                        let result = {
-                                            let mut registry = state.plugin_registry.write().unwrap();
-                                            registry.install_package(std::path::Path::new(&path), &approved).await
+                                        let data_root = state
+                                            .plugin_registry
+                                            .read()
+                                            .unwrap()
+                                            .data_root()
+                                            .to_path_buf();
+                                        let install_result = install_package(
+                                            &data_root,
+                                            std::path::Path::new(&path),
+                                            &approved,
+                                        )
+                                        .await;
+                                        let result = match install_result {
+                                            Ok(install_dir) => {
+                                                let mut registry =
+                                                    state.plugin_registry.write().unwrap();
+                                                registry.register_install_dir(&install_dir)
+                                            }
+                                            Err(err) => Err(err),
                                         };
                                         match result {
                                             Ok(id) => {

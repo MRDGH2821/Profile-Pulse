@@ -95,10 +95,10 @@ impl StorageBackend for FsVdirBackend {
             if path.extension().and_then(|s| s.to_str()) != Some("vcf") {
                 continue;
             }
-            if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
-                if let Ok(uuid) = uuid::Uuid::parse_str(stem) {
-                    ids.push(ContactId(uuid));
-                }
+            if let Some(stem) = path.file_stem().and_then(|s| s.to_str())
+                && let Ok(uuid) = uuid::Uuid::parse_str(stem)
+            {
+                ids.push(ContactId(uuid));
             }
         }
         Ok(ids)

@@ -20,7 +20,6 @@ pub fn BackupsSettings() -> Element {
     let mut busy = use_signal(|| false);
     use_effect({
         let state = state.clone();
-        let active_profile = active_profile;
         move || {
             let state = state.clone();
             spawn(async move {

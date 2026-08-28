@@ -28,7 +28,7 @@ pub fn ContactDetail(profile_id: String, contact_id: String) -> Element {
     let mut contact = use_signal(|| None::<profile_pulse_core::Contact>);
     let mut error = use_signal(|| None::<String>);
     let mut sync_status = use_signal(|| None::<String>);
-    let mut conflict_status = use_signal(|| None::<String>);
+    let conflict_status = use_signal(|| None::<String>);
     let profile_uuid = match uuid::Uuid::parse_str(&profile_id) {
         Ok(id) => ProfileId(id),
         Err(_) => {
@@ -236,7 +236,7 @@ pub fn ContactDetail(profile_id: String, contact_id: String) -> Element {
                                     let state = app_state.clone();
                                     let c = c.clone();
                                     move |_| {
-                                        let state = app_state.clone();
+                                        let state = state.clone();
                                         let c = c.clone();
                                         spawn(async move {
                                             match state.storage.load_profile(profile_uuid).await {

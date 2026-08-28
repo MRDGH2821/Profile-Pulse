@@ -194,7 +194,7 @@ impl SyncService {
         remote.profile_id = profile.id;
 
         let Some(local) = local else {
-            return Ok(PullPrepareResult::Apply(remote));
+            return Ok(PullPrepareResult::Apply(Box::new(remote)));
         };
 
         let link = self
@@ -202,15 +202,15 @@ impl SyncService {
             .get_link(profile.id, contact_id, target_kind)?
             .ok_or_else(|| SyncError::NotConfigured("sync link missing".into()))?;
         if is_pull_conflict(local, &remote, link.updated_at) {
-            Ok(PullPrepareResult::Conflict(PullConflict {
+            Ok(PullPrepareResult::Conflict(Box::new(PullConflict {
                 contact_id,
                 target_kind: target_kind.to_string(),
                 remote_id: change.remote_id.clone(),
                 local: local.clone(),
                 remote,
-            }))
+            })))
         } else {
-            Ok(PullPrepareResult::Apply(remote))
+            Ok(PullPrepareResult::Apply(Box::new(remote)))
         }
     }
 

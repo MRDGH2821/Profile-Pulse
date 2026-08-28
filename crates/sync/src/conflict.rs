@@ -29,9 +29,9 @@ pub struct PullConflict {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PullPrepareResult {
     /// Safe to apply the remote contact.
-    Apply(Contact),
+    Apply(Box<Contact>),
     /// User must choose a resolution strategy.
-    Conflict(PullConflict),
+    Conflict(Box<PullConflict>),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

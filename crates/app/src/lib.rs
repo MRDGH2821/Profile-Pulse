@@ -37,8 +37,6 @@ fn App() -> Element {
             });
         });
         let state_for_poll = state.clone();
-        let sync_prompt = sync_prompt;
-        let active_profile = active_profile;
         use_effect(move || {
             let state = state_for_poll.clone();
             let mut sync_prompt = sync_prompt;
@@ -130,7 +128,7 @@ fn SyncPromptBanner() -> Element {
     }
     #[cfg(not(target_arch = "wasm32"))]
     {
-        let mut sync_prompt = use_context::<SyncPromptState>();
+        let sync_prompt = use_context::<SyncPromptState>();
         let nav = navigator();
         let Some((profile_id, changes)) = sync_prompt.pending_snapshot() else {
             return rsx! {};

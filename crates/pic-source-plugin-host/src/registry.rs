@@ -152,10 +152,25 @@ impl PicSourcePluginRegistry {
         &self,
         contact: &ContactContext,
     ) -> Result<Vec<(PicSourcePluginId, ProfilePicCandidate)>, HostError> {
+        Self::discover_plugins(&self.enabled_plugins(), contact).await
+    }
+
+    pub fn enabled_plugins(&self) -> Vec<Arc<dyn ProfilePicSourcePlugin>> {
+        self.plugins
+            .values()
+            .filter(|entry| entry.enabled)
+            .map(|entry| Arc::clone(&entry.plugin))
+            .collect()
+    }
+
+    pub async fn discover_plugins(
+        plugins: &[Arc<dyn ProfilePicSourcePlugin>],
+        contact: &ContactContext,
+    ) -> Result<Vec<(PicSourcePluginId, ProfilePicCandidate)>, HostError> {
         let mut out = Vec::new();
-        for entry in self.plugins.values().filter(|e| e.enabled) {
-            let plugin_id = entry.plugin.metadata().id.clone();
-            match entry.plugin.discover_sources(contact).await {
+        for plugin in plugins {
+            let plugin_id = plugin.metadata().id.clone();
+            match plugin.discover_sources(contact).await {
                 Ok(candidates) => {
                     for candidate in candidates {
                         out.push((plugin_id.clone(), candidate));
@@ -167,6 +182,18 @@ impl PicSourcePluginRegistry {
             }
         }
         Ok(out)
+    }
+
+    pub fn data_root(&self) -> &Path {
+        &self.data_root
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn register_install_dir(
+        &mut self,
+        install_dir: &Path,
+    ) -> Result<PicSourcePluginId, HostError> {
+        self.register_wasm_install(install_dir)
     }
 
     pub async fn fetch(
@@ -198,10 +225,10 @@ impl PicSourcePluginRegistry {
             let entry = entry?;
             if entry.file_type()?.is_dir() {
                 let path = entry.path();
-                if path.join(MANIFEST_FILE).exists() {
-                    if let Err(err) = self.register_wasm_install(&path) {
-                        log::warn!("skip wasm plugin at {}: {err}", path.display());
-                    }
+                if path.join(MANIFEST_FILE).exists()
+                    && let Err(err) = self.register_wasm_install(&path)
+                {
+                    log::warn!("skip wasm plugin at {}: {err}", path.display());
                 }
             }
         }

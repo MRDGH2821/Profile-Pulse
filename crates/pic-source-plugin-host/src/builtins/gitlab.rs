@@ -29,10 +29,10 @@ impl GitlabPicSource {
         let mut seen = HashSet::new();
         let mut usernames = Vec::new();
         for site in &ctx.websites {
-            if let Some(user) = gitlab_username_from_url(&site.url) {
-                if seen.insert(user.clone()) {
-                    usernames.push(user);
-                }
+            if let Some(user) = gitlab_username_from_url(&site.url)
+                && seen.insert(user.clone())
+            {
+                usernames.push(user);
             }
         }
         usernames

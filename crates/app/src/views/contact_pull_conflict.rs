@@ -1,6 +1,4 @@
 #[cfg(not(target_arch = "wasm32"))]
-use crate::routes::Route;
-#[cfg(not(target_arch = "wasm32"))]
 use crate::state::AppState;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::sync_prompt::SyncPromptState;
@@ -14,6 +12,7 @@ use profile_pulse_storage::StorageBackend;
 use profile_pulse_sync::PullApplyResult;
 
 #[cfg(not(target_arch = "wasm32"))]
+#[allow(clippy::redundant_locals)]
 #[component]
 pub fn ContactPullConflictPanel(
     profile_uuid: ProfileId,
@@ -23,9 +22,8 @@ pub fn ContactPullConflictPanel(
     mut error: Signal<Option<String>>,
     mut conflict_status: Signal<Option<String>>,
 ) -> Element {
-    let state = use_context::<AppState>();
+    let app_state = use_context::<AppState>();
     let sync_prompt = use_context::<SyncPromptState>();
-    let mut sync_prompt = sync_prompt;
     let Some(conflict) = sync_prompt.conflict_for(contact_uuid) else {
         return rsx! {};
     };
@@ -43,11 +41,12 @@ pub fn ContactPullConflictPanel(
                 class: "toolbar",
                 button {
                     onclick: {
-                        let state = state.clone();
+                        let state = app_state.clone();
                         let conflict = conflict.clone();
                         move |_| {
                             let state = state.clone();
                             let conflict = conflict.clone();
+                            let mut sync_prompt = sync_prompt;
                             spawn(async move {
                                 let Ok(profile) = state.storage.load_profile(profile_uuid).await else {
                                     return;
@@ -75,11 +74,12 @@ pub fn ContactPullConflictPanel(
                 }
                 button {
                     onclick: {
-                        let state = state.clone();
+                        let state = app_state.clone();
                         let conflict = conflict.clone();
                         move |_| {
                             let state = state.clone();
                             let conflict = conflict.clone();
+                            let mut sync_prompt = sync_prompt;
                             spawn(async move {
                                 let Ok(profile) = state.storage.load_profile(profile_uuid).await else {
                                     return;

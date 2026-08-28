@@ -83,7 +83,7 @@ pub async fn authorize_google_pkce(
         .add_scope(Scope::new(GOOGLE_CONTACTS_SCOPE.to_string()))
         .set_pkce_challenge(pkce_challenge)
         .url();
-    open_browser(&auth_url.to_string())?;
+    open_browser(auth_url.as_ref())?;
     let http_client = Client::new();
     let code = receive_oauth_code(listener).await?;
     let token = client
@@ -161,10 +161,10 @@ pub async fn refresh_google_access_token(
 ) -> Result<String, SyncError> {
     let mut bundle = load_google_tokens(secrets, profile_id)?
         .ok_or_else(|| SyncError::AuthRequired("Google Contacts".into()))?;
-    if let Some(expires_at) = bundle.expires_at {
-        if expires_at > chrono::Utc::now() + chrono::Duration::minutes(2) {
-            return Ok(bundle.access_token);
-        }
+    if let Some(expires_at) = bundle.expires_at
+        && expires_at > chrono::Utc::now() + chrono::Duration::minutes(2)
+    {
+        return Ok(bundle.access_token);
     }
     let Some(refresh_token) = bundle.refresh_token.clone() else {
         return Ok(bundle.access_token);

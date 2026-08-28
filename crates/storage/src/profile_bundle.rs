@@ -24,10 +24,10 @@ pub async fn export_profile_bundle<B: StorageBackend>(
         zip.start_file(PROFILE_FILE, options)
             .map_err(|e| StorageError::Vcard(e.to_string()))?;
         zip.write_all(profile_toml.as_bytes())
-            .map_err(|e| StorageError::Io(e))?;
+            .map_err(StorageError::Io)?;
         zip.start_file(AGGREGATE_VCF, options)
             .map_err(|e| StorageError::Vcard(e.to_string()))?;
-        zip.write_all(&vcf).map_err(|e| StorageError::Io(e))?;
+        zip.write_all(&vcf).map_err(StorageError::Io)?;
         zip.finish()
             .map_err(|e| StorageError::Vcard(e.to_string()))?;
     }
@@ -49,7 +49,7 @@ pub async fn import_profile_bundle<B: StorageBackend>(
             .map_err(|e| StorageError::Vcard(e.to_string()))?;
         let name = file.name().trim_start_matches("./").to_string();
         let mut contents = Vec::new();
-        std::io::copy(&mut file, &mut contents).map_err(|e| StorageError::Io(e))?;
+        std::io::copy(&mut file, &mut contents).map_err(StorageError::Io)?;
         if name == PROFILE_FILE {
             profile_toml = Some(
                 String::from_utf8(contents)

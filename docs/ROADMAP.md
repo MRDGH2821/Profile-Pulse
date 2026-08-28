@@ -1,6 +1,6 @@
 # Profile Pulse Rewrite — Roadmap
 
-**Status:** Phase 5 complete on `mrdgh2821/feat/phase-5-cloud-sync`  
+**Status:** Phase 7 complete on `mrdgh2821/feat/phase-7-background-sync`  
 **Architecture:** [2026-08-22-rewrite-architecture-design.md](superpowers/specs/2026-08-22-rewrite-architecture-design.md)  
 **Implementation spec:** [2026-08-22-rewrite-implementation-spec.md](superpowers/specs/2026-08-22-rewrite-implementation-spec.md)  
 **Human plan:** [profile-pulse-app.md](human-plans/profile-pulse-app.md)
@@ -19,8 +19,9 @@ Cross-platform **desktop + web PWA** app that keeps device/cloud contacts update
 | 3     | WASM pic sources       | WASM loader, sample `.pp-pic-source-plugin`, manager UI            | Done                                                                  |
 | 4     | Backup & import/export | Pre-write backup UI, aggregate VCF, profile bundle                 | Done                                                                  |
 | 5     | Cloud sync             | Google + CardDAV push/pull, per-contact sync button                | Done                                                                  |
-| 6     | Web PWA                | Dioxus web, OPFS storage backend                                   | TBD                                                                   |
-| 7     | Background sync        | Remote-change polling, pull prompts, conflict UI                   | TBD                                                                   |
+| 6     | Web PWA                | Dioxus web, OPFS storage backend                                   | Done                                                                  |
+| 7     | Background sync        | Remote-change polling, pull prompts, conflict UI                   | Done                                                                  |
+| 8     | Release readiness      | Clippy clean rewrite crates, docs sync, Phase 6 closure             | In progress                                                           |
 
 ## Phase 0 — Foundation
 
@@ -32,7 +33,7 @@ Cross-platform **desktop + web PWA** app that keeps device/cloud contacts update
 - [x] SQLite contact search index
 - [x] Pre-write profile snapshot backup
 - [x] `ContactService::update_contact` orchestration
-- [ ] Workspace tests + clippy clean (legacy crate may retain warnings)
+- [x] Workspace tests passing (`cargo test --workspace`; legacy crate warnings allowed)
 
 ## Phase 1 — Desktop UI shell
 
@@ -87,13 +88,20 @@ Reference: [DIOXUS.md](DIOXUS.md) (aligned with [Dioxus 0.7 getting started](htt
 - [x] `OpfsVdirBackend` + `WebContactIndex`
 - [x] Passphrase-encrypted secret vault (`PROFILE_PULSE_VAULT_PASSPHRASE` + `localStorage`)
 - [x] `Dioxus.toml` + `dx` workflow documented (`dx serve --platform web` from `crates/app`)
-- [ ] WASM pic source plugins in browser — built-in sources only; user plugin install deferred
+- [x] Built-in pic sources on web (`web_host`); user WASM plugin install deferred to v1.1
 
 ## Phase 7 — Background sync & conflicts
 
 - [x] 15-minute remote-change poll while app active
 - [x] Pull prompt listing changed targets
 - [x] Per-contact conflict resolution: Keep local / Take remote / Review
+
+## Phase 8 — Release readiness
+
+- [x] `cargo clippy -D warnings` clean on rewrite crates (`core`, `storage`, `sync`, `app`, `pic-source-plugin-*`)
+- [x] Workspace tests passing (`cargo test --workspace`)
+- [ ] Phase 0 clippy clean for `legacy/iced-app` (optional; frozen crate)
+- [x] ROADMAP status and Phase 6 closure documented
 
 ## Explicitly out of scope (v1)
 

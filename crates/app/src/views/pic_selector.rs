@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 use profile_pulse_core::{Contact, ContactId, PicSourcePluginId, ProfileId};
 use profile_pulse_pic_source_plugin_api::{ContactContext, ProfilePicCandidate};
 use profile_pulse_pic_source_plugin_host::{
-    github_candidate_for_username, gitlab_candidate_for_username,
+    PicSourcePluginRegistry, github_candidate_for_username, gitlab_candidate_for_username,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -33,13 +33,8 @@ pub fn PicSelector(
         let contact = contact_for_effect.clone();
         spawn(async move {
             let ctx = ContactContext::from_contact(&contact);
-            match state
-                .plugin_registry
-                .read()
-                .unwrap()
-                .discover_all(&ctx)
-                .await
-            {
+            let plugins = state.plugin_registry.read().unwrap().enabled_plugins();
+            match PicSourcePluginRegistry::discover_plugins(&plugins, &ctx).await {
                 Ok(list) => {
                     error.set(None);
                     candidates.set(
@@ -198,8 +193,15 @@ pub fn PicSelector(
                                     status.set(Some(format!("Fetching {label}…")));
                                     let state = state.clone();
                                     spawn(async move {
-                                        let fetch_result =
-                                            state.plugin_registry.read().unwrap().fetch(&plugin_id, &candidate).await;
+                                        let plugin = match state.plugin_registry.read().unwrap().get(&plugin_id) {
+                                            Ok(plugin) => plugin,
+                                            Err(err) => {
+                                                error.set(Some(err.to_string()));
+                                                busy.set(false);
+                                                return;
+                                            }
+                                        };
+                                        let fetch_result = plugin.fetch_pic(&candidate).await;
                                         match fetch_result {
                                             Ok(pic) => {
                                                 match state

@@ -14,6 +14,7 @@ use profile_pulse_storage::StorageBackend;
 use profile_pulse_sync::PullPrepareResult;
 
 #[cfg(not(target_arch = "wasm32"))]
+#[allow(clippy::redundant_locals)]
 #[component]
 pub fn SyncPullPanel(
     selected_profile: ProfileId,
@@ -23,11 +24,11 @@ pub fn SyncPullPanel(
 ) -> Element {
     let state = use_context::<AppState>();
     let sync_prompt = use_context::<SyncPromptState>();
-    let mut sync_prompt = sync_prompt;
     let mut sections = Vec::new();
 
-    if let Some((prompt_profile_id, changes)) = sync_prompt.pending_snapshot() {
-        if selected_profile == prompt_profile_id {
+    if let Some((prompt_profile_id, changes)) = sync_prompt.pending_snapshot()
+        && selected_profile == prompt_profile_id
+    {
             sections.push(rsx! {
                 div {
                     class: "sync-prompt-panel",
@@ -44,7 +45,6 @@ pub fn SyncPullPanel(
                     button {
                         disabled: busy(),
                         onclick: {
-                            let mut sync_prompt = sync_prompt;
                             move |_| {
                                 busy.set(true);
                                 error.set(None);
@@ -99,7 +99,7 @@ pub fn SyncPullPanel(
                                                             &profile,
                                                             &target.target_kind,
                                                             &change.remote_id,
-                                                            remote,
+                                                            *remote,
                                                         )
                                                         .await
                                                     {
@@ -115,7 +115,7 @@ pub fn SyncPullPanel(
                                                     }
                                                 }
                                                 Ok(PullPrepareResult::Conflict(conflict)) => {
-                                                    sync_prompt.add_conflict(conflict);
+                                                    sync_prompt.add_conflict(*conflict);
                                                     conflict_count += 1;
                                                 }
                                                 Err(err) => error.set(Some(err.to_string())),
@@ -134,7 +134,6 @@ pub fn SyncPullPanel(
                     }
                 }
             });
-        }
     }
 
     if !sync_prompt.conflicts_snapshot().is_empty() {
