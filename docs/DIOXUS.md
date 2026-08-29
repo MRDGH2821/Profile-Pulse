@@ -187,3 +187,5 @@ export PROFILE_PULSE_VAULT_PASSPHRASE="choose-a-strong-passphrase"
 | Web build fails on tokio/mio | Build with `--no-default-features --features web`; network crates are cfg-gated |
 | Desktop missing WebKit/GTK | Use Nix devshell or install Linux deps above |
 | `dx doctor` warnings | Follow its suggestions; add `wasm32-unknown-unknown` for web |
+| GTK `colorreload-gtk-module` / `window-decorations-gtk-module` | KDE writes `gtk-modules=…` in `~/.config/gtk-3.0/settings.ini`. Nix devshell sets `GTK_MODULES=""` to override. Run `direnv reload`, then restart `dx serve`. |
+| `GStreamer element appsink not found` | Use the Nix devshell (includes GStreamer + `GST_PLUGIN_SYSTEM_PATH_1_0`). Harmless for this app if you are not playing media. |

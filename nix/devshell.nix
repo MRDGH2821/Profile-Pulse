@@ -4,10 +4,36 @@
   ...
 }: let
   pre-commit-check = import ./checks/pre-commit-check.nix {inherit inputs pkgs;};
-  wasmRuntimeLibs = pkgs.lib.makeLibraryPath [
-    pkgs.xz
-    pkgs.bzip2
+  inherit (pkgs) gst_all_1;
+  gstreamerPlugins = with gst_all_1; [
+    gst-plugins-base
+    gst-plugins-good
   ];
+  desktopRuntimeLibs = pkgs.lib.makeLibraryPath (with pkgs; [
+    atk
+    bzip2
+    cairo
+    gdk-pixbuf
+    glib
+    gtk3
+    gst_all_1.gstreamer
+    gst_all_1.gst-plugins-base
+    libdrm
+    libepoxy
+    libsoup_3
+    libxkbcommon
+    librsvg
+    mesa
+    nspr
+    nss
+    openssl
+    pango
+    wayland
+    webkitgtk_4_1
+    xdotool
+    xz
+  ]);
+  gstreamerPluginPath = pkgs.lib.makeSearchPath "lib/gstreamer-1.0" gstreamerPlugins;
 in
   pkgs.mkShell {
     packages = with pkgs; [
@@ -20,6 +46,9 @@ in
       git
       git-credential-oauth
       glab
+      gst_all_1.gst-plugins-base
+      gst_all_1.gst-plugins-good
+      gst_all_1.gstreamer
       gtk3
       lazygit
       librsvg
@@ -39,6 +68,10 @@ in
     shellHook =
       pre-commit-check.shellHook
       + ''
-        export LD_LIBRARY_PATH="${wasmRuntimeLibs}:''${LD_LIBRARY_PATH:-}"
+        export LD_LIBRARY_PATH="${desktopRuntimeLibs}:''${LD_LIBRARY_PATH:-}"
+        export GST_PLUGIN_SYSTEM_PATH_1_0="${gstreamerPluginPath}''${GST_PLUGIN_SYSTEM_PATH_1_0:+:}$GST_PLUGIN_SYSTEM_PATH_1_0"
+
+        # KDE/Plasma gtk-3.0/settings.ini lists host-only modules; empty env overrides it.
+        export GTK_MODULES=""
       '';
   }

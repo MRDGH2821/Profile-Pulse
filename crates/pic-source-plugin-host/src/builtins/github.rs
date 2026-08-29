@@ -1,4 +1,5 @@
 use crate::builtins::github_username_from_url;
+use crate::builtins::normalize_github_username;
 use crate::desktop_host::{DesktopHostApi, guess_content_type, host_context};
 use async_trait::async_trait;
 use profile_pulse_core::PicSourcePluginId;
@@ -95,13 +96,10 @@ impl ProfilePicSourcePlugin for GithubPicSource {
 /// Discover a GitHub avatar for a manually entered username (pic selector
 /// convenience).
 pub fn github_candidate_for_username(username: &str) -> Option<ProfilePicCandidate> {
-    let user = username.trim().trim_start_matches('@');
-    if user.is_empty() || user.contains('/') {
-        return None;
-    }
-    let url = GithubPicSource::avatar_url(user);
+    let user = normalize_github_username(username)?;
+    let url = GithubPicSource::avatar_url(&user);
     Some(ProfilePicCandidate {
-        source_key: user.to_string(),
+        source_key: user.clone(),
         label: format!("GitHub (@{user})"),
         preview_url: Some(url),
         fetch_token: format!("github:{user}"),

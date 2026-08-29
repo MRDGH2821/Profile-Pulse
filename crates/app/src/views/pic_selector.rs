@@ -110,7 +110,9 @@ pub fn PicSelector(
                                         candidates.set(list);
                                     }
                                 } else {
-                                    error.set(Some("Enter a valid GitHub username".into()));
+                                    error.set(Some(
+                                        "Enter a GitHub username or profile URL (e.g. octocat or https://github.com/octocat)".into(),
+                                    ));
                                 }
                             }
                         },
@@ -140,7 +142,9 @@ pub fn PicSelector(
                                         candidates.set(list);
                                     }
                                 } else {
-                                    error.set(Some("Enter a valid GitLab username".into()));
+                                    error.set(Some(
+                                        "Enter a GitLab username or profile URL (e.g. gitlab or https://gitlab.com/gitlab)".into(),
+                                    ));
                                 }
                             }
                         },

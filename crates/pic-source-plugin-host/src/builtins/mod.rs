@@ -35,6 +35,22 @@ pub fn github_username_from_url(url: &str) -> Option<String> {
     Some(segment.to_string())
 }
 
+/// Normalize manual GitHub input (username, `@user`, or profile URL).
+pub fn normalize_github_username(input: &str) -> Option<String> {
+    let trimmed = input.trim();
+    if trimmed.is_empty() {
+        return None;
+    }
+    if let Some(user) = github_username_from_url(trimmed) {
+        return Some(user);
+    }
+    let user = trimmed.trim_start_matches('@').trim_end_matches('/');
+    if user.is_empty() || user.contains('/') {
+        return None;
+    }
+    Some(user.to_string())
+}
+
 pub fn gitlab_username_from_url(url: &str) -> Option<String> {
     let trimmed = url.trim().trim_end_matches('/');
     let rest = trimmed
@@ -51,6 +67,22 @@ pub fn gitlab_username_from_url(url: &str) -> Option<String> {
         return None;
     }
     Some(segment.to_string())
+}
+
+/// Normalize manual GitLab input (username, `@user`, or profile URL).
+pub fn normalize_gitlab_username(input: &str) -> Option<String> {
+    let trimmed = input.trim();
+    if trimmed.is_empty() {
+        return None;
+    }
+    if let Some(user) = gitlab_username_from_url(trimmed) {
+        return Some(user);
+    }
+    let user = trimmed.trim_start_matches('@').trim_end_matches('/');
+    if user.is_empty() || user.contains('/') {
+        return None;
+    }
+    Some(user.to_string())
 }
 
 #[cfg(test)]
@@ -70,6 +102,43 @@ mod tests {
         assert_eq!(
             github_username_from_url("https://github.com/orgs/rust-lang"),
             None
+        );
+    }
+
+    #[test]
+    fn normalizes_github_username_inputs() {
+        assert_eq!(
+            normalize_github_username("https://github.com/octocat"),
+            Some("octocat".into())
+        );
+        assert_eq!(
+            normalize_github_username("github.com/octocat/"),
+            Some("octocat".into())
+        );
+        assert_eq!(
+            normalize_github_username("@octocat"),
+            Some("octocat".into())
+        );
+        assert_eq!(normalize_github_username("octocat"), Some("octocat".into()));
+        assert_eq!(
+            normalize_github_username("https://github.com/MRDGH2821/"),
+            Some("MRDGH2821".into())
+        );
+        assert_eq!(
+            normalize_github_username("https://github.com/orgs/rust-lang"),
+            None
+        );
+    }
+
+    #[test]
+    fn normalizes_gitlab_username_inputs() {
+        assert_eq!(
+            normalize_gitlab_username("https://gitlab.com/gitlab"),
+            Some("gitlab".into())
+        );
+        assert_eq!(
+            normalize_gitlab_username("@gitlab"),
+            Some("gitlab".into())
         );
     }
 

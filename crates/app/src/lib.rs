@@ -22,7 +22,15 @@ fn App() -> Element {
     use_context_provider(|| ActiveProfile(active_profile));
     use_context_provider(AppState::initialize);
     #[cfg(not(target_arch = "wasm32"))]
-    use_context_provider(SyncPromptState::new);
+    let sync_pending =
+        use_signal(|| None::<(profile_pulse_core::ProfileId, Vec<profile_pulse_sync::TargetRemoteChanges>)>);
+    #[cfg(not(target_arch = "wasm32"))]
+    let sync_conflicts = use_signal(Vec::<profile_pulse_sync::PullConflict>::new);
+    #[cfg(not(target_arch = "wasm32"))]
+    use_context_provider(|| SyncPromptState {
+        pending: sync_pending,
+        conflicts: sync_conflicts,
+    });
     let active_profile = use_context::<ActiveProfile>();
     let state = use_context::<AppState>();
     #[cfg(not(target_arch = "wasm32"))]
@@ -74,6 +82,14 @@ fn App() -> Element {
     });
     rsx! {
         document::Stylesheet { href: asset!("/assets/styles.css") }
+        Router::<Route> {}
+    }
+}
+
+#[component]
+pub fn AppShell() -> Element {
+    let active_profile = use_context::<ActiveProfile>();
+    rsx! {
         div {
             class: "app-root",
             header {
@@ -85,23 +101,19 @@ fn App() -> Element {
                 nav {
                     class: "header-nav",
                     Link {
-                        to: Route:: Profiles {
-                        },
+                        to: Route::Profiles {},
                         "Profiles"
                     }
                     Link {
-                        to: Route:: PicSourcesSettings {
-                        },
+                        to: Route::PicSourcesSettings {},
                         "Pic sources"
                     }
                     Link {
-                        to: Route:: SyncSettings {
-                        },
+                        to: Route::SyncSettings {},
                         "Sync"
                     }
                     Link {
-                        to: Route:: BackupsSettings {
-                        },
+                        to: Route::BackupsSettings {},
                         "Backups"
                     }
                 }
@@ -114,7 +126,7 @@ fn App() -> Element {
             }
             main {
                 class: "app-main",
-                Router::<Route> {}
+                Outlet::<Route> {}
             }
         }
     }

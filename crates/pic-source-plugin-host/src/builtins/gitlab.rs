@@ -1,4 +1,4 @@
-use crate::builtins::gitlab_username_from_url;
+use crate::builtins::{gitlab_username_from_url, normalize_gitlab_username};
 use crate::desktop_host::{DesktopHostApi, guess_content_type, host_context};
 use async_trait::async_trait;
 use profile_pulse_core::PicSourcePluginId;
@@ -93,13 +93,10 @@ impl ProfilePicSourcePlugin for GitlabPicSource {
 }
 
 pub fn gitlab_candidate_for_username(username: &str) -> Option<ProfilePicCandidate> {
-    let user = username.trim().trim_start_matches('@');
-    if user.is_empty() || user.contains('/') {
-        return None;
-    }
-    let url = GitlabPicSource::avatar_url(user);
+    let user = normalize_gitlab_username(username)?;
+    let url = GitlabPicSource::avatar_url(&user);
     Some(ProfilePicCandidate {
-        source_key: user.to_string(),
+        source_key: user.clone(),
         label: format!("GitLab (@{user})"),
         preview_url: Some(url),
         fetch_token: format!("gitlab:{user}"),

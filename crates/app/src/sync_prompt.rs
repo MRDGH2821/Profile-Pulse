@@ -10,13 +10,6 @@ pub struct SyncPromptState {
 }
 
 impl SyncPromptState {
-    pub fn new() -> Self {
-        Self {
-            pending: use_signal(|| None),
-            conflicts: use_signal(Vec::new),
-        }
-    }
-
     pub fn set_pending(&mut self, profile_id: ProfileId, changes: Vec<TargetRemoteChanges>) {
         self.pending.set(Some((profile_id, changes)));
     }
