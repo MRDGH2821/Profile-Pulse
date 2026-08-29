@@ -1,7 +1,7 @@
 use crate::routes::Route;
 use crate::state::AppState;
 use crate::views::contact_pull_conflict::ContactPullConflictPanel;
-use crate::views::{ContactEditor, PicSelector};
+use crate::views::{ContactAvatar, ContactAvatarSize, ContactEditor, PicSelector};
 use dioxus::prelude::*;
 use profile_pulse_core::{ContactId, ProfileId};
 use profile_pulse_storage::StorageBackend;
@@ -160,6 +160,17 @@ pub fn ContactDetail(profile_id: String, contact_id: String) -> Element {
             match tab() {
                 ContactTab::Details => rsx!{
                     if let Some(c) = contact() {
+                        div {
+                            class: "contact-detail-header",
+                            ContactAvatar {
+                                photo_hash: c.photo_content_hash.clone(),
+                                display_name: c.display_name.clone(),
+                                size: ContactAvatarSize::Lg,
+                            }
+                            h3 {
+                                "{c.display_name}"
+                            }
+                        }
                         dl {
                             class: "details",
                             dt {

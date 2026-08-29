@@ -1,5 +1,6 @@
 mod backups_import_export_toolbar;
 mod backups_settings;
+mod contact_avatar;
 mod contact_detail;
 mod contact_editor;
 mod contact_list;
@@ -12,6 +13,7 @@ mod sync_pull_panel;
 mod sync_settings;
 
 pub use backups_settings::BackupsSettings;
+pub use contact_avatar::{ContactAvatar, ContactAvatarSize};
 pub use contact_detail::ContactDetail;
 pub use contact_editor::ContactEditor;
 pub use contact_list::ContactList;

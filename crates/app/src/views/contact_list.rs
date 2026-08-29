@@ -1,5 +1,6 @@
 use crate::routes::Route;
 use crate::state::{ActiveProfile, AppState};
+use crate::views::ContactAvatar;
 use dioxus::prelude::*;
 use profile_pulse_core::{ContactId, ProfileId};
 use profile_pulse_storage::{ContactIndex, StorageBackend};
@@ -107,7 +108,7 @@ pub fn ContactList(profile_id: String) -> Element {
                 for contact in contacts.read().iter() {
                     li {
                         button {
-                            class: "list-button",
+                            class: "list-button contact-list-item",
                             onclick: {
                                 let contact_id = contact.id.0.to_string();
                                 let profile_id = profile_id.clone();
@@ -118,7 +119,14 @@ pub fn ContactList(profile_id: String) -> Element {
                                     });
                                 }
                             },
-                            "{contact.display_name}"
+                            ContactAvatar {
+                                photo_hash: contact.photo_content_hash.clone(),
+                                display_name: contact.display_name.clone(),
+                            }
+                            span {
+                                class: "contact-list-name",
+                                "{contact.display_name}"
+                            }
                         }
                     }
                 }
@@ -131,6 +139,7 @@ pub fn ContactList(profile_id: String) -> Element {
 struct ContactSummary {
     id: ContactId,
     display_name: String,
+    photo_content_hash: Option<String>,
 }
 
 async fn load_contacts(
@@ -161,6 +170,7 @@ async fn load_contacts(
         summaries.push(ContactSummary {
             id: contact.id,
             display_name: contact.display_name,
+            photo_content_hash: contact.photo_content_hash,
         });
     }
     summaries.sort_by(|a, b| a.display_name.cmp(&b.display_name));

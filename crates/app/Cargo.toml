@@ -12,6 +12,7 @@ name = "profile-pulse"
 path = "src/main.rs"
 
 [dependencies]
+base64.workspace = true
 chrono.workspace = true
 dioxus = { version = "0.7", features = ["router"] }
 directories = { workspace = true, optional = true }
