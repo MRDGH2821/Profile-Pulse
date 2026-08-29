@@ -1,8 +1,6 @@
 use crate::builtins::all_builtins;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::desktop_host::DesktopHostApi;
-#[cfg(target_arch = "wasm32")]
-use crate::web_host::PluginHostApi as DesktopHostApi;
 use crate::error::HostError;
 use crate::manifest::MANIFEST_FILE;
 #[cfg(not(target_arch = "wasm32"))]
@@ -12,6 +10,8 @@ use crate::package::{
 };
 #[cfg(not(target_arch = "wasm32"))]
 use crate::wasm_runtime::WasmPicSourcePlugin;
+#[cfg(target_arch = "wasm32")]
+use crate::web_host::PluginHostApi as DesktopHostApi;
 use profile_pulse_core::PicSourcePluginId;
 use profile_pulse_pic_source_plugin_api::{
     ContactContext, PicSourceCapability, PicSourceHostApi, PicSourcePluginMetadata,

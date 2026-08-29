@@ -171,7 +171,8 @@ impl SyncService {
         Ok(results)
     }
 
-    /// Decide whether a single remote change can be applied or needs conflict resolution.
+    /// Decide whether a single remote change can be applied or needs conflict
+    /// resolution.
     pub async fn prepare_pull_item(
         &self,
         profile: &Profile,
@@ -192,11 +193,9 @@ impl SyncService {
         let (mut remote, _vcard) = adapter.pull_contact(&change.remote_id).await?;
         remote.id = contact_id;
         remote.profile_id = profile.id;
-
         let Some(local) = local else {
             return Ok(PullPrepareResult::Apply(Box::new(remote)));
         };
-
         let link = self
             .links
             .get_link(profile.id, contact_id, target_kind)?

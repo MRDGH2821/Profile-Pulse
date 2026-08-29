@@ -21,9 +21,7 @@ pub fn BackupsImportExportToolbar(
                 onclick: {
                     let state = state.clone();
                     move |_| {
-                        let Some(path) =
-                            rfd::FileDialog::new().add_filter("vCard", &["vcf"]).pick_file()
-                        else {
+                        let Some(path) = rfd::FileDialog::new().add_filter("vCard", &["vcf"]).pick_file() else {
                             return;
                         };
                         busy_signal.set(true);
@@ -33,10 +31,7 @@ pub fn BackupsImportExportToolbar(
                             match std::fs::read(&path) {
                                 Ok(bytes) => {
                                     match state.contact_service.import_vcf(profile_id, &bytes).await {
-                                        Ok(ids) => status.set(Some(format!(
-                                            "Imported {} contact(s)",
-                                            ids.len()
-                                        ))),
+                                        Ok(ids) => status.set(Some(format!("Imported {} contact(s)", ids.len()))),
                                         Err(err) => error.set(Some(err.to_string())),
                                     }
                                 },
@@ -53,12 +48,12 @@ pub fn BackupsImportExportToolbar(
                 onclick: {
                     let state = state.clone();
                     move |_| {
-                        let Some(path) = rfd::FileDialog::new()
-                            .add_filter("Profile Pulse bundle", &["pp-profile", "zip"])
-                            .pick_file()
-                        else {
-                            return;
-                        };
+                        let Some(path) =
+                            rfd::FileDialog::new()
+                                .add_filter("Profile Pulse bundle", &["pp-profile", "zip"])
+                                .pick_file() else {
+                                return;
+                            };
                         busy_signal.set(true);
                         error.set(None);
                         let state = state.clone();
@@ -67,10 +62,7 @@ pub fn BackupsImportExportToolbar(
                                 Ok(bytes) => {
                                     match state.contact_service.import_profile_bundle(&bytes).await {
                                         Ok(profile) => {
-                                            status.set(Some(format!(
-                                                "Imported profile \"{}\"",
-                                                profile.name
-                                            )));
+                                            status.set(Some(format!("Imported profile \"{}\"", profile.name)));
                                             if let Ok(list) = state.list_profiles().await {
                                                 profiles.set(list);
                                             }
@@ -97,11 +89,11 @@ pub fn BackupsImportExportToolbar(
                         spawn(async move {
                             match state.contact_service.export_vcf_aggregate(profile_id).await {
                                 Ok(bytes) => {
-                                    if let Some(path) = rfd::FileDialog::new()
-                                        .set_file_name("contacts.vcf")
-                                        .add_filter("vCard", &["vcf"])
-                                        .save_file()
-                                    {
+                                    if let Some(path) =
+                                        rfd::FileDialog::new()
+                                            .set_file_name("contacts.vcf")
+                                            .add_filter("vCard", &["vcf"])
+                                            .save_file() {
                                         let write_result = std::fs::write(&path, bytes);
                                         match write_result {
                                             Ok(()) => status.set(Some("Exported aggregate VCF".into())),
@@ -128,11 +120,11 @@ pub fn BackupsImportExportToolbar(
                         spawn(async move {
                             match state.contact_service.export_profile_bundle(profile_id).await {
                                 Ok(bytes) => {
-                                    if let Some(path) = rfd::FileDialog::new()
-                                        .set_file_name("profile.pp-profile")
-                                        .add_filter("Profile Pulse bundle", &["pp-profile", "zip"])
-                                        .save_file()
-                                    {
+                                    if let Some(path) =
+                                        rfd::FileDialog::new()
+                                            .set_file_name("profile.pp-profile")
+                                            .add_filter("Profile Pulse bundle", &["pp-profile", "zip"])
+                                            .save_file() {
                                         let write_result = std::fs::write(&path, bytes);
                                         match write_result {
                                             Ok(()) => {

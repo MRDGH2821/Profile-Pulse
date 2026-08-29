@@ -41,11 +41,7 @@ pub enum PullApplyResult {
     DeferredReview,
 }
 
-pub fn is_pull_conflict(
-    local: &Contact,
-    remote: &Contact,
-    link_updated_at: DateTime<Utc>,
-) -> bool {
+pub fn is_pull_conflict(local: &Contact, remote: &Contact, link_updated_at: DateTime<Utc>) -> bool {
     local.updated_at > link_updated_at && remote.updated_at > link_updated_at
 }
 
@@ -86,7 +82,10 @@ mod tests {
     #[test]
     fn detects_conflict_when_both_sides_changed_after_link() {
         let link_time = Utc::now() - chrono::Duration::hours(2);
-        let local = sample_contact(ContactId(uuid::Uuid::new_v4()), link_time + chrono::Duration::hours(1));
+        let local = sample_contact(
+            ContactId(uuid::Uuid::new_v4()),
+            link_time + chrono::Duration::hours(1),
+        );
         let remote = sample_contact(local.id, link_time + chrono::Duration::minutes(30));
         assert!(is_pull_conflict(&local, &remote, link_time));
     }
@@ -94,7 +93,10 @@ mod tests {
     #[test]
     fn no_conflict_when_only_remote_changed() {
         let link_time = Utc::now() - chrono::Duration::hours(1);
-        let local = sample_contact(ContactId(uuid::Uuid::new_v4()), link_time - chrono::Duration::hours(1));
+        let local = sample_contact(
+            ContactId(uuid::Uuid::new_v4()),
+            link_time - chrono::Duration::hours(1),
+        );
         let remote = sample_contact(local.id, link_time + chrono::Duration::minutes(10));
         assert!(!is_pull_conflict(&local, &remote, link_time));
     }

@@ -30,7 +30,9 @@ impl WebContactIndex {
 
     async fn load(&self) -> Result<IndexData, StorageError> {
         match vfs::read_string(INDEX_PATH).await {
-            Ok(text) => serde_json::from_str(&text).map_err(|err| StorageError::Web(err.to_string())),
+            Ok(text) => {
+                serde_json::from_str(&text).map_err(|err| StorageError::Web(err.to_string()))
+            }
             Err(err) if err.contains("not found") => Ok(IndexData::default()),
             Err(err) => Err(StorageError::Web(err)),
         }
@@ -38,7 +40,8 @@ impl WebContactIndex {
 
     async fn save(&self, data: &IndexData) -> Result<(), StorageError> {
         vfs::ensure_dir("index").await.map_err(StorageError::Web)?;
-        let text = serde_json::to_string_pretty(data).map_err(|err| StorageError::Web(err.to_string()))?;
+        let text =
+            serde_json::to_string_pretty(data).map_err(|err| StorageError::Web(err.to_string()))?;
         vfs::write_string(INDEX_PATH, &text)
             .await
             .map_err(StorageError::Web)

@@ -38,7 +38,8 @@ fn storage_key(key: &str) -> String {
 }
 
 fn derive_key(passphrase: &str, salt: &[u8]) -> Result<[u8; 32], SyncError> {
-    let params = Params::new(19 * 1024, 2, 1, Some(32)).map_err(|err| SyncError::Storage(err.to_string()))?;
+    let params = Params::new(19 * 1024, 2, 1, Some(32))
+        .map_err(|err| SyncError::Storage(err.to_string()))?;
     let argon = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
     let mut derived = [0u8; 32];
     argon
@@ -99,7 +100,6 @@ fn decrypt(payload_text: &str) -> Result<String, SyncError> {
         .map_err(|err| SyncError::Storage(err.to_string()))?;
     String::from_utf8(plaintext).map_err(|err| SyncError::Storage(err.to_string()))
 }
-
 #[derive(Debug, Clone)]
 pub struct SecretStore;
 

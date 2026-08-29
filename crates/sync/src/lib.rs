@@ -23,13 +23,13 @@ mod service_web;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub use adapter::SyncAdapter;
+#[cfg(not(target_arch = "wasm32"))]
+pub use carddav::CardDavAdapter;
 pub use conflict::{
     PullApplyResult, PullConflict, PullPrepareResult, RemoteChange, TargetRemoteChanges,
     is_pull_conflict, resolve_pull_conflict,
 };
 pub use credentials::{CardDavCredentials, PushResult, carddav_secret_key};
-#[cfg(not(target_arch = "wasm32"))]
-pub use carddav::CardDavAdapter;
 pub use error::SyncError;
 #[cfg(not(target_arch = "wasm32"))]
 pub use google::{GoogleContactsAdapter, GoogleTokenBundle, authorize_google_pkce};

@@ -4,13 +4,13 @@ This guide covers the **Dioxus rewrite** (desktop + web PWA). For the frozen leg
 
 ## Documentation map
 
-| Doc                                                                                | Purpose                          |
-| ---------------------------------------------------------------------------------- | -------------------------------- |
-| [ROADMAP.md](ROADMAP.md)                                                           | Phased milestones and checklists |
-| [Implementation spec](superpowers/specs/2026-08-22-rewrite-implementation-spec.md) | Types, traits, on-disk layout    |
-| [Architecture design](superpowers/specs/2026-08-22-rewrite-architecture-design.md) | High-level decisions             |
-| [Phase 0 plan](superpowers/plans/2026-08-22-rewrite-phase-0-foundation.md)         | First implementation tasks       |
-| [Human plan](human-plans/profile-pulse-app.md)                                     | Product requirements             |
+| Doc                                                                                | Purpose                                       |
+| ---------------------------------------------------------------------------------- | --------------------------------------------- |
+| [ROADMAP.md](ROADMAP.md)                                                           | Phased milestones and checklists              |
+| [Implementation spec](superpowers/specs/2026-08-22-rewrite-implementation-spec.md) | Types, traits, on-disk layout                 |
+| [Architecture design](superpowers/specs/2026-08-22-rewrite-architecture-design.md) | High-level decisions                          |
+| [Phase 0 plan](superpowers/plans/2026-08-22-rewrite-phase-0-foundation.md)         | First implementation tasks                    |
+| [Human plan](human-plans/profile-pulse-app.md)                                     | Product requirements                          |
 | [DIOXUS.md](DIOXUS.md)                                                             | Dioxus 0.7 app setup (`dx`, features, layout) |
 
 ## Prerequisites

@@ -26,10 +26,7 @@ async fn storage_root() -> Result<FileSystemDirectoryHandle, String> {
         .map_err(|err| opfs_error("storage root cast", err))
 }
 
-async fn open_dir(
-    relative_path: &str,
-    create: bool,
-) -> Result<FileSystemDirectoryHandle, String> {
+async fn open_dir(relative_path: &str, create: bool) -> Result<FileSystemDirectoryHandle, String> {
     let mut current = storage_root().await?;
     for segment in relative_path.split('/').filter(|part| !part.is_empty()) {
         let options = FileSystemGetDirectoryOptions::new();
@@ -48,10 +45,7 @@ async fn open_dir(
     Ok(current)
 }
 
-async fn open_file(
-    relative_path: &str,
-    create: bool,
-) -> Result<FileSystemFileHandle, String> {
+async fn open_file(relative_path: &str, create: bool) -> Result<FileSystemFileHandle, String> {
     let path = relative_path.trim_start_matches('/');
     let (dir_path, file_name) = path
         .rsplit_once('/')

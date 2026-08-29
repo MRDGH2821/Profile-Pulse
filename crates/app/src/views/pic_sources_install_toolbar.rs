@@ -18,14 +18,13 @@ pub fn PicSourceInstallToolbar(
             class: "toolbar",
             button {
                 disabled: busy,
-                onclick: move |_| {
+                onclick: move | _ | {
                     let Some(path) =
                         rfd::FileDialog::new()
                             .add_filter("Profile pic source plugin", &[PACKAGE_EXTENSION, "zip"])
-                            .pick_file()
-                    else {
-                        return;
-                    };
+                            .pick_file() else {
+                            return;
+                        };
                     match preview_package(&path) {
                         Ok(manifest) => {
                             error.set(None);

@@ -136,10 +136,7 @@ mod tests {
             normalize_gitlab_username("https://gitlab.com/gitlab"),
             Some("gitlab".into())
         );
-        assert_eq!(
-            normalize_gitlab_username("@gitlab"),
-            Some("gitlab".into())
-        );
+        assert_eq!(normalize_gitlab_username("@gitlab"), Some("gitlab".into()));
     }
 
     #[test]

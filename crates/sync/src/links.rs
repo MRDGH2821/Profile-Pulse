@@ -117,11 +117,7 @@ impl SyncLinkStore {
             )
             .map_err(|e| SyncError::Storage(e.to_string()))?;
         let mut rows = stmt
-            .query(params![
-                profile_id.0.to_string(),
-                target_kind,
-                remote_id
-            ])
+            .query(params![profile_id.0.to_string(), target_kind, remote_id])
             .map_err(|e| SyncError::Storage(e.to_string()))?;
         if let Some(row) = rows.next().map_err(|e| SyncError::Storage(e.to_string()))? {
             let id: String = row.get(0).map_err(|e| SyncError::Storage(e.to_string()))?;

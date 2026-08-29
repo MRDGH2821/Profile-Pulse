@@ -31,7 +31,6 @@ fn browser_storage() -> Result<web_sys::Storage, SyncError> {
         .and_then(|window| window.local_storage().ok().flatten())
         .ok_or_else(|| SyncError::Storage("localStorage unavailable".into()))
 }
-
 #[derive(Debug, Clone)]
 pub struct SyncLinkStore;
 
@@ -46,14 +45,17 @@ impl SyncLinkStore {
             .get_item(STORAGE_KEY)
             .map_err(|err| SyncError::Storage(format!("localStorage read failed: {err:?}")))?
         {
-            Some(text) => serde_json::from_str(&text).map_err(|err| SyncError::Storage(err.to_string())),
+            Some(text) => {
+                serde_json::from_str(&text).map_err(|err| SyncError::Storage(err.to_string()))
+            }
             None => Ok(LinkData::default()),
         }
     }
 
     fn save(&self, data: &LinkData) -> Result<(), SyncError> {
         let storage = browser_storage()?;
-        let text = serde_json::to_string(data).map_err(|err| SyncError::Storage(err.to_string()))?;
+        let text =
+            serde_json::to_string(data).map_err(|err| SyncError::Storage(err.to_string()))?;
         storage
             .set_item(STORAGE_KEY, &text)
             .map_err(|err| SyncError::Storage(format!("localStorage write failed: {err:?}")))
@@ -105,8 +107,8 @@ impl SyncLinkStore {
         for (contact_id, targets) in contacts {
             if let Some(record) = targets.get(target_kind) {
                 if record.remote_id == remote_id {
-                    let uuid =
-                        uuid::Uuid::parse_str(contact_id).map_err(|e| SyncError::Storage(e.to_string()))?;
+                    let uuid = uuid::Uuid::parse_str(contact_id)
+                        .map_err(|e| SyncError::Storage(e.to_string()))?;
                     return Ok(Some(ContactId(uuid)));
                 }
             }
@@ -122,8 +124,8 @@ impl SyncLinkStore {
         let mut links = Vec::new();
         if let Some(contacts) = data.links.get(&profile_id.0.to_string()) {
             for (contact_id, targets) in contacts {
-                let uuid =
-                    uuid::Uuid::parse_str(contact_id).map_err(|e| SyncError::Storage(e.to_string()))?;
+                let uuid = uuid::Uuid::parse_str(contact_id)
+                    .map_err(|e| SyncError::Storage(e.to_string()))?;
                 for (target_kind, record) in targets {
                     links.push(SyncLink {
                         contact_id: ContactId(uuid),

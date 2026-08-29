@@ -14,7 +14,6 @@ struct SlugManifest {
 struct ContactManifest {
     contact_ids: Vec<String>,
 }
-
 #[derive(Debug, Clone)]
 pub struct OpfsVdirBackend;
 
@@ -37,15 +36,20 @@ impl OpfsVdirBackend {
 
     async fn read_slug_manifest(&self) -> Result<SlugManifest, StorageError> {
         match vfs::read_string("profiles/manifest.json").await {
-            Ok(text) => serde_json::from_str(&text).map_err(|err| StorageError::Web(err.to_string())),
+            Ok(text) => {
+                serde_json::from_str(&text).map_err(|err| StorageError::Web(err.to_string()))
+            }
             Err(err) if err.contains("not found") => Ok(SlugManifest::default()),
             Err(err) => Err(StorageError::Web(err)),
         }
     }
 
     async fn write_slug_manifest(&self, manifest: &SlugManifest) -> Result<(), StorageError> {
-        vfs::ensure_dir("profiles").await.map_err(StorageError::Web)?;
-        let text = serde_json::to_string_pretty(manifest).map_err(|err| StorageError::Web(err.to_string()))?;
+        vfs::ensure_dir("profiles")
+            .await
+            .map_err(StorageError::Web)?;
+        let text = serde_json::to_string_pretty(manifest)
+            .map_err(|err| StorageError::Web(err.to_string()))?;
         vfs::write_string("profiles/manifest.json", &text)
             .await
             .map_err(StorageError::Web)
@@ -53,7 +57,9 @@ impl OpfsVdirBackend {
 
     async fn read_contact_manifest(&self, slug: &str) -> Result<ContactManifest, StorageError> {
         match vfs::read_string(&Self::contacts_manifest_path(slug)).await {
-            Ok(text) => serde_json::from_str(&text).map_err(|err| StorageError::Web(err.to_string())),
+            Ok(text) => {
+                serde_json::from_str(&text).map_err(|err| StorageError::Web(err.to_string()))
+            }
             Err(err) if err.contains("not found") => Ok(ContactManifest::default()),
             Err(err) => Err(StorageError::Web(err)),
         }
@@ -67,7 +73,8 @@ impl OpfsVdirBackend {
         vfs::ensure_dir(&format!("profiles/{slug}/contacts"))
             .await
             .map_err(StorageError::Web)?;
-        let text = serde_json::to_string_pretty(manifest).map_err(|err| StorageError::Web(err.to_string()))?;
+        let text = serde_json::to_string_pretty(manifest)
+            .map_err(|err| StorageError::Web(err.to_string()))?;
         vfs::write_string(&Self::contacts_manifest_path(slug), &text)
             .await
             .map_err(StorageError::Web)

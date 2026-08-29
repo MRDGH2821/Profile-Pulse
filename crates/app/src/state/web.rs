@@ -1,9 +1,7 @@
 use dioxus::prelude::*;
 use profile_pulse_core::{Profile, ProfileId, ProfileSettings, SyncTargetConfig};
 use profile_pulse_pic_source_plugin_host::PicSourcePluginRegistry;
-use profile_pulse_storage::{
-    ContactService, OpfsVdirBackend, StorageBackend, WebContactIndex,
-};
+use profile_pulse_storage::{ContactService, OpfsVdirBackend, StorageBackend, WebContactIndex};
 use profile_pulse_sync::SyncService;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
@@ -45,8 +43,7 @@ impl AppState {
             data_root.clone(),
         ));
         let plugin_registry = PicSourcePluginRegistry::with_builtins(&data_root);
-        let sync_service =
-            Arc::new(SyncService::new(&data_root).expect("initialize sync service"));
+        let sync_service = Arc::new(SyncService::new(&data_root).expect("initialize sync service"));
         Self {
             storage,
             index,

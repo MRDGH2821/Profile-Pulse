@@ -1,9 +1,9 @@
 mod backups_import_export_toolbar;
 mod backups_settings;
 mod contact_detail;
-mod contact_pull_conflict;
 mod contact_editor;
 mod contact_list;
+mod contact_pull_conflict;
 mod pic_selector;
 mod pic_sources_install_toolbar;
 mod pic_sources_settings;

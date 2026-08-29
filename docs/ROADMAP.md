@@ -21,7 +21,7 @@ Cross-platform **desktop + web PWA** app that keeps device/cloud contacts update
 | 5     | Cloud sync             | Google + CardDAV push/pull, per-contact sync button                | Done                                                                  |
 | 6     | Web PWA                | Dioxus web, OPFS storage backend                                   | Done                                                                  |
 | 7     | Background sync        | Remote-change polling, pull prompts, conflict UI                   | Done                                                                  |
-| 8     | Release readiness      | Clippy clean rewrite crates, docs sync, Phase 6 closure             | In progress                                                           |
+| 8     | Release readiness      | Clippy clean rewrite crates, docs sync, Phase 6 closure            | In progress                                                           |
 
 ## Phase 0 — Foundation
 

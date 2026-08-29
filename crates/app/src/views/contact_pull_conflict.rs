@@ -53,17 +53,12 @@ pub fn ContactPullConflictPanel(
                                 };
                                 match state
                                     .sync_service
-                                    .pull_with_resolution(
-                                        &profile,
-                                        &conflict,
-                                        PullConflictResolution::KeepLocal,
-                                    )
-                                    .await
-                                {
+                                    .pull_with_resolution(&profile, &conflict, PullConflictResolution::KeepLocal,)
+                                    .await {
                                     Ok((_, PullApplyResult::KeptLocal)) => {
                                         sync_prompt.remove_conflict(contact_uuid);
                                         conflict_status.set(Some("Kept local version".into()));
-                                    }
+                                    },
                                     Ok(_) => conflict_status.set(Some("Resolution applied".into())),
                                     Err(err) => error.set(Some(err.to_string())),
                                 }
@@ -86,27 +81,17 @@ pub fn ContactPullConflictPanel(
                                 };
                                 match state
                                     .sync_service
-                                    .pull_with_resolution(
-                                        &profile,
-                                        &conflict,
-                                        PullConflictResolution::TakeRemote,
-                                    )
-                                    .await
-                                {
+                                    .pull_with_resolution(&profile, &conflict, PullConflictResolution::TakeRemote,)
+                                    .await {
                                     Ok((updated, PullApplyResult::Applied)) => {
-                                        if let Err(err) = state
-                                            .contact_service
-                                            .update_contact(updated.clone())
-                                            .await
-                                        {
+                                        if let Err(err) = state.contact_service.update_contact(updated.clone()).await {
                                             error.set(Some(err.to_string()));
                                         } else {
                                             contact.set(Some(updated));
                                             sync_prompt.remove_conflict(contact_uuid);
-                                            conflict_status
-                                                .set(Some("Applied remote version".into()));
+                                            conflict_status.set(Some("Applied remote version".into()));
                                         }
-                                    }
+                                    },
                                     Ok(_) => conflict_status.set(Some("Resolution applied".into())),
                                     Err(err) => error.set(Some(err.to_string())),
                                 }
@@ -116,12 +101,10 @@ pub fn ContactPullConflictPanel(
                     "Take remote"
                 }
                 button {
-                    onclick: move |_| {
+                    onclick: move | _ | {
                         contact.set(Some(conflict.remote.clone()));
                         on_open_editor.call(());
-                        conflict_status.set(Some(
-                            "Remote version loaded in editor for manual review".into(),
-                        ));
+                        conflict_status.set(Some("Remote version loaded in editor for manual review".into(),));
                     },
                     "Review in editor"
                 }

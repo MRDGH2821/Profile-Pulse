@@ -6,7 +6,6 @@ pub struct BackupRef {
     pub path: PathBuf,
     pub label: String,
 }
-
 pub struct BackupService;
 
 impl BackupService {

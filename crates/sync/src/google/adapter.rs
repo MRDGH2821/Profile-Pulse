@@ -247,10 +247,7 @@ impl SyncAdapter for GoogleContactsAdapter {
             let mut request = self
                 .client
                 .get("https://people.googleapis.com/v1/people/me/connections")
-                .query(&[
-                    ("personFields", "metadata,names"),
-                    ("pageSize", "100"),
-                ])
+                .query(&[("personFields", "metadata,names"), ("pageSize", "100")])
                 .bearer_auth(&token);
             if let Some(token) = &page_token {
                 request = request.query(&[("pageToken", token)]);

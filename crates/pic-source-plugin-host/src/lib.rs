@@ -16,8 +16,6 @@ pub use builtins::github::github_candidate_for_username;
 pub use builtins::gitlab::gitlab_candidate_for_username;
 #[cfg(not(target_arch = "wasm32"))]
 pub use desktop_host::{DesktopHostApi, guess_content_type, host_context};
-#[cfg(target_arch = "wasm32")]
-pub use web_host::{PluginHostApi as DesktopHostApi, guess_content_type, host_context};
 pub use error::HostError;
 pub use manifest::{
     PACKAGE_EXTENSION, PicSourcePluginManifest, PluginInstallState, capability_name,
@@ -27,3 +25,5 @@ pub use package::{install_package, preview_package};
 pub use registry::{PicSourcePluginRegistry, PluginEntry, PluginRuntimeKind};
 #[cfg(not(target_arch = "wasm32"))]
 pub use wasm_runtime::WasmPicSourcePlugin;
+#[cfg(target_arch = "wasm32")]
+pub use web_host::{PluginHostApi as DesktopHostApi, guess_content_type, host_context};

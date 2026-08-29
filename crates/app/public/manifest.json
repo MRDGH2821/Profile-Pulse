@@ -1,16 +1,16 @@
 {
-  "name": "Profile Pulse",
-  "short_name": "Profile Pulse",
-  "description": "Contact management with social profile integration",
-  "start_url": "/",
-  "display": "standalone",
   "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "description": "Contact management with social profile integration",
+  "display": "standalone",
   "icons": [
     {
-      "src": "/icons/icon.png",
       "sizes": "256x256",
+      "src": "/icons/icon.png",
       "type": "image/png"
     }
-  ]
+  ],
+  "name": "Profile Pulse",
+  "short_name": "Profile Pulse",
+  "start_url": "/",
+  "theme_color": "#0f172a"
 }

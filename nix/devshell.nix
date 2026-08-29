@@ -9,30 +9,34 @@
     gst-plugins-base
     gst-plugins-good
   ];
-  desktopRuntimeLibs = pkgs.lib.makeLibraryPath (with pkgs; [
-    atk
-    bzip2
-    cairo
-    gdk-pixbuf
-    glib
-    gtk3
-    gst_all_1.gstreamer
-    gst_all_1.gst-plugins-base
-    libdrm
-    libepoxy
-    libsoup_3
-    libxkbcommon
-    librsvg
-    mesa
-    nspr
-    nss
-    openssl
-    pango
-    wayland
-    webkitgtk_4_1
-    xdotool
-    xz
-  ]);
+  desktopRuntimeLibs = pkgs.lib.makeLibraryPath (
+    with pkgs; [
+      # keep-sorted start
+      atk
+      bzip2
+      cairo
+      gdk-pixbuf
+      glib
+      gst_all_1.gst-plugins-base
+      gst_all_1.gstreamer
+      gtk3
+      libdrm
+      libepoxy
+      librsvg
+      libsoup_3
+      libxkbcommon
+      mesa
+      nspr
+      nss
+      openssl
+      pango
+      wayland
+      webkitgtk_4_1
+      xdotool
+      xz
+      # keep-sorted end
+    ]
+  );
   gstreamerPluginPath = pkgs.lib.makeSearchPath "lib/gstreamer-1.0" gstreamerPlugins;
 in
   pkgs.mkShell {

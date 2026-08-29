@@ -110,9 +110,11 @@ pub fn PicSelector(
                                         candidates.set(list);
                                     }
                                 } else {
-                                    error.set(Some(
-                                        "Enter a GitHub username or profile URL (e.g. octocat or https://github.com/octocat)".into(),
-                                    ));
+                                    error.set(
+                                        Some(
+                                            "Enter a GitHub username or profile URL (e.g. octocat or https://github.com/octocat)".into(),
+                                        )
+                                    );
                                 }
                             }
                         },
@@ -142,9 +144,11 @@ pub fn PicSelector(
                                         candidates.set(list);
                                     }
                                 } else {
-                                    error.set(Some(
-                                        "Enter a GitLab username or profile URL (e.g. gitlab or https://gitlab.com/gitlab)".into(),
-                                    ));
+                                    error.set(
+                                        Some(
+                                            "Enter a GitLab username or profile URL (e.g. gitlab or https://gitlab.com/gitlab)".into(),
+                                        )
+                                    );
                                 }
                             }
                         },
@@ -203,7 +207,7 @@ pub fn PicSelector(
                                                 error.set(Some(err.to_string()));
                                                 busy.set(false);
                                                 return;
-                                            }
+                                            },
                                         };
                                         let fetch_result = plugin.fetch_pic(&candidate).await;
                                         match fetch_result {

@@ -1,14 +1,14 @@
 //! Profile Pulse application shell.
 mod routes;
+mod state;
 #[cfg(not(target_arch = "wasm32"))]
 mod sync_prompt;
-mod state;
 mod views;
 
 use dioxus::prelude::*;
+use profile_pulse_storage::StorageBackend;
 use routes::Route;
 use state::{ActiveProfile, AppState};
-use profile_pulse_storage::StorageBackend;
 #[cfg(not(target_arch = "wasm32"))]
 use sync_prompt::SyncPromptState;
 
@@ -22,8 +22,12 @@ fn App() -> Element {
     use_context_provider(|| ActiveProfile(active_profile));
     use_context_provider(AppState::initialize);
     #[cfg(not(target_arch = "wasm32"))]
-    let sync_pending =
-        use_signal(|| None::<(profile_pulse_core::ProfileId, Vec<profile_pulse_sync::TargetRemoteChanges>)>);
+    let sync_pending = use_signal(|| {
+        None::<(
+            profile_pulse_core::ProfileId,
+            Vec<profile_pulse_sync::TargetRemoteChanges>,
+        )>
+    });
     #[cfg(not(target_arch = "wasm32"))]
     let sync_conflicts = use_signal(Vec::<profile_pulse_sync::PullConflict>::new);
     #[cfg(not(target_arch = "wasm32"))]
@@ -49,28 +53,25 @@ fn App() -> Element {
             let state = state_for_poll.clone();
             let mut sync_prompt = sync_prompt;
             spawn(async move {
-            loop {
-                let Some(profile_id) = active_profile.id() else {
-                    tokio::time::sleep(std::time::Duration::from_secs(15 * 60)).await;
-                    continue;
-                };
-                if let Ok(mut profile) = state.storage.load_profile(profile_id).await {
-                    match state.sync_service.poll_remote_changes(&profile).await {
-                        Ok(changes) if !changes.is_empty() => {
-                            sync_prompt.set_pending(profile_id, changes);
+                loop {
+                    let Some(profile_id) = active_profile.id() else {
+                        tokio::time::sleep(std::time::Duration::from_secs(15 * 60)).await;
+                        continue;
+                    };
+                    if let Ok(mut profile) = state.storage.load_profile(profile_id).await {
+                        match state.sync_service.poll_remote_changes(&profile).await {
+                            Ok(changes) if !changes.is_empty() => {
+                                sync_prompt.set_pending(profile_id, changes);
+                            }
+                            Ok(_) => {}
+                            Err(_) => {}
                         }
-                        Ok(_) => {}
-                        Err(_) => {}
+                        profile.settings.last_remote_sync_check = Some(chrono::Utc::now());
+                        let _ = state.contact_service.update_profile_settings(profile).await;
                     }
-                    profile.settings.last_remote_sync_check = Some(chrono::Utc::now());
-                    let _ = state
-                        .contact_service
-                        .update_profile_settings(profile)
-                        .await;
+                    tokio::time::sleep(std::time::Duration::from_secs(15 * 60)).await;
                 }
-                tokio::time::sleep(std::time::Duration::from_secs(15 * 60)).await;
-            }
-        });
+            });
         });
     }
     #[cfg(target_arch = "wasm32")]
@@ -101,19 +102,23 @@ pub fn AppShell() -> Element {
                 nav {
                     class: "header-nav",
                     Link {
-                        to: Route::Profiles {},
+                        to: Route:: Profiles {
+                        },
                         "Profiles"
                     }
                     Link {
-                        to: Route::PicSourcesSettings {},
+                        to: Route:: PicSourcesSettings {
+                        },
                         "Pic sources"
                     }
                     Link {
-                        to: Route::SyncSettings {},
+                        to: Route:: SyncSettings {
+                        },
                         "Sync"
                     }
                     Link {
-                        to: Route::BackupsSettings {},
+                        to: Route:: BackupsSettings {
+                        },
                         "Backups"
                     }
                 }
@@ -158,7 +163,7 @@ fn SyncPromptBanner() -> Element {
                 }
                 button {
                     class: "link-button",
-                    onclick: move |_| {
+                    onclick: move | _ | {
                         let _ = nav.push(Route::SyncSettings {});
                         let _ = profile_id;
                     },

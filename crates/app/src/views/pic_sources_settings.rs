@@ -156,24 +156,19 @@ pub fn PicSourcesSettings() -> Element {
                                     error.set(None);
                                     let state = state.clone();
                                     spawn(async move {
-                                        let data_root = state
-                                            .plugin_registry
-                                            .read()
-                                            .unwrap()
-                                            .data_root()
-                                            .to_path_buf();
-                                        let install_result = install_package(
-                                            &data_root,
-                                            std::path::Path::new(&path),
-                                            &approved,
-                                        )
-                                        .await;
+                                        let data_root =
+                                            state.plugin_registry.read().unwrap().data_root().to_path_buf();
+                                        let install_result =
+                                            install_package(
+                                                &data_root,
+                                                std::path::Path::new(&path),
+                                                &approved,
+                                            ).await;
                                         let result = match install_result {
                                             Ok(install_dir) => {
-                                                let mut registry =
-                                                    state.plugin_registry.write().unwrap();
+                                                let mut registry = state.plugin_registry.write().unwrap();
                                                 registry.register_install_dir(&install_dir)
-                                            }
+                                            },
                                             Err(err) => Err(err),
                                         };
                                         match result {
