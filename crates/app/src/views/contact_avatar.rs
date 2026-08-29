@@ -46,7 +46,6 @@ pub fn ContactAvatar(
     let state = use_context::<AppState>();
     let mut data_url = use_signal(|| None::<String>);
     let size_class = size.class_name();
-
     use_effect(move || {
         let hash = photo_hash.clone();
         let data_root = state.contact_service.data_root().to_path_buf();
@@ -61,7 +60,6 @@ pub fn ContactAvatar(
             }
         });
     });
-
     if let Some(url) = data_url() {
         rsx! {
             img {

@@ -2,7 +2,8 @@
 
 :root {
   color-scheme: light dark;
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-sans:
+    system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   --radius: 0.5rem;
   --radius-sm: 0.35rem;
   --space-page: 1.5rem;
@@ -297,7 +298,9 @@ button:not(.list-button):not(.tab):not(.link-button):not(.danger-button) {
   font-weight: 500;
 }
 
-button:not(.list-button):not(.tab):not(.link-button):not(.danger-button):hover:not(:disabled) {
+button:not(.list-button):not(.tab):not(.link-button):not(
+    .danger-button
+  ):hover:not(:disabled) {
   background: var(--accent-hover);
 }
 
