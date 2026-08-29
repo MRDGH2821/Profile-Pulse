@@ -116,11 +116,15 @@
     sqlfluff.enable = true;
     sqlfluff-lint.enable = true;
     statix.enable = true;
-    taplo.enable = true;
-    toml-sort = {
+    taplo = {
       enable = true;
-      priority = 0;
+      priority = 15;
+      settings.formatting = {
+        array_auto_expand = true;
+        array_trailing_comma = false;
+      };
     };
+    toml-sort.enable = true;
     typos = {
       enable = true;
       excludes = [
@@ -128,7 +132,9 @@
         "**/.agents/logs/**"
         "**/.cspell.json"
         "**/.typos.toml"
+        "**/cspell.json"
         ".agents/logs/**"
+        ".config/cspell.json"
         ".cspell.json"
         ".typos.toml"
         "CHANGELOG.md"
@@ -242,8 +248,11 @@
       allow-missing-formatter = true;
       excludes = [
         # keep-sorted start
+        "**/apm_modules/**"
+        "**/node_modules/**"
         "**/openspec/**"
         "**/skills/**"
+        ".gitattributes"
         "openspec/**"
         "tests/fixtures/**"
         # keep-sorted end

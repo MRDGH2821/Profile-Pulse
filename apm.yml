@@ -2,7 +2,8 @@
 author: MRDGH2821
 dependencies:
   apm:
-    - git: https://github.com/MRDGH2821/copier-mr-minimal
+    - git: https://github.com/MRDGH2821/copier-mr-nix
+    - git: Leonxlnx/taste-skill
   mcp:
     - args:
         - mcp-nixos

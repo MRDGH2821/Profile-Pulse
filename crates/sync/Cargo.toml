@@ -26,7 +26,12 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 oauth2.workspace = true
 reqwest = { workspace = true, features = ["json"] }
 rusqlite.workspace = true
-tokio = { workspace = true, features = ["io-util", "macros", "net", "rt-multi-thread"] }
+tokio = { workspace = true, features = [
+  "io-util",
+  "macros",
+  "net",
+  "rt-multi-thread"
+] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 aes-gcm = "0.10"

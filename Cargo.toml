@@ -1,6 +1,15 @@
 [workspace]
 resolver = "3"
-members = ["crates/app", "crates/core", "crates/pic-source-plugin-api", "crates/pic-source-plugin-host", "crates/storage", "crates/sync", "legacy/iced-app", "pic-source-plugins/sample-hello-pic-source"]
+members = [
+  "crates/app",
+  "crates/core",
+  "crates/pic-source-plugin-api",
+  "crates/pic-source-plugin-host",
+  "crates/storage",
+  "crates/sync",
+  "legacy/iced-app",
+  "pic-source-plugins/sample-hello-pic-source"
+]
 
 [workspace.package]
 edition = "2024"
@@ -16,7 +25,9 @@ directories = "6.0.0"
 log = "0.4"
 md5 = "0.7"
 oauth2 = { version = "5.0", features = ["reqwest"] }
-reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = [
+  "rustls-tls"
+] }
 rusqlite = { version = "0.32", features = ["bundled"] }
 semver = { version = "1.0", features = ["serde"] }
 serde = { version = "1.0", features = ["derive"] }
